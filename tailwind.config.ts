@@ -1,19 +1,18 @@
 import type { Config } from 'tailwindcss';
 import colors from 'tailwindcss/colors';
-
-/**
- * @type {import('@types/tailwindcss/tailwind-config').TailwindConfig}
- */
-
+import flowbite from "flowbite-react/tailwind";
 
 const config: Config = {
   content: [
-    './src/**/*.{js,ts,jsx,tsx}',
-    "./node_modules/flowbite-react/lib/**/*.js",
-    "./pages/**/*.{ts,tsx}",
-    "./public/**/*.html",
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+
+    // Or if using `src` directory:
+    "./src/**/*.{js,ts,jsx,tsx,mdx}",
     // Path to Tremor module
     './node_modules/@tremor/**/*.{js,ts,jsx,tsx}',
+    flowbite.content(),
   ],
   theme: {
     transparent: 'transparent',
@@ -137,7 +136,7 @@ const config: Config = {
         /^(fill-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(?:50|100|200|300|400|500|600|700|800|900|950))$/,
     },
   ],
-  plugins: [require('@headlessui/tailwindcss'), require('@tailwindcss/forms') ,require("flowbite/plugin")],
+  plugins: [require('@headlessui/tailwindcss'), require('@tailwindcss/forms'), flowbite.plugin(),],
 };
 
 export default config;
