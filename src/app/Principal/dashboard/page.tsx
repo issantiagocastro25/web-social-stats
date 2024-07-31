@@ -4,8 +4,8 @@ import Dashboard from "@/app/Components/DashboardComponents/dashboard";
 import { BarChartExampleWithGroups } from "@/app/Components/DashboardComponents/BarChartGraphic";
 import React, { useState } from "react";
 
-export default function DashboardPage() {
-    const [searchTerm, setSearchTerm] = useState("");
+const DashboardPage: React.FC = () => {
+    const [searchTerm, setSearchTerm] = useState<string>("");
 
     return (
         <div className="dashboard p-6">
@@ -15,4 +15,6 @@ export default function DashboardPage() {
             </div>
         </div>
     );
-}
+};
+
+export default DashboardPage;

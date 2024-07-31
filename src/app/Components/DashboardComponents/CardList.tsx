@@ -1,7 +1,12 @@
 "use client";
+
 import React from "react";
 
-export default function CardList({ searchTerm }) {
+interface CardListProps {
+    searchTerm: string;
+}
+
+const CardList: React.FC<CardListProps> = ({ searchTerm }) => {
     const entities = ["Entidad 1", "Entidad 2", "Entidad 3"];
     const filteredEntities = entities.filter((entity) =>
         entity.toLowerCase().includes(searchTerm.toLowerCase())
@@ -16,4 +21,6 @@ export default function CardList({ searchTerm }) {
             ))}
         </div>
     );
-}
+};
+
+export default CardList;
