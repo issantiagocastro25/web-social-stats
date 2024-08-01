@@ -3,9 +3,13 @@
     "ciudad": "",
     "tipo": "",
     "facebook": {
-      "seguidores": null
+      "seguidores": null,
+      "videos": null,
+      "visitas": null,
+      "visitasPorVideo": null
     },
     "youtube": {
+      "suscriptores": null,
       "videos": null,
       "visitas": null,
       "visitasPorVideo": null
@@ -15,11 +19,5 @@
     },
     "instagram": {
       "seguidores": null
-    },
-    "otroCanal": {
-      "videos": null,
-      "visitas": null,
-      "suscriptores": null,
-      "visitasPorVideo": null
     }
   }
