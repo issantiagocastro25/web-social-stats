@@ -43,15 +43,15 @@ export default function Register() {
                     </div>
 
                     <div className="col-span-full">
-                        <label htmlFor="phone-number" className="block text-sm font-medium leading-6 text-gray-900">Correo Electrónico</label>
-                        <div className="mt-2">
-                            <input type="text" name="phone-number" id="phone-number" className="block w-full rounded-md border-0 py-1.5 bg-gray-50 text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-indigo-400 sm:text-sm sm:leading-6" required />
-                        </div>
-                    </div>
-                    <div className="col-span-full">
                         <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">Correo Electrónico</label>
                         <div className="mt-2">
                             <input type="email" name="email" id="email" className="block w-full rounded-md border-0 py-1.5 bg-gray-50 text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-indigo-400 sm:text-sm sm:leading-6" required/>
+                        </div>
+                    </div>
+                    <div className="col-span-full">
+                        <label htmlFor="phone-number" className="block text-sm font-medium leading-6 text-gray-900">Numero de teléfono</label>
+                        <div className="mt-2">
+                            <input type="text" name="phone-number" id="phone-number" className="block w-full rounded-md border-0 py-1.5 bg-gray-50 text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-indigo-400 sm:text-sm sm:leading-6" required />
                         </div>
                     </div>
                     <div className="col-span-full">
