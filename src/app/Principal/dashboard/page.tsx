@@ -126,7 +126,7 @@ const DashboardPage: React.FC = () => {
                         type="text"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Search for an entity..."
+                        placeholder="Busca un hospital..."
                         className="w-full p-3 border border-gray-300 rounded-md"
                     />
                 </div>
