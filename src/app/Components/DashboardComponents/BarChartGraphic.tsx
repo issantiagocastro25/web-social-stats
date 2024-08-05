@@ -1,66 +1,47 @@
 "use client";
 
-import { BarChart } from '@tremor/react';
+import React from "react";
+import { BarChart, Card, Title } from "@tremor/react";
+import { EntityData } from '@/app/Principal/dashboard/types';
 
-const chartdata = [
-  {
-    name: 'Instagram',
-    Views: 1500,
-    Likes: 1200,
-    Followers: 1300,
-    Videos: 50,
-    Posts: 300,
-  },
-  {
-    name: 'Facebook',
-    Views: 2000,
-    Likes: 1800,
-    Followers: 1700,
-    Videos: 70,
-    Posts: 400,
-  },
-  {
-    name: 'X',
-    Views: 1100,
-    Likes: 900,
-    Followers: 950,
-    Videos: 40,
-    Posts: 200,
-  },
-  {
-    name: 'YouTube',
-    Views: 2500,
-    Likes: 2300,
-    Followers: 2200,
-    Videos: 100,
-    Posts: 500,
-  },
-];
-
-const dataFormatter = (number:number) =>
-  Intl.NumberFormat('us').format(number).toString();
-
-export function BarChartExampleWithGroups() {
-  return (
-    <>
-      <h3 className="text-lg font-medium text-tremor-content-strong dark:text-dark-tremor-content-strong">
-        Social Media Metrics
-      </h3>
-      <BarChart
-        className="mt-6"
-        data={chartdata}
-        index="name"
-        categories={[
-          'Views',
-          'Likes',
-          'Followers',
-          'Videos',
-          'Posts',
-        ]}
-        colors={['blue', 'teal', 'amber', 'rose', 'indigo']}
-        valueFormatter={dataFormatter}
-        yAxisWidth={48}
-      />
-    </>
-  );
+interface BarChartExampleWithGroupsProps {
+    selectedEntity: string;
+    entityData: Record<string, EntityData>;
 }
+
+const BarChartExampleWithGroups: React.FC<BarChartExampleWithGroupsProps> = ({ selectedEntity, entityData }) => {
+    const selectedEntityData = entityData[selectedEntity];
+
+    if (!selectedEntityData) {
+        return null; // No renderizar nada si no hay una entidad seleccionada
+    }
+
+    const chartData = [{
+        name: selectedEntityData.institucion,
+        Facebook: selectedEntityData.facebook.seguidores || 0,
+        YouTube: selectedEntityData.youtube.seguidores || 0,
+        Twitter: selectedEntityData.twitter.seguidores || 0,
+        Instagram: selectedEntityData.instagram.seguidores || 0,
+        TikTok: selectedEntityData.tiktok.seguidores || 0,
+    }];
+
+    const dataFormatter = (number: number) => 
+        Intl.NumberFormat("us").format(number).toString();
+
+    return (
+        <Card className="mt-8">
+            <Title>Estadísticas de Redes Sociales para {selectedEntityData.institucion}</Title>
+            <BarChart
+                className="mt-6"
+                data={chartData}
+                index="name"
+                categories={["Facebook", "YouTube", "Twitter", "Instagram", "TikTok"]}
+                colors={["blue", "red", "cyan", "violet", "pink"]}
+                valueFormatter={dataFormatter}
+                yAxisWidth={48}
+            />
+        </Card>
+    );
+};
+
+export default BarChartExampleWithGroups;
