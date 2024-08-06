@@ -359,7 +359,7 @@ const DashboardPage: React.FC = () => {
                             <select
                                 value={selectedYear}
                                 onChange={(e) => setSelectedYear(e.target.value)}
-                                className="border border-gray-300 rounded-md mt-6"
+                                className="border border-gray-300 rounded-md"
                             >
                                 <option value="2024">2024</option>
                                 <option value="2023">2023</option>

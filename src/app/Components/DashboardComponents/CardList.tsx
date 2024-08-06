@@ -29,18 +29,18 @@ const CardList: React.FC<CardListProps> = ({ searchTerm, setSelectedEntity }) =>
         .slice(0, 4);
 
     return (
-        <div className="flex justify-between space-x-4 overflow-x-auto p-4">
+        <div className="flex justify-center space-x-14 overflow-x-auto pb-6">
             {filteredEntities.map((entity, index) => (
-                <div className="flex-1" key={index}>
+                <div className="flex-shrink-0 w-60" key={index}>
                     <Card
                         imgSrc={`/assets/imgs/images.png`}
-                        className="h-full cursor-pointer hover:shadow-lg transition-shadow duration-200 ease-in-out"
+                        className="h-full cursor-pointer hover:shadow-lg transition-shadow duration-200 ease-in-out p-0" // Reduce padding around the card
                         onClick={() => {
                             setSelectedEntity(entity.name);
                             console.log("Entidad seleccionada en CardList:", entity.name); // Para depuración
                         }}
                     >
-                        <h5 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+                        <h5 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white m-0 p-0"> {/* Remove margin and reduce padding */}
                             {entity.name}
                         </h5>
                     </Card>
