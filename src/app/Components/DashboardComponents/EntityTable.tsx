@@ -13,9 +13,9 @@ const EntityTable: React.FC<EntityTableProps> = ({ entityData }) => {
     return (
         <div className="overflow-x-auto mb-6">
             <table className="min-w-full bg-white border border-gray-200 rounded-md">
-                <thead className="bg-gray-100">
+                <thead className="bg-[#7A4993] text-white">
                     <tr>
-                        <th className="py-2 px-4 border-b">Institución</th>
+                        <th className="py-2 px-4 border-b w-fixed w-96">Institución</th>
                         <th className="py-2 px-4 border-b">Ciudad</th>
                         <th className="py-2 px-4 border-b">Tipo</th>
                         <th className="py-2 px-4 border-b">Red Social</th>
