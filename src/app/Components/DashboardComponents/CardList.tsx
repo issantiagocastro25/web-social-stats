@@ -34,7 +34,7 @@ const CardList: React.FC<CardListProps> = ({ searchTerm, setSelectedEntity }) =>
                 <div className="flex-shrink-0 w-60" key={index}>
                     <Card
                         imgSrc={`/assets/imgs/images.png`}
-                        className="h-full cursor-pointer hover:shadow-lg transition-shadow duration-200 ease-in-out p-0" // Reduce padding around the card
+                        className="h-full cursor-pointer hover:shadow-lg transition-shadow duration-200 ease-in-out m-0 p-0" // Reduce padding around the card
                         onClick={() => {
                             setSelectedEntity(entity.name);
                             console.log("Entidad seleccionada en CardList:", entity.name); // Para depuración

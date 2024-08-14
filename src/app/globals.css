@@ -1,3 +1,36 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Estilos personalizados */
+.stats-table {
+  @apply min-w-full divide-y divide-gray-200;
+}
+
+.stats-table th {
+  @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer;
+}
+
+.stats-table td {
+  @apply px-6 py-4 whitespace-nowrap;
+}
+
+.stats-table tr:nth-child(even) {
+  @apply bg-gray-50;
+}
+
+.stats-table tr:hover {
+  @apply bg-gray-100;
+}
+
+.category-icon {
+  @apply w-20 h-20 cursor-pointer transition-all duration-300;
+}
+
+.category-icon-active {
+  @apply border-4 border-blue-500 rounded-full shadow-lg;
+}
+
+.category-icon-inactive {
+  @apply opacity-70 hover:opacity-100 hover:scale-110;
+}
