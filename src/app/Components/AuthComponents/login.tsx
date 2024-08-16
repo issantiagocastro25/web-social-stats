@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Button, Card, Checkbox, Label, TextInput } from "flowbite-react";
-import { login } from '../../../api/auth'; // Asegúrate de que la ruta sea correcta
+import { login, logout } from '../../../api/auth'; // Asegúrate de que la ruta sea correcta
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -12,6 +12,18 @@ export default function Login() {
     const [remember, setRemember] = useState(false);
     const [error, setError] = useState('');
     const router = useRouter();
+
+    const handleLogout = async () => {
+        try {
+          await logout();
+          // Opcional: limpiar cualquier estado local o token almacenado
+          // localStorage.removeItem('token');
+          router.push('/Auth/login');  // O a donde quieras redirigir después del logout
+        } catch (error) {
+          console.error('Error during logout:', error);
+          // Manejar el error (por ejemplo, mostrar un mensaje al usuario)
+        }
+      };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -84,6 +96,12 @@ export default function Login() {
                     </Label>
                 </div>
             </Card>
+            <button 
+      onClick={handleLogout}
+      className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+    >
+      Cerrar Sesión
+    </button>
         </div>
     );
 }

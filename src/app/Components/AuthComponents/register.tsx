@@ -6,13 +6,15 @@ import { signup } from '../../../api/auth';
 import Link from 'next/link';
 
 export default function Register() {
+    const [type_identification, setTypeIdentification] = useState('');
+    const [identification, setIdentification] = useState('');
+    const [phone, setPhone] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [password1, setPassword1] = useState('');
     const [password2, setPassword2] = useState('');
     const [error, setError] = useState('');
-    const [username, setUsername] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -22,7 +24,7 @@ export default function Register() {
             return;
         }
         try {
-            await signup(email, username, password1, password2, firstName, lastName);
+            await signup(email, password1, password2, firstName, lastName, type_identification, identification, phone);
         } catch (error) {
             setError('Error en el registro. Por favor, inténtalo de nuevo.');
             console.error('Error de registro:', error.response ? error.response.data : error.message);
@@ -69,35 +71,30 @@ export default function Register() {
                     </div>
                 </div>
 
-                <div className="col-span-full">
-                    <label htmlFor="username" className="block text-sm font-medium leading-6 text-gray-900">Correo Electrónico</label>
-                    <div className="mt-2">
-                        <input
-                            type="username"
-                            name="username"
-                            id="username"
-                            className="block w-full rounded-md border-0 py-1.5 bg-gray-50 text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-indigo-400 sm:text-sm sm:leading-6"
-                            required
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                        />
-                    </div>
-                </div>
-
                 <div className="mt-1 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                     <div className="sm:col-span-3">
                         <label htmlFor="type-identification" className="block text-sm font-medium leading-6 text-gray-900">Tipo de Identificación</label>
                         <div className="mt-2">
-                            <select name="type-identification" id="type-identification" className="block w-full rounded-md border-0 py-1.5 bg-gray-50 text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-indigo-400 sm:text-sm sm:leading-6">
-                                <option value="" selected>seleccione...</option>
+                            <select name="type-identification" id="type-identification" className="block w-full rounded-md border-0 py-1.5 bg-gray-50 text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-indigo-400 sm:text-sm sm:leading-6"
+                            required
+                            value={type_identification}
+                            onChange={(e) => setTypeIdentification(e.target.value)}
+                            >
+                                <option value="">seleccione...</option>
                                 <option value="CC">Cédula de Ciudadanía</option>
+                                <option value="CE">Cédula de Extranjería</option>
+                                <option value="PA">Pasaporte</option>
                             </select>
                         </div>
                     </div>
                     <div className="sm:col-span-3">
                         <label htmlFor="identification" className="block text-sm font-medium leading-6 text-gray-900">Identificación</label>
                         <div className="mt-2">
-                            <input type="number" name="identification" id="identification" className="block w-full rounded-md border-0 py-1.5 bg-gray-50 text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-indigo-400 sm:text-sm sm:leading-6"/>
+                            <input type="number" name="identification" id="identification" className="block w-full rounded-md border-0 py-1.5 bg-gray-50 text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-indigo-400 sm:text-sm sm:leading-6"
+                            required
+                            value={identification}
+                            onChange={(e) => setIdentification(e.target.value)}
+                            />
                         </div>
                     </div>
                 </div>
@@ -117,9 +114,13 @@ export default function Register() {
                     </div>
                 </div>
                 <div className="col-span-full">
-                    <label htmlFor="phone-number" className="block text-sm font-medium leading-6 text-gray-900">Numero de teléfono</label>
+                    <label htmlFor="phone" className="block text-sm font-medium leading-6 text-gray-900">Numero de teléfono</label>
                     <div className="mt-2">
-                        <input type="text" name="phone-number" id="phone-number" className="block w-full rounded-md border-0 py-1.5 bg-gray-50 text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-indigo-400 sm:text-sm sm:leading-6" />
+                        <input type="text" name="phone" id="phone" className="block w-full rounded-md border-0 py-1.5 bg-gray-50 text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-indigo-400 sm:text-sm sm:leading-6"
+                        required
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        />
                     </div>
                 </div>
                 <div className="col-span-full">

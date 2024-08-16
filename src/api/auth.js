@@ -26,7 +26,7 @@ export const logout = async () => {
   }
 };
 
-export const signup = async (email, username, password1, password2, firstName, lastName) => {
+export const signup = async (email, password1, password2, firstName, lastName, type_identification, identification, phone) => {
   try {
 
     // Primero, obtenemos el token CSRF
@@ -36,9 +36,11 @@ export const signup = async (email, username, password1, password2, firstName, l
       email,
       password1,
       password2,
-      username,
       first_name: firstName,
-      last_name: lastName
+      last_name: lastName,
+      type_identification: type_identification,
+      identification: identification,
+      phone: phone
     }, {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
