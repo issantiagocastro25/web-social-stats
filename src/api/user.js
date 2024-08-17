@@ -1,14 +1,8 @@
 import api from './index';
 
 export const getUserProfile = async () => {
-  try {
-    // Asume que tienes un endpoint para obtener el perfil del usuario
-    // Puede que necesites crear este endpoint en tu backend de Django
-    const response = await api.get('/accounts/profile/');
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.get('/api/user/profile/');
+  return response.data;
 };
 
 export const updateUserProfile = async (userData) => {

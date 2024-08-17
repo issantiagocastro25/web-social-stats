@@ -6,12 +6,23 @@ import { login, logout } from '../../../api/auth'; // Asegúrate de que la ruta 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+import { getGoogleLoginUrl } from '../../../api/auth';
+
 export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [remember, setRemember] = useState(false);
     const [error, setError] = useState('');
     const router = useRouter();
+
+    const handleGoogleLogin = async () => {
+        try {
+          const loginUrl = await getGoogleLoginUrl();
+          window.location.href = loginUrl;
+        } catch (error) {
+          console.error('Error initiating Google login:', error);
+        }
+      };
 
     const handleLogout = async () => {
         try {
@@ -101,6 +112,12 @@ export default function Login() {
       className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
     >
       Cerrar Sesión
+    </button>
+    <button 
+      onClick={handleGoogleLogin}
+      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+    >
+      Login with Google
     </button>
         </div>
     );

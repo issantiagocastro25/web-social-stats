@@ -17,6 +17,16 @@ export const login = async (email, password, remember) => {
   }
 };
 
+export const getGoogleLoginUrl = async () => {
+  const response = await api.get('/auth/google/login/');
+  return response.data.login_url;
+};
+
+export const googleLogin = async (code) => {
+  const response = await api.get(`/auth/google/callback/?code=${code}`);
+  return response.data;
+};
+
 export const logout = async () => {
   try {
     const response = await api.post('/accounts/logout/');
