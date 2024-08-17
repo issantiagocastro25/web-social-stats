@@ -6,7 +6,9 @@ import { login, logout } from '../../../api/auth'; // Asegúrate de que la ruta 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+import ButtonGoogle from "./google/ButtonGoogle";
 import { getGoogleLoginUrl } from '../../../api/auth';
+
 
 export default function Login() {
     const [email, setEmail] = useState('');
@@ -41,7 +43,7 @@ export default function Login() {
         setError('');
         try {
             const response = await login(email, password, remember);
-            // Asumiendo que la respuesta incluye una URL de redirección
+            // la respuesta incluye una URL de redirección
             if (response.redirect) {
                 router.push(response.redirect);
             } else {
@@ -97,6 +99,8 @@ export default function Login() {
                     >
                         Iniciar Sesión
                     </button>
+                    <div className="bg-slate-600 w-full h-0.5 rounded-lg opacity-20"></div>
+                    <ButtonGoogle/>
                 </form>
                 <div className="mt-4 text-center">
                     <Label className="text-sm font-light">
@@ -108,17 +112,11 @@ export default function Login() {
                 </div>
             </Card>
             <button 
-      onClick={handleLogout}
-      className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-    >
-      Cerrar Sesión
-    </button>
-    <button 
-      onClick={handleGoogleLogin}
-      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-    >
-      Login with Google
-    </button>
+            onClick={handleLogout}
+            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            >
+            Cerrar Sesión
+            </button>
         </div>
     );
 }

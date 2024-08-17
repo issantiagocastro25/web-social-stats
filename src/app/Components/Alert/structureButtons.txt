@@ -1,0 +1,13 @@
+
+    <button onClick={() => showAlert('This is an info alert!', 'info')}>
+        Show Info Alert
+    </button>
+    <button onClick={() => showAlert('This is a success alert!', 'success')}>
+        Show Success Alert
+    </button>
+    <button onClick={() => showAlert('This is a warning alert!', 'warning')}>
+        Show Warning Alert
+    </button>
+    <button onClick={() => showAlert('This is an error alert!', 'error')}>
+        Show Error Alert
+    </button>
