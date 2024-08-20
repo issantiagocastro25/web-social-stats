@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Button, Card, Checkbox, Label, TextInput } from "flowbite-react";
-import { login, logout } from '../../../api/auth'; // Asegúrate de que la ruta sea correcta
+import { login } from '../../../api/auth'; // Asegúrate de que la ruta sea correcta
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -26,32 +26,26 @@ export default function Login() {
         }
       };
 
-    const handleLogout = async () => {
-        try {
-          await logout();
-          // Opcional: limpiar cualquier estado local o token almacenado
-          // localStorage.removeItem('token');
-          router.push('/Auth/login');  // O a donde quieras redirigir después del logout
-        } catch (error) {
-          console.error('Error during logout:', error);
-          // Manejar el error (por ejemplo, mostrar un mensaje al usuario)
-        }
-      };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+
         try {
             const response = await login(email, password, remember);
-            // la respuesta incluye una URL de redirección
-            if (response.redirect) {
-                router.push(response.redirect);
-            } else {
-                router.push('/Principal/dashboard');
-            }
-        } catch (error) {
-            setError('Error en el inicio de sesión. Por favor, verifica tus credenciales.');
-            console.error('Error de login:', error.response ? error.response.data : error.message);
+            console.log('Login exitoso:', response.user);
+            router.push('/Principal/main');
+        } catch (err) {
+                console.error('Error en el login:', err);
+                if (err.response) {
+                // El servidor respondió con un estado fuera del rango de 2xx
+                setError(err.response.data.detail || 'Error en el inicio de sesión. Inténtalo de nuevo.');
+                } else if (err.request) {
+                // La petición fue hecha pero no se recibió respuesta
+                setError('No se pudo conectar con el servidor. Verifica tu conexión a internet.');
+                } else {
+                // Algo sucedió al configurar la petición que provocó un error
+                setError('Error al procesar la solicitud. Inténtalo de nuevo.');
+                }
         }
     };
 
@@ -83,6 +77,11 @@ export default function Login() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
+                        <Label className="text-sm font-light">
+                        <Link href="/Auth/forgot-password" className="text-cyan-500 hover:underline">
+                            ¿Olvidaste tu contraseña?
+                        </Link>
+                    </Label>
                     </div>
                     <div className="flex items-center gap-2">
                         <Checkbox 
@@ -111,12 +110,6 @@ export default function Login() {
                     </Label>
                 </div>
             </Card>
-            <button 
-            onClick={handleLogout}
-            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-            >
-            Cerrar Sesión
-            </button>
         </div>
     );
 }

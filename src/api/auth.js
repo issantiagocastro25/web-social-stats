@@ -2,7 +2,7 @@ import api from './index';
 
 export const login = async (email, password, remember) => {
   try {
-    const response = await api.post('/accounts/login/', {
+    const response = await api.post('/api/login/', {
       email: email,
       password: password,
       remember: remember
@@ -30,7 +30,13 @@ export const googleLogin = async (code) => {
 export const logout = async () => {
   try {
     const response = await api.post('/accounts/logout/');
-    return response.data;
+    router.push('/Auth/login');
+    if (response.status === 200) {
+      
+      console.log('Logout exitoso');
+      // Redirige al usuario a la página de login
+      router.push('/Auth/login');
+    }
   } catch (error) {
     throw error;
   }

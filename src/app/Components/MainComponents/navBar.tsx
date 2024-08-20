@@ -1,7 +1,25 @@
 import React from 'react';
 import { Navbar, Dropdown, Avatar, Button } from 'flowbite-react';
+import { useRouter } from 'next/navigation';
+
+import { logout } from '../../../api/auth'; // Asegúrate de que la ruta sea correcta
+
 
 const DashboardNavbar = () => {
+
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // Opcional: limpiar cualquier estado local o token almacenado
+      // localStorage.removeItem('token');
+      router.push('/Auth/login');  // O a donde quieras redirigir después del logout
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // Manejar el error (por ejemplo, mostrar un mensaje al usuario)
+    }
+  };
   return (
     <Navbar fluid className="bg-white shadow-md">
       <Navbar.Brand href="#">
@@ -26,7 +44,14 @@ const DashboardNavbar = () => {
           <Dropdown.Item>Dashboard</Dropdown.Item>
           <Dropdown.Item>Configuración</Dropdown.Item>
           <Dropdown.Divider />
-          <Dropdown.Item>Cerrar sesión</Dropdown.Item>
+          <Dropdown.Item>
+            <button 
+            onClick={handleLogout}
+            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            >
+            Cerrar Sesión
+            </button>
+          </Dropdown.Item>
         </Dropdown>
         <Navbar.Toggle />
       </div>
