@@ -3,6 +3,7 @@ import { Spinner, TextInput, Card } from 'flowbite-react';
 import { FaFacebook, FaTwitter, FaInstagram, FaYoutube, FaSort, FaSortUp, FaSortDown, FaSearch } from 'react-icons/fa';
 import { BarChart, DonutChart, Title, Text, Grid, Col, AreaChart, Legend, Flex, Metric } from '@tremor/react';
 import socialStatsData from '@/app/Principal/main/socialStatsData.json';
+import DashboardNavbar from './navBar';
 
 const ImageNavbar = ({ onCategorySelect, activeCategory }) => {
   const categories = [
@@ -252,57 +253,60 @@ const SocialStatsDashboard = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
-        Dashboard de Estadísticas Sociales
-      </h1>
-      
-      <ImageNavbar onCategorySelect={handleCategorySelect} activeCategory={activeCategory} />
-      
-      <SummaryCards data={filteredData} />
-      
-      <div className="mb-6">
-        <TextInput
-          type="text"
-          placeholder="Buscar por institución, ciudad o tipo..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          icon={FaSearch}
-        />
-      </div>
-      
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <Spinner size="xl" />
+      <div className="min-h-screen bg-gray-50">
+        <DashboardNavbar />
+        <div className="container mx-auto px-4 py-8">
+          <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
+            Dashboard de Estadísticas Sociales
+          </h1>
+          
+          <ImageNavbar onCategorySelect={handleCategorySelect} activeCategory={activeCategory} />
+          
+          <SummaryCards data={filteredData} />
+          
+          <div className="mb-6">
+            <TextInput
+              type="text"
+              placeholder="Buscar por institución, ciudad o tipo..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              icon={FaSearch}
+            />
+          </div>
+          
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <Spinner size="xl" />
+            </div>
+          ) : (
+            <Grid numColsLg={3} className="gap-6">
+              <Col numColSpanLg={2}>
+                <Card>
+                  <Title className="mb-4">Lista de Instituciones</Title>
+                  <DataTable 
+                    data={filteredData} 
+                    searchTerm={searchTerm}
+                    sortConfig={sortConfig}
+                    onSort={handleSort}
+                    onInstitutionClick={handleInstitutionClick}
+                    selectedInstitution={selectedInstitution}
+                  />
+                </Card>
+              </Col>
+              <Col>
+                {selectedInstitution ? (
+                  <InstitutionStats institution={selectedInstitution} />
+                ) : (
+                  <Card className="h-full flex items-center justify-center">
+                    <Text>Selecciona una institución para ver sus estadísticas detalladas</Text>
+                  </Card>
+                )}
+              </Col>
+            </Grid>
+          )}
         </div>
-      ) : (
-        <Grid numColsLg={3} className="gap-6">
-          <Col numColSpanLg={2}>
-            <Card>
-              <Title className="mb-4">Lista de Instituciones</Title>
-              <DataTable 
-                data={filteredData} 
-                searchTerm={searchTerm}
-                sortConfig={sortConfig}
-                onSort={handleSort}
-                onInstitutionClick={handleInstitutionClick}
-                selectedInstitution={selectedInstitution}
-              />
-            </Card>
-          </Col>
-          <Col>
-            {selectedInstitution ? (
-              <InstitutionStats institution={selectedInstitution} />
-            ) : (
-              <Card className="h-full flex items-center justify-center">
-                <Text>Selecciona una institución para ver sus estadísticas detalladas</Text>
-              </Card>
-            )}
-          </Col>
-        </Grid>
-      )}
-    </div>
-  );
-};
-
-export default SocialStatsDashboard;
+      </div>
+    );
+  };
+  
+  export default SocialStatsDashboard;
