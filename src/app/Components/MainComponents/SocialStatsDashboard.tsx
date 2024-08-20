@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Spinner, TextInput, Card } from 'flowbite-react';
-import { FaFacebook, FaTwitter, FaInstagram, FaYoutube, FaSort, FaSortUp, FaSortDown, FaSearch } from 'react-icons/fa';
-import { BarChart, DonutChart, Title, Text, Grid, Col, AreaChart, Legend, Flex, Metric } from '@tremor/react';
+import { Spinner, TextInput, Card, Table, Checkbox, Button } from 'flowbite-react';
+import { FaFacebook, FaTwitter, FaInstagram, FaYoutube, FaSearch, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
+import { Title, Text, Grid, Col, Metric, BarChart, DonutChart, AreaChart } from '@tremor/react';
 import socialStatsData from '@/app/Principal/main/socialStatsData.json';
-import DashboardNavbar from './navBar';
+import DashboardNavbar from './navBar'; 
 
 const ImageNavbar = ({ onCategorySelect, activeCategory }) => {
   const categories = [
@@ -31,7 +31,7 @@ const ImageNavbar = ({ onCategorySelect, activeCategory }) => {
           <img
             src={category.image}
             alt={category.name}
-            className="w-40 h-40 object-cover rounded-3xl mb-2"
+            className="w-32 h-32 object-cover rounded-xl mb-2"
           />
           <span className="text-xs font-medium text-gray-700">{category.name}</span>
         </div>
@@ -80,51 +80,151 @@ const SummaryCards = ({ data }) => {
   );
 };
 
-const DataTable = ({ data, searchTerm, sortConfig, onSort, onInstitutionClick, selectedInstitution }) => {
-  const filteredData = data.filter(item =>
-    item.Instituciones.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (item.Ciudad && item.Ciudad.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (item.Tipo && item.Tipo.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType }) => {
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [showComparison, setShowComparison] = useState(false);
+
+  const sortedData = useMemo(() => {
+    let sortableItems = [...data];
+    if (sortConfig.key !== null) {
+      sortableItems.sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [data, sortConfig]);
+
+  const filteredData = selectedType === 'Todos' ? sortedData : sortedData.filter(item => item.Tipo === selectedType);
+
+  const handleSort = (key) => {
+    let direction = 'ascending';
+    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const handleRowSelect = (institution) => {
+    setSelectedRows(prev => 
+      prev.includes(institution) 
+        ? prev.filter(i => i !== institution) 
+        : [...prev, institution]
+    );
+  };
+
+  const handleSelectAll = () => {
+    setSelectedRows(filteredData);
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedRows([]);
+  };
+
+  const handleCompareClick = () => {
+    setShowComparison(true);
+  };
 
   const SortIcon = ({ column }) => {
-    if (!sortConfig || sortConfig.key !== column) {
+    if (sortConfig.key !== column) {
       return <FaSort className="ml-1 text-gray-400" />;
     }
     return sortConfig.direction === 'ascending' ? <FaSortUp className="ml-1 text-blue-500" /> : <FaSortDown className="ml-1 text-blue-500" />;
   };
 
+  const ComparisonView = () => (
+    <Card>
+      <h3 className="text-lg font-bold mb-4">Comparación de Entidades Seleccionadas</h3>
+      <Table>
+        <Table.Head>
+          <Table.HeadCell>Institución</Table.HeadCell>
+          <Table.HeadCell>Facebook</Table.HeadCell>
+          <Table.HeadCell>Twitter</Table.HeadCell>
+          <Table.HeadCell>Instagram</Table.HeadCell>
+          <Table.HeadCell>YouTube Suscriptores</Table.HeadCell>
+        </Table.Head>
+        <Table.Body>
+          {selectedRows.map(institution => (
+            <Table.Row key={institution.Instituciones}>
+              <Table.Cell className="max-w-xs break-words">{institution.Instituciones}</Table.Cell>
+              <Table.Cell>{institution.Facebook}</Table.Cell>
+              <Table.Cell>{institution.Twitter}</Table.Cell>
+              <Table.Cell>{institution.Instagram}</Table.Cell>
+              <Table.Cell>{institution['Suscrip.']}</Table.Cell>
+            </Table.Row>
+          ))}
+        </Table.Body>
+      </Table>
+    </Card>
+  );
+
   return (
-    <div className="overflow-x-auto shadow-md sm:rounded-lg">
-      <table className="w-full text-sm text-left text-gray-500">
-        <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-          <tr>
-            {['Instituciones', 'Ciudad', 'Tipo'].map((column) => (
-              <th key={column} scope="col" className="px-6 py-3 cursor-pointer hover:bg-gray-100" onClick={() => onSort(column)}>
+    <div>
+      <div className="mb-4 flex justify-between items-center">
+        <h2 className="text-xl font-bold">Datos de Instituciones</h2>
+        <div className="flex space-x-2">
+          <Button size="sm" onClick={handleSelectAll}>Seleccionar Todos</Button>
+          <Button size="sm" onClick={handleDeselectAll}>Deseleccionar Todos</Button>
+          <Button onClick={handleCompareClick} disabled={selectedRows.length < 2}>
+            Comparar Seleccionados
+          </Button>
+        </div>
+      </div>
+      <div className="overflow-x-auto">
+        <Table hoverable className="w-full">
+          <Table.Head>
+            <Table.HeadCell className="w-4">
+              <Checkbox 
+                checked={selectedRows.length === filteredData.length}
+                onChange={selectedRows.length === filteredData.length ? handleDeselectAll : handleSelectAll}
+              />
+            </Table.HeadCell>
+            {['Instituciones', 'Tipo', 'Ciudad', 'Facebook', 'Twitter', 'Instagram', 'Videos2', 'Visitas2', 'Suscrip.'].map((column) => (
+              <Table.HeadCell key={column} onClick={() => handleSort(column)} className="cursor-pointer">
                 <div className="flex items-center">
                   {column}
                   <SortIcon column={column} />
                 </div>
-              </th>
+              </Table.HeadCell>
             ))}
-          </tr>
-        </thead>
-        <tbody>
-          {filteredData.map((item, index) => (
-            <tr 
-              key={index}
-              onClick={() => onInstitutionClick(item)}
-              className={`bg-white border-b hover:bg-gray-50 cursor-pointer ${
-                selectedInstitution && selectedInstitution.Instituciones === item.Instituciones ? 'bg-blue-50' : ''
-              }`}
-            >
-              <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">{item.Instituciones}</th>
-              <td className="px-6 py-4">{item.Ciudad || 'N/A'}</td>
-              <td className="px-6 py-4">{item.Tipo || 'Sin clasificar'}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          </Table.Head>
+          <Table.Body className="divide-y">
+            {filteredData.map((item) => (
+              <Table.Row 
+                key={item.Instituciones} 
+                className="bg-white dark:border-gray-700 dark:bg-gray-800"
+                onClick={() => onInstitutionSelect(item)}
+              >
+                <Table.Cell className="w-4">
+                  <Checkbox 
+                    checked={selectedRows.includes(item)}
+                    onChange={() => handleRowSelect(item)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </Table.Cell>
+                <Table.Cell className="max-w-xs break-words font-medium text-gray-900 dark:text-white">
+                  {item.Instituciones}
+                </Table.Cell>
+                <Table.Cell>{item.Tipo}</Table.Cell>
+                <Table.Cell>{item.Ciudad}</Table.Cell>
+                <Table.Cell>{item.Facebook}</Table.Cell>
+                <Table.Cell>{item.Twitter}</Table.Cell>
+                <Table.Cell>{item.Instagram}</Table.Cell>
+                <Table.Cell>{item.Videos2}</Table.Cell>
+                <Table.Cell>{item.Visitas2}</Table.Cell>
+                <Table.Cell>{item['Suscrip.']}</Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table>
+      </div>
+      {showComparison && <ComparisonView />}
     </div>
   );
 };
@@ -154,21 +254,22 @@ const InstitutionStats = ({ institution }) => {
     <div className="space-y-6">
       <div className='grid grid-cols-2'>
       <Card >
-        <Title className="mb-4 text-3xl text-center">Datos de {institution.Instituciones}</Title>
-        <Grid numColsLg={2} className="gap-4 text-center">
+        <Title className="mb-4 text-xl text-center">Datos de {institution.Instituciones}</Title>
+        <Grid numColsLg={2} className="gap-4">
           <div>
-            <Text className='text-xl'><strong>Ciudad:</strong> {institution.Ciudad || 'N/A'}</Text>
-            <Text className='text-xl'><strong>Tipo:</strong> {institution.Tipo || 'Sin clasificar'}</Text>
+            <Text className='text-xl text-center'><strong>Ciudad:</strong> {institution.Ciudad || 'N/A'}</Text>
+            <Text className='text-xl text-center'><strong>Tipo:</strong> {institution.Tipo || 'Sin clasificar'}</Text>
           </div>
           <div>
-            <Text className='text-xl'><strong>Facebook:</strong> {institution.Facebook || 0} seguidores</Text>
-            <Text className='text-xl'><strong>Twitter:</strong> {institution.Twitter || 0} seguidores</Text>
-            <Text className='text-xl'><strong>Instagram:</strong> {institution.Instagram || 0} seguidores</Text>
+            <Text className='text-xl text-center'><strong>Facebook:</strong> {institution.Facebook || 0} seguidores</Text>
+            <Text className='text-xl text-center'><strong>Twitter:</strong> {institution.Twitter || 0} seguidores</Text>
+            <Text className='text-xl text-center'><strong>Instagram:</strong> {institution.Instagram || 0} seguidores</Text>
           </div>
         </Grid>
       </Card>
+
       <Card>
-        <Title>Estadísticas de YouTube</Title>
+        <Title className='text-xl text-center'>Estadísticas de YouTube</Title>
         <Grid numColsLg={2} className="gap-4 mt-4">
           <DonutChart
             className="h-60"
@@ -180,15 +281,16 @@ const InstitutionStats = ({ institution }) => {
           />
           <div>
             {youtubeData.map((item, index) => (
-              <Flex key={index} justifyContent="center" className="mt-2">
-                <Text className='text-xl'>{item.name}</Text>
-                <Metric className='ml-12'>{item.value.toLocaleString()}</Metric>
-              </Flex>
+              <div key={index} className="flex justify-center space-x-6 items-center mt-2">
+                <Text>{item.name}</Text>
+                <Metric>{item.value.toLocaleString()}</Metric>
+              </div>
             ))}
           </div>
         </Grid>
       </Card>
       </div>
+
       <Card>
         <Title>Estadísticas de Redes Sociales</Title>
         <BarChart
@@ -201,6 +303,7 @@ const InstitutionStats = ({ institution }) => {
           showLegend={false}
         />
       </Card>
+
       <Card>
         <Title>Crecimiento de Seguidores</Title>
         <AreaChart
@@ -220,7 +323,6 @@ const SocialStatsDashboard = () => {
   const [activeCategory, setActiveCategory] = useState('Todos');
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortConfig, setSortConfig] = useState(null);
   const [selectedInstitution, setSelectedInstitution] = useState(null);
 
   useEffect(() => {
@@ -232,81 +334,75 @@ const SocialStatsDashboard = () => {
 
   const handleCategorySelect = (category) => {
     setActiveCategory(category);
-    if (category === 'Todos') {
-      setFilteredData(socialStatsData.data);
-    } else {
-      setFilteredData(socialStatsData.data.filter(item => item.Tipo === category));
-    }
     setSelectedInstitution(null);
   };
 
-  const handleSort = (key) => {
-    let direction = 'ascending';
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
-      direction = 'descending';
-    }
-    setSortConfig({ key, direction });
-  };
-
-  const handleInstitutionClick = (institution) => {
+  const handleInstitutionSelect = (institution) => {
     setSelectedInstitution(institution);
   };
 
-  return (
-      <div className="min-h-screen bg-gray-50">
-        <DashboardNavbar />
-        <div className="container mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
-            Dashboard de Estadísticas Sociales
-          </h1>
-          
-          <ImageNavbar onCategorySelect={handleCategorySelect} activeCategory={activeCategory} />
-          
-          <SummaryCards data={filteredData} />
-          
-          <div className="mb-6">
-            <TextInput
-              type="text"
-              placeholder="Buscar por institución, ciudad o tipo..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              icon={FaSearch}
-            />
-          </div>
-          
-          {isLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <Spinner size="xl" />
-            </div>
-          ) : (
-            <Grid numColsLg={3} className="gap-6">
-              <Col numColSpanLg={2}>
-                <Card>
-                  <Title className="mb-4">Lista de Instituciones</Title>
-                  <DataTable 
-                    data={filteredData} 
-                    searchTerm={searchTerm}
-                    sortConfig={sortConfig}
-                    onSort={handleSort}
-                    onInstitutionClick={handleInstitutionClick}
-                    selectedInstitution={selectedInstitution}
-                  />
-                </Card>
-              </Col>
-              <Col>
-                {selectedInstitution ? (
-                  <InstitutionStats institution={selectedInstitution} />
-                ) : (
-                  <Card className="h-full flex items-center justify-center">
-                    <Text>Selecciona una institución para ver sus estadísticas detalladas</Text>
-                  </Card>
-                )}
-              </Col>
-            </Grid>
-          )}
-        </div>
-      </div>
+  const handleSearch = (e) => {
+    const term = e.target.value.toLowerCase();
+    setSearchTerm(term);
+    const filtered = socialStatsData.data.filter(item =>
+      item.Instituciones.toLowerCase().includes(term) ||
+      (item.Ciudad && item.Ciudad.toLowerCase().includes(term)) ||
+      (item.Tipo && item.Tipo.toLowerCase().includes(term))
     );
+    setFilteredData(filtered);
   };
-  
-  export default SocialStatsDashboard;
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <DashboardNavbar />
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
+          Dashboard de Estadísticas Sociales
+        </h1>
+        
+        <ImageNavbar onCategorySelect={handleCategorySelect} activeCategory={activeCategory} />
+        
+        <SummaryCards data={filteredData} />
+        
+        <div className="mb-6">
+          <TextInput
+            type="text"
+            placeholder="Buscar por institución, ciudad o tipo..."
+            value={searchTerm}
+            onChange={handleSearch}
+            icon={FaSearch}
+          />
+        </div>
+        
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <Spinner size="xl" />
+          </div>
+        ) : (
+          <Grid numColsLg={3} className="gap-6">
+            <Col numColSpanLg={2}>
+              <Card>
+                <InteractiveDataTable 
+                  data={filteredData}
+                  onInstitutionSelect={handleInstitutionSelect}
+                  selectedType={activeCategory}
+                />
+              </Card>
+            </Col>
+            <Col>
+              {selectedInstitution ? (
+                <InstitutionStats institution={selectedInstitution} />
+              ) : (
+                <Card className="h-full flex items-center justify-center">
+                  <Text>Selecciona una institución para ver sus estadísticas detalladas</Text>
+                </Card>
+              )}
+            </Col>
+          </Grid>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default SocialStatsDashboard;
