@@ -89,3 +89,35 @@ export const changePassword = async (oldPassword, newPassword1, newPassword2) =>
     throw error;
   }
 };
+
+
+// Nueva función para manejar la lógica de "Olvidé mi contraseña"
+export const forgotPassword = async (email) => {
+  try {
+    const response = await api.post('/api/forgot-password/', {
+      email: email
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.status === 200) {
+      return {
+        success: true,
+        message: response.data.message
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data.error || 'Ocurrió un error. Por favor, intenta de nuevo.'
+      };
+    }
+  } catch (error) {
+    console.error('Error en la solicitud de restablecimiento de contraseña:', error);
+    return {
+      success: false,
+      error: 'Ocurrió un error al conectar con el servidor. Por favor, intenta de nuevo.'
+    };
+  }
+};
