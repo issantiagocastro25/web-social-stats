@@ -30,7 +30,7 @@ const ImageNavbar = ({ onCategorySelect, activeCategory }) => {
           <img
             src={category.image}
             alt={category.name}
-            className="w-12 h-12 object-cover rounded-full mb-2"
+            className="w-40 h-40 object-cover rounded-3xl mb-2"
           />
           <span className="text-xs font-medium text-gray-700">{category.name}</span>
         </div>
