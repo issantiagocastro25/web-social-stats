@@ -11,13 +11,16 @@ const DashboardNavbar = () => {
 
   const handleLogout = async () => {
     try {
-      await logout();
-      // Opcional: limpiar cualquier estado local o token almacenado
-      // localStorage.removeItem('token');
-      router.push('/Auth/login');  // O a donde quieras redirigir después del logout
+      const result = await logout();
+      if (result.success) {
+        // Redirige al usuario a la página de login
+        router.push('/Auth/login');
+      } else {
+        // Maneja el error, tal vez mostrando un mensaje al usuario
+        console.error(result.error);
+      }
     } catch (error) {
-      console.error('Error during logout:', error);
-      // Manejar el error (por ejemplo, mostrar un mensaje al usuario)
+      console.error('Error durante el logout:', error);
     }
   };
   return (
@@ -47,7 +50,7 @@ const DashboardNavbar = () => {
           <Dropdown.Item>
             <button 
             onClick={handleLogout}
-            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            className="text-black py-1.5 px-2"
             >
             Cerrar Sesión
             </button>

@@ -29,16 +29,21 @@ export const googleLogin = async (code) => {
 
 export const logout = async () => {
   try {
-    const response = await api.post('/accounts/logout/');
-    router.push('/Auth/login');
-    if (response.status === 200) {
-      
+    const response = await api.post('/api/logout/');
+    if (response.data.success) {
       console.log('Logout exitoso');
-      // Redirige al usuario a la página de login
-      router.push('/Auth/login');
+      
+      // Limpia cualquier token o dato de sesión almacenado localmente
+      localStorage.removeItem('token');
+      sessionStorage.clear();
+      
+      return { success: true, message: response.data.message };
+    } else {
+      return { success: false, error: response.data.message };
     }
   } catch (error) {
-    throw error;
+    console.error('Error durante el logout:', error);
+    return { success: false, error: error.response?.data?.message || 'Error en el proceso de logout' };
   }
 };
 
