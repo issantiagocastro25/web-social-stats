@@ -3,14 +3,27 @@ import React, { useState, useEffect } from 'react';
 import { getUserDetail, updateUserProfile, changePassword } from '@/api/user';
 import { Button, TextInput, Label, Alert } from 'flowbite-react';
 
+import { useAuthCheck } from '@/app/hooks/useAuthCheck';
+import LoadingBasic from '@/app/Components/Loadings/LoadingBasic';
+
 const UserProfile = () => {
-  const [userDetail, setUserDetail] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [editMode, setEditMode] = useState(false);
-  const [updatedUser, setUpdatedUser] = useState({});
-  const [passwordData, setPasswordData] = useState({ old_password: '', new_password1: '', new_password2: '' });
-  const [message, setMessage] = useState(null);
+    const [userDetail, setUserDetail] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [editMode, setEditMode] = useState(false);
+    const [updatedUser, setUpdatedUser] = useState({});
+    const [passwordData, setPasswordData] = useState({ old_password: '', new_password1: '', new_password2: '' });
+    const [message, setMessage] = useState(null);
+
+    const { isAuthenticated, isLoading } = useAuthCheck();
+
+    if (isLoading) {
+        return <div className='my-4'><LoadingBasic/></div>;
+    }
+
+    if (!isAuthenticated) {
+        return null;
+    }
 
   useEffect(() => {
     fetchUserDetail();
