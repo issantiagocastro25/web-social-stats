@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { checkAuthStatus } from '@/api/auth'; // Asegúrate de que esta función exista en tu API
+import { checkAuthStatus } from '@/api/auth';
 
-export const useAuthCheck = (requireAuth: boolean = true) => {
+export function useAuthCheck(requireAuth: boolean = true) {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
@@ -29,4 +29,4 @@ export const useAuthCheck = (requireAuth: boolean = true) => {
     }, [requireAuth, router]);
 
     return { isAuthenticated, isLoading };
-};
+}
