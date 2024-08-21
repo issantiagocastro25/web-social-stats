@@ -3,7 +3,6 @@ import { Spinner, TextInput, Card, Table, Checkbox, Button } from 'flowbite-reac
 import { FaFacebook, FaTwitter, FaInstagram, FaYoutube, FaSearch, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
 import { Title, Text, Grid, Col, Metric, BarChart, DonutChart, AreaChart } from '@tremor/react';
 import socialStatsData from '@/app/Principal/main/socialStatsData.json';
-import DashboardNavbar from './navBar'; 
 
 const ImageNavbar = ({ onCategorySelect, activeCategory }) => {
   const categories = [
@@ -354,7 +353,6 @@ const SocialStatsDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardNavbar />
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
           Dashboard de Estadísticas Sociales

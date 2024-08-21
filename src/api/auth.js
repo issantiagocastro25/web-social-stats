@@ -27,6 +27,16 @@ export const googleLogin = async (code) => {
   return response.data;
 };
 
+export const checkAuthStatus = async () => {
+  try {
+    const response = await api.get('/api/auth-status/');
+    return response.data;
+  } catch (error) {
+    console.error('Error checking authentication status:', error);
+    throw error;
+  }
+};
+
 export const logout = async () => {
   try {
     const response = await api.post('/api/logout/');

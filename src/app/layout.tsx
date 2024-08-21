@@ -1,6 +1,7 @@
 // components/layout.tsx
 import "./globals.css";
 import { AlertProvider } from './contexts/AlertContext';
+import ClientLayout from './ClientLayout';
 
 export default function RootLayout({
   children,
@@ -11,7 +12,9 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <AlertProvider>
-          {children}
+          <ClientLayout>
+            {children}
+          </ClientLayout>
         </AlertProvider>
       </body>
     </html>
