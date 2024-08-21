@@ -15,7 +15,7 @@ const ImageNavbar = ({ onCategorySelect, activeCategory }) => {
     { name: 'IPS Públicas', image: '/assets/imgs/2.jpg' },
     { name: 'Org. admin', image: '/assets/imgs/5.jpg' },
     { name: 'Org. Profesionales', image: '/assets/imgs/6.png' },
-    { name: 'Farmacias', image: '/assets/imgs/farmacias.jpg' }, // New category
+    { name: 'Farmacias', image: '/assets/imgs/8.jpeg' }, // New category
   ];
 
   return (
