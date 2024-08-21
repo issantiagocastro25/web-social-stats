@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { getUserDetail, updateUserProfile, changePassword } from '@/api/user';
 import { Button, TextInput, Label, Alert } from 'flowbite-react';
 
-import { useAuthCheck } from '@/app/hooks/useAuthCheck';
+import {useAuthCheck} from '@/app/hooks/useAuthCheck';
 import LoadingBasic from '@/app/Components/Loadings/LoadingBasic';
 
 const UserProfile = () => {
@@ -17,6 +17,13 @@ const UserProfile = () => {
 
     const { isAuthenticated, isLoading } = useAuthCheck();
 
+    
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            fetchUserDetail();
+        }
+    }, [isAuthenticated]);
     if (isLoading) {
         return <div className='my-4'><LoadingBasic/></div>;
     }
@@ -24,10 +31,6 @@ const UserProfile = () => {
     if (!isAuthenticated) {
         return null;
     }
-
-  useEffect(() => {
-    fetchUserDetail();
-  }, []);
 
   const fetchUserDetail = async () => {
     try {

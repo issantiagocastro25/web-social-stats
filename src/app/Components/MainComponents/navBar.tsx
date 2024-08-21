@@ -1,32 +1,19 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import { Navbar, Dropdown, Avatar } from 'flowbite-react';
-import { useRouter } from 'next/navigation';
-import { usePathname } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 import { checkAuthStatus, logout } from '@/api/auth';
 import { getUserDetail } from '@/api/user';
 
-import { useAuthCheck } from '@/app/hooks/useAuthCheck';
+import LoadingBasic from '@/app/Components/Loadings/LoadingBasic';
 
 const DashboardNavbar = () => {
   const router = useRouter();
+  const pathname = usePathname();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
-
-  const pathname = usePathname();
-
-  if(pathname != '/Principal/main'){
-    const { isLoading } = useAuthCheck();
-
-    if (isLoading) {
-      return <div>...</div>;
-    }
-
-    if (!isAuthenticated) {
-      return null;
-    }
-  }
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -39,6 +26,8 @@ const DashboardNavbar = () => {
         }
       } catch (error) {
         console.error('Error checking authentication:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
     checkAuth();
@@ -62,6 +51,14 @@ const DashboardNavbar = () => {
   const navigateTo = (path) => {
     router.push(path);
   };
+
+  if (isLoading) {
+    return <div className='my-4'><LoadingBasic/></div>;
+  }
+
+  if (pathname !== '/Principal/main' && !isAuthenticated) {
+    return null;
+  }
 
   return (
     <Navbar fluid className="bg-white shadow-md">
