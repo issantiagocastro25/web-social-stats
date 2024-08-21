@@ -83,12 +83,30 @@ export const signup = async (email, password1, password2, firstName, lastName, t
   }
 };
 
-export const resetPassword = async (email) => {
+export const resetPassword = async (resetKey, password1, password2) => {
   try {
-    const response = await api.post('/accounts/password/reset/', { email });
-    return response.data;
+    const response = await api.post(`/api/password/reset/key/${resetKey}/`, {
+      new_password1: password1,
+      new_password2: password2
+    });
+    
+    if (response.data.success) {
+      return {
+        success: true,
+        message: 'Password reset successfully'
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data.error || 'An error occurred during password reset'
+      };
+    }
   } catch (error) {
-    throw error;
+    console.error('Error in password reset:', error);
+    return {
+      success: false,
+      error: error.response?.data?.error || 'An error occurred during password reset'
+    };
   }
 };
 
