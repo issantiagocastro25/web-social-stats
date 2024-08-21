@@ -2,14 +2,31 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar, Dropdown, Avatar } from 'flowbite-react';
 import { useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 import { checkAuthStatus, logout } from '@/api/auth';
 import { getUserDetail } from '@/api/user';
+
+import { useAuthCheck } from '@/app/hooks/useAuthCheck';
 
 const DashboardNavbar = () => {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
+
+  const pathname = usePathname();
+
+  if(pathname != '/Principal/main'){
+    const { isLoading } = useAuthCheck();
+
+    if (isLoading) {
+      return <div>...</div>;
+    }
+
+    if (!isAuthenticated) {
+      return null;
+    }
+  }
 
   useEffect(() => {
     const checkAuth = async () => {
