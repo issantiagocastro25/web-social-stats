@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Spinner, TextInput, Card, Table, Checkbox, Button } from 'flowbite-react';
 import { FaFacebook, FaTwitter, FaInstagram, FaYoutube, FaSearch, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
+import { SiTiktok } from 'react-icons/si';
 import { Title, Text, Grid, Col, Metric, BarChart, DonutChart, AreaChart } from '@tremor/react';
 import socialStatsData from '@/app/Principal/main/socialStatsData.json';
+
 
 const ImageNavbar = ({ onCategorySelect, activeCategory }) => {
   const categories = [
@@ -13,6 +15,7 @@ const ImageNavbar = ({ onCategorySelect, activeCategory }) => {
     { name: 'IPS Públicas', image: '/assets/imgs/2.jpg' },
     { name: 'Org. admin', image: '/assets/imgs/5.jpg' },
     { name: 'Org. Profesionales', image: '/assets/imgs/6.png' },
+    { name: 'Farmacias', image: '/assets/imgs/farmacias.jpg' }, // New category
   ];
 
   return (
@@ -39,39 +42,38 @@ const ImageNavbar = ({ onCategorySelect, activeCategory }) => {
   );
 };
 
-const SummaryCards = ({ data }) => {
-  const stats = useMemo(() => {
-    const totalFollowers = data.reduce((sum, item) => 
-      sum + (item.Facebook || 0) + (item.Twitter || 0) + (item.Instagram || 0), 0
-    );
-    const youtubeStats = data.reduce((sum, item) => ({
-      videos: sum.videos + (item.Videos2 || 0),
-      views: sum.views + (item.Visitas2 || 0),
-      subscribers: sum.subscribers + (item['Suscrip.'] || 0),
-    }), { videos: 0, views: 0, subscribers: 0 });
-    return { 
-      totalFollowers,
-      twitter: data.reduce((sum, item) => sum + (item.Twitter || 0), 0),
-      instagram: data.reduce((sum, item) => sum + (item.Instagram || 0), 0),
-      ...youtubeStats 
-    };
-  }, [data]);
+const SummaryCards = ({ data, filteredData }) => {
+  const calculateStats = (dataSet) => {
+    return dataSet.reduce((sum, item) => ({
+      facebook: sum.facebook + (item.Facebook || 0),
+      twitter: sum.twitter + (item.Twitter || 0),
+      instagram: sum.instagram + (item.Instagram || 0),
+      tiktok: sum.tiktok + (item.TikTok || 0),
+      youtube: sum.youtube + (item['Suscrip.'] || 0),
+      totalFollowers: sum.totalFollowers + (item.Facebook || 0) + (item.Twitter || 0) + (item.Instagram || 0) + (item.TikTok || 0) + (item['Suscrip.'] || 0),
+    }), { facebook: 0, twitter: 0, instagram: 0, tiktok: 0, youtube: 0, totalFollowers: 0 });
+  };
+
+  const totalStats = calculateStats(data);
+  const filteredStats = calculateStats(filteredData);
 
   const cards = [
-    { icon: FaFacebook, color: 'text-blue-600', title: 'Total Seguidores', value: stats.totalFollowers },
-    { icon: FaTwitter, color: 'text-blue-400', title: 'Seguidores Twitter', value: stats.twitter },
-    { icon: FaInstagram, color: 'text-pink-600', title: 'Seguidores Instagram', value: stats.instagram },
-    { icon: FaYoutube, color: 'text-red-600', title: 'Suscriptores YouTube', value: stats.subscribers },
+    { icon: FaFacebook, color: 'text-blue-600', title: 'Facebook', totalValue: totalStats.facebook, filteredValue: filteredStats.facebook },
+    { icon: FaTwitter, color: 'text-blue-400', title: 'Twitter', totalValue: totalStats.twitter, filteredValue: filteredStats.twitter },
+    { icon: FaInstagram, color: 'text-pink-600', title: 'Instagram', totalValue: totalStats.instagram, filteredValue: filteredStats.instagram },
+    { icon: SiTiktok, color: 'text-black', title: 'TikTok', totalValue: totalStats.tiktok, filteredValue: filteredStats.tiktok },
+    { icon: FaYoutube, color: 'text-red-600', title: 'YouTube', totalValue: totalStats.youtube, filteredValue: filteredStats.youtube },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
       {cards.map((card, index) => (
         <Card key={index} className="flex items-center p-4">
           <card.icon className={`${card.color} text-3xl mr-4`} />
           <div>
             <Text className="text-sm">{card.title}</Text>
-            <Metric>{card.value.toLocaleString()}</Metric>
+            <Metric>{card.totalValue.toLocaleString()}</Metric>
+            <Text className="text-xs text-gray-500">Filtrado: {card.filteredValue.toLocaleString()}</Text>
           </div>
         </Card>
       ))}
@@ -109,7 +111,6 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType }) => {
     }
     setSortConfig({ key, direction });
   };
-
   const handleRowSelect = (institution) => {
     setSelectedRows(prev => 
       prev.includes(institution) 
@@ -146,6 +147,7 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType }) => {
           <Table.HeadCell>Facebook</Table.HeadCell>
           <Table.HeadCell>Twitter</Table.HeadCell>
           <Table.HeadCell>Instagram</Table.HeadCell>
+          <Table.HeadCell>TikTok</Table.HeadCell>
           <Table.HeadCell>YouTube Suscriptores</Table.HeadCell>
         </Table.Head>
         <Table.Body>
@@ -155,6 +157,7 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType }) => {
               <Table.Cell>{institution.Facebook}</Table.Cell>
               <Table.Cell>{institution.Twitter}</Table.Cell>
               <Table.Cell>{institution.Instagram}</Table.Cell>
+              <Table.Cell>{institution.TikTok}</Table.Cell>
               <Table.Cell>{institution['Suscrip.']}</Table.Cell>
             </Table.Row>
           ))}
@@ -175,53 +178,58 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType }) => {
           </Button>
         </div>
       </div>
-      <div className="overflow-x-auto">
-        <Table hoverable className="w-full">
-          <Table.Head>
-            <Table.HeadCell className="w-4">
-              <Checkbox 
-                checked={selectedRows.length === filteredData.length}
-                onChange={selectedRows.length === filteredData.length ? handleDeselectAll : handleSelectAll}
-              />
-            </Table.HeadCell>
-            {['Instituciones', 'Tipo', 'Ciudad', 'Facebook', 'Twitter', 'Instagram', 'Videos2', 'Visitas2', 'Suscrip.'].map((column) => (
-              <Table.HeadCell key={column} onClick={() => handleSort(column)} className="cursor-pointer">
-                <div className="flex items-center">
-                  {column}
-                  <SortIcon column={column} />
-                </div>
+      <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
+        <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+          <Table hoverable className="w-full">
+            <Table.Head className="sticky top-0 bg-white dark:bg-gray-800 z-10">
+              <Table.HeadCell className="w-4 sticky left-0 bg-white dark:bg-gray-800 z-20">
+                <Checkbox 
+                  checked={selectedRows.length === filteredData.length}
+                  onChange={selectedRows.length === filteredData.length ? handleDeselectAll : handleSelectAll}
+                />
               </Table.HeadCell>
-            ))}
-          </Table.Head>
-          <Table.Body className="divide-y">
-            {filteredData.map((item) => (
-              <Table.Row 
-                key={item.Instituciones} 
-                className="bg-white dark:border-gray-700 dark:bg-gray-800"
-                onClick={() => onInstitutionSelect(item)}
-              >
-                <Table.Cell className="w-4">
-                  <Checkbox 
-                    checked={selectedRows.includes(item)}
-                    onChange={() => handleRowSelect(item)}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </Table.Cell>
-                <Table.Cell className="max-w-xs break-words font-medium text-gray-900 dark:text-white">
-                  {item.Instituciones}
-                </Table.Cell>
-                <Table.Cell>{item.Tipo}</Table.Cell>
-                <Table.Cell>{item.Ciudad}</Table.Cell>
-                <Table.Cell>{item.Facebook}</Table.Cell>
-                <Table.Cell>{item.Twitter}</Table.Cell>
-                <Table.Cell>{item.Instagram}</Table.Cell>
-                <Table.Cell>{item.Videos2}</Table.Cell>
-                <Table.Cell>{item.Visitas2}</Table.Cell>
-                <Table.Cell>{item['Suscrip.']}</Table.Cell>
-              </Table.Row>
-            ))}
-          </Table.Body>
-        </Table>
+              {['Instituciones', 'Tipo', 'Ciudad', 'Facebook', 'VideosFacebook', 'Twitter', 'Instagram', 'TikTok', 'LikesTikTok', 'Videos2', 'Visitas2', 'Suscrip.'].map((column) => (
+                <Table.HeadCell key={column} onClick={() => handleSort(column)} className="cursor-pointer">
+                  <div className="flex items-center">
+                    {column}
+                    <SortIcon column={column} />
+                  </div>
+                </Table.HeadCell>
+              ))}
+            </Table.Head>
+            <Table.Body className="divide-y">
+              {filteredData.map((item) => (
+                <Table.Row 
+                  key={item.Instituciones} 
+                  className="bg-white dark:border-gray-700 dark:bg-gray-800"
+                  onClick={() => onInstitutionSelect(item)}
+                >
+                  <Table.Cell className="w-4 sticky left-0 bg-white dark:bg-gray-800 z-10">
+                    <Checkbox 
+                      checked={selectedRows.includes(item)}
+                      onChange={() => handleRowSelect(item)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </Table.Cell>
+                  <Table.Cell className="max-w-xs break-words font-medium text-gray-900 dark:text-white">
+                    {item.Instituciones}
+                  </Table.Cell>
+                  <Table.Cell>{item.Tipo}</Table.Cell>
+                  <Table.Cell>{item.Ciudad}</Table.Cell>
+                  <Table.Cell>{item.Facebook}</Table.Cell>
+                  <Table.Cell>{item.VideosFacebook}</Table.Cell>
+                  <Table.Cell>{item.Twitter}</Table.Cell>
+                  <Table.Cell>{item.Instagram}</Table.Cell>
+                  <Table.Cell>{item.TikTok}</Table.Cell>
+                  <Table.Cell>{item.LikesTikTok}</Table.Cell>
+                  <Table.Cell>{item.Videos2}</Table.Cell>
+                  <Table.Cell>{item.Visitas2}</Table.Cell>
+                  <Table.Cell>{item['Suscrip.']}</Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table>
+        </div>
       </div>
       {showComparison && <ComparisonView />}
     </div>
@@ -233,6 +241,7 @@ const InstitutionStats = ({ institution }) => {
     { name: 'Facebook', value: institution.Facebook || 0, color: 'blue' },
     { name: 'Twitter', value: institution.Twitter || 0, color: 'cyan' },
     { name: 'Instagram', value: institution.Instagram || 0, color: 'pink' },
+    { name: 'TikTok', value: institution.TikTok || 0, color: 'black' },
   ];
 
   const youtubeData = [
@@ -242,17 +251,17 @@ const InstitutionStats = ({ institution }) => {
   ];
 
   const growthData = [
-    { date: "Ene 1", Facebook: 1000, Twitter: 500, Instagram: 700 },
-    { date: "Feb 1", Facebook: 1200, Twitter: 550, Instagram: 900 },
-    { date: "Mar 1", Facebook: 1500, Twitter: 600, Instagram: 1100 },
-    { date: "Abr 1", Facebook: 1800, Twitter: 700, Instagram: 1300 },
-    { date: "May 1", Facebook: 2000, Twitter: 800, Instagram: 1500 },
+    { date: "Ene 1", Facebook: 1000, Twitter: 500, Instagram: 700, TikTok: 300 },
+    { date: "Feb 1", Facebook: 1200, Twitter: 550, Instagram: 900, TikTok: 400 },
+    { date: "Mar 1", Facebook: 1500, Twitter: 600, Instagram: 1100, TikTok: 600 },
+    { date: "Abr 1", Facebook: 1800, Twitter: 700, Instagram: 1300, TikTok: 800 },
+    { date: "May 1", Facebook: 2000, Twitter: 800, Instagram: 1500, TikTok: 1000 },
   ];
 
   return (
     <div className="space-y-6">
       <div className='grid grid-cols-2'>
-      <Card >
+      <Card>
         <Title className="mb-4 text-xl text-center">Datos de {institution.Instituciones}</Title>
         <Grid numColsLg={2} className="gap-4">
           <div>
@@ -263,6 +272,7 @@ const InstitutionStats = ({ institution }) => {
             <Text className='text-xl text-center'><strong>Facebook:</strong> {institution.Facebook || 0} seguidores</Text>
             <Text className='text-xl text-center'><strong>Twitter:</strong> {institution.Twitter || 0} seguidores</Text>
             <Text className='text-xl text-center'><strong>Instagram:</strong> {institution.Instagram || 0} seguidores</Text>
+            <Text className='text-xl text-center'><strong>TikTok:</strong> {institution.TikTok || 0} seguidores</Text>
           </div>
         </Grid>
       </Card>
@@ -279,7 +289,7 @@ const InstitutionStats = ({ institution }) => {
             showLabel={true}
           />
           <div>
-            {youtubeData.map((item, index) => (
+          {youtubeData.map((item, index) => (
               <div key={index} className="flex justify-center space-x-6 items-center mt-2">
                 <Text>{item.name}</Text>
                 <Metric>{item.value.toLocaleString()}</Metric>
@@ -297,7 +307,7 @@ const InstitutionStats = ({ institution }) => {
           data={socialMediaData}
           index="name"
           categories={["value"]}
-          colors={["blue", "cyan", "pink"]}
+          colors={["blue", "cyan", "pink", "black"]}
           yAxisWidth={48}
           showLegend={false}
         />
@@ -309,8 +319,8 @@ const InstitutionStats = ({ institution }) => {
           className="mt-4 h-80"
           data={growthData}
           index="date"
-          categories={["Facebook", "Twitter", "Instagram"]}
-          colors={["blue", "cyan", "pink"]}
+          categories={["Facebook", "Twitter", "Instagram", "TikTok"]}
+          colors={["blue", "cyan", "pink", "black"]}
         />
       </Card>
     </div>
@@ -334,6 +344,10 @@ const SocialStatsDashboard = () => {
   const handleCategorySelect = (category) => {
     setActiveCategory(category);
     setSelectedInstitution(null);
+    const newFilteredData = category === 'Todos' 
+      ? socialStatsData.data 
+      : socialStatsData.data.filter(item => item.Tipo === category);
+    setFilteredData(newFilteredData);
   };
 
   const handleInstitutionSelect = (institution) => {
@@ -360,7 +374,7 @@ const SocialStatsDashboard = () => {
         
         <ImageNavbar onCategorySelect={handleCategorySelect} activeCategory={activeCategory} />
         
-        <SummaryCards data={filteredData} />
+        <SummaryCards data={socialStatsData.data} filteredData={filteredData} />
         
         <div className="mb-6">
           <TextInput
