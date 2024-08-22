@@ -3,7 +3,8 @@ import { Spinner, TextInput, Card, Table, Checkbox, Button } from 'flowbite-reac
 import { FaFacebook, FaTwitter, FaInstagram, FaYoutube, FaSearch, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
 import { SiTiktok } from 'react-icons/si';
 import { Title, Text, Grid, Col, Metric, BarChart, DonutChart, AreaChart } from '@tremor/react';
-import socialStatsData from '@/app/Principal/main/socialStatsData.json';
+import { fetchSocialStats } from '@/api/list/listData';
+
 
 const XIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -48,32 +49,40 @@ const ImageNavbar = ({ onCategorySelect, activeCategory }) => {
   );
 };
 
-const SummaryCards = ({ allData, filteredData }) => {
-  const calculateStats = (data) => {
-    return data.reduce((acc, item) => ({
-      facebook: acc.facebook + (item.social_networks.Facebook?.followers || 0),
-      x: acc.x + (item.social_networks.X?.followers || 0),
-      instagram: acc.instagram + (item.social_networks.Instagram?.followers || 0),
-      youtube: acc.youtube + (item.social_networks.YouTube?.followers || 0),
-      tiktok: acc.tiktok + (item.social_networks.TikTok?.followers || 0),
-      total: acc.total + 
-        (item.social_networks.Facebook?.followers || 0) +
-        (item.social_networks.X?.followers || 0) +
-        (item.social_networks.Instagram?.followers || 0) +
-        (item.social_networks.YouTube?.followers || 0) +
-        (item.social_networks.TikTok?.followers || 0),
-    }), { facebook: 0, x: 0, instagram: 0, youtube: 0, tiktok: 0, total: 0 });
-  };
+const SummaryCards = ({ data = [] }) => {
+  const stats = useMemo(() => {
+    if (!Array.isArray(data) || data.length === 0) {
+      return {
+        facebook: 0,
+        twitter: 0,
+        instagram: 0,
+        youtube: 0,
+        tiktok: 0,
+        total: 0
+      };
+    }
 
-  const totalStats = calculateStats(allData);
-  const filteredStats = calculateStats(filteredData);
+    return data.reduce((acc, item) => ({
+      facebook: acc.facebook + (item.social_networks?.Facebook?.followers || 0),
+      twitter: acc.twitter + (item.social_networks?.X?.followers || 0),
+      instagram: acc.instagram + (item.social_networks?.Instagram?.followers || 0),
+      youtube: acc.youtube + (item.social_networks?.YouTube?.followers || 0),
+      tiktok: acc.tiktok + (item.social_networks?.TikTok?.followers || 0),
+      total: acc.total + 
+        (item.social_networks?.Facebook?.followers || 0) +
+        (item.social_networks?.X?.followers || 0) +
+        (item.social_networks?.Instagram?.followers || 0) +
+        (item.social_networks?.YouTube?.followers || 0) +
+        (item.social_networks?.TikTok?.followers || 0),
+    }), { facebook: 0, twitter: 0, instagram: 0, youtube: 0, tiktok: 0, total: 0 });
+  }, [data]);
 
   const cards = [
-    { icon: FaFacebook, color: 'text-blue-600', title: 'Facebook', totalValue: totalStats.facebook, filteredValue: filteredStats.facebook },
-    { icon: XIcon, color: 'text-black', title: 'X', totalValue: totalStats.x, filteredValue: filteredStats.x },
-    { icon: FaInstagram, color: 'text-pink-600', title: 'Instagram', totalValue: totalStats.instagram, filteredValue: filteredStats.instagram },
-    { icon: FaYoutube, color: 'text-red-600', title: 'YouTube', totalValue: totalStats.youtube, filteredValue: filteredStats.youtube },
-    { icon: SiTiktok, color: 'text-black', title: 'TikTok', totalValue: totalStats.tiktok, filteredValue: filteredStats.tiktok },
+    { icon: FaFacebook, color: 'text-blue-600', title: 'Facebook', value: stats.facebook },
+    { icon: FaTwitter, color: 'text-blue-400', title: 'X', value: stats.twitter },
+    { icon: FaInstagram, color: 'text-pink-600', title: 'Instagram', value: stats.instagram },
+    { icon: FaYoutube, color: 'text-red-600', title: 'YouTube', value: stats.youtube },
+    { icon: SiTiktok, color: 'text-black', title: 'TikTok', value: stats.tiktok },
   ];
 
   return (
@@ -81,8 +90,7 @@ const SummaryCards = ({ allData, filteredData }) => {
       <Card className="col-span-1 sm:col-span-2 lg:col-span-1">
         <div className="flex flex-col items-center">
           <Text className="text-sm">Total Seguidores</Text>
-          <Metric>{totalStats.total.toLocaleString()}</Metric>
-          <Text className="text-xs text-gray-500">Filtrados: {filteredStats.total.toLocaleString()}</Text>
+          <Metric>{stats.total.toLocaleString()}</Metric>
         </div>
       </Card>
       {cards.map((card, index) => (
@@ -90,8 +98,7 @@ const SummaryCards = ({ allData, filteredData }) => {
           <card.icon className={`${card.color} text-3xl mr-4`} />
           <div>
             <Text className="text-sm">{card.title}</Text>
-            <Metric>{card.filteredValue.toLocaleString()}</Metric>
-            <Text className="text-xs text-gray-500">Total: {card.totalValue.toLocaleString()}</Text>
+            <Metric>{card.value.toLocaleString()}</Metric>
           </div>
         </Card>
       ))}
@@ -419,20 +426,37 @@ const InstitutionStats = ({ institution }) => {
   );
 };
 
+
 const SocialStatsDashboard = () => {
   const [allData, setAllData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [activeCategory, setActiveCategory] = useState('Todos');
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedInstitution, setSelectedInstitution] = useState(null);
 
   useEffect(() => {
-    setTimeout(() => {
-      setAllData(socialStatsData.data);
-      setFilteredData(socialStatsData.data);
-      setIsLoading(false);
-    }, 1000);
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await fetchSocialStats();
+        if (response && Array.isArray(response.metrics)) {
+          setAllData(response.metrics);
+          setFilteredData(response.metrics);
+        } else {
+          throw new Error('Data structure is not as expected');
+        }
+      } catch (err) {
+        setError(err.message || 'An error occurred while fetching data');
+        console.error('Error loading data:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
   const handleCategorySelect = (category) => {
@@ -459,6 +483,20 @@ const SocialStatsDashboard = () => {
     setFilteredData(filtered);
   };
 
+  if (error) {
+    return (
+      <div className="text-center text-red-500">
+        <p>Error: {error}</p>
+        <button 
+          className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          onClick={() => window.location.reload()}
+        >
+          Intentar de nuevo
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
@@ -468,7 +506,7 @@ const SocialStatsDashboard = () => {
         
         <ImageNavbar onCategorySelect={handleCategorySelect} activeCategory={activeCategory} />
         
-        <SummaryCards allData={allData} filteredData={filteredData} />
+        {!isLoading && filteredData.length > 0 && <SummaryCards data={filteredData} />}
         
         <div className="mb-6">
           <TextInput
@@ -484,7 +522,7 @@ const SocialStatsDashboard = () => {
           <div className="flex justify-center items-center h-64">
             <Spinner size="xl" />
           </div>
-        ) : (
+        ) : filteredData.length > 0 ? (
           <Grid numColsLg={3} className="gap-6">
             <Col numColSpanLg={2}>
               <Card>
@@ -500,11 +538,15 @@ const SocialStatsDashboard = () => {
                 <InstitutionStats institution={selectedInstitution} />
               ) : (
                 <Card className="h-full flex items-center justify-center">
-                  <Text>Selecciona una institución para ver sus estadísticas detalladas</Text>
+                  <p>Selecciona una institución para ver sus estadísticas detalladas</p>
                 </Card>
               )}
             </Col>
           </Grid>
+        ) : (
+          <Card>
+            <p className="text-center">No se encontraron datos que coincidan con la búsqueda.</p>
+          </Card>
         )}
       </div>
     </div>
