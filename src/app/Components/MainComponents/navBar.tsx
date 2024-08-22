@@ -6,7 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { checkAuthStatus, logout } from '@/api/auth';
 import { getUserDetail } from '@/api/user';
 
-import LoadingBasic from '@/app/Components/Loadings/LoadingBasic';
+import LoadingNavbar from '@/app/Components/Loadings/LoadingNavbar';
 
 const DashboardNavbar = () => {
   const router = useRouter();
@@ -53,7 +53,7 @@ const DashboardNavbar = () => {
   };
 
   if (isLoading) {
-    return <div className='my-4'><LoadingBasic/></div>;
+    return <div className='my-4'><LoadingNavbar/></div>;
   }
 
   if (pathname !== '/Principal/main' && !isAuthenticated) {
