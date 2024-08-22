@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { checkAuthStatus } from '@/api/auth';
 import Login from "@/app/Components/AuthComponents/login";
-import LoadingBasic from '@/app/Components/Loadings/LoadingBasic';
+import LoadingLogin from '@/app/Components/Loadings/LoadingLogin';
 
 export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(true);
@@ -32,7 +32,7 @@ export default function LoginPage() {
     }, [router]);
 
     if (isLoading) {
-        return <LoadingBasic />;
+        return <LoadingLogin />;
     }
 
     if (!shouldRender) {
