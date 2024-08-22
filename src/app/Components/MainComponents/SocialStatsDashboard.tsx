@@ -5,7 +5,6 @@ import { SiTiktok } from 'react-icons/si';
 import { Title, Text, Grid, Col, Metric, BarChart, DonutChart, AreaChart } from '@tremor/react';
 import socialStatsData from '@/app/Principal/main/socialStatsData.json';
 
-
 const ImageNavbar = ({ onCategorySelect, activeCategory }) => {
   const categories = [
     { name: 'Todos', image: '/assets/imgs/images.png' },
@@ -15,7 +14,7 @@ const ImageNavbar = ({ onCategorySelect, activeCategory }) => {
     { name: 'IPS Públicas', image: '/assets/imgs/2.jpg' },
     { name: 'Org. admin', image: '/assets/imgs/5.jpg' },
     { name: 'Org. Profesionales', image: '/assets/imgs/6.png' },
-    { name: 'Farmacias', image: '/assets/imgs/8.jpeg' }, // New category
+    { name: 'Farmacias', image: '/assets/imgs/8.jpeg' },
   ];
 
   return (
@@ -42,45 +41,56 @@ const ImageNavbar = ({ onCategorySelect, activeCategory }) => {
   );
 };
 
-const SummaryCards = ({ data, filteredData }) => {
-  const calculateStats = (dataSet) => {
-    return dataSet.reduce((sum, item) => ({
-      facebook: sum.facebook + (item.Facebook || 0),
-      twitter: sum.twitter + (item.Twitter || 0),
-      instagram: sum.instagram + (item.Instagram || 0),
-      tiktok: sum.tiktok + (item.TikTok || 0),
-      youtube: sum.youtube + (item['Suscrip.'] || 0),
-      totalFollowers: sum.totalFollowers + (item.Facebook || 0) + (item.Twitter || 0) + (item.Instagram || 0) + (item.TikTok || 0) + (item['Suscrip.'] || 0),
-    }), { facebook: 0, twitter: 0, instagram: 0, tiktok: 0, youtube: 0, totalFollowers: 0 });
+const SummaryCards = ({ allData, filteredData }) => {
+  const calculateStats = (data) => {
+    return data.reduce((acc, item) => ({
+      facebook: acc.facebook + (item.social_networks.Facebook?.followers || 0),
+      twitter: acc.twitter + (item.social_networks.X?.followers || 0),
+      instagram: acc.instagram + (item.social_networks.Instagram?.followers || 0),
+      youtube: acc.youtube + (item.social_networks.YouTube?.followers || 0),
+      tiktok: acc.tiktok + (item.social_networks.TikTok?.followers || 0),
+      total: acc.total + 
+        (item.social_networks.Facebook?.followers || 0) +
+        (item.social_networks.X?.followers || 0) +
+        (item.social_networks.Instagram?.followers || 0) +
+        (item.social_networks.YouTube?.followers || 0) +
+        (item.social_networks.TikTok?.followers || 0),
+    }), { facebook: 0, twitter: 0, instagram: 0, youtube: 0, tiktok: 0, total: 0 });
   };
 
-  const totalStats = calculateStats(data);
+  const totalStats = calculateStats(allData);
   const filteredStats = calculateStats(filteredData);
 
   const cards = [
     { icon: FaFacebook, color: 'text-blue-600', title: 'Facebook', totalValue: totalStats.facebook, filteredValue: filteredStats.facebook },
     { icon: FaTwitter, color: 'text-blue-400', title: 'Twitter', totalValue: totalStats.twitter, filteredValue: filteredStats.twitter },
     { icon: FaInstagram, color: 'text-pink-600', title: 'Instagram', totalValue: totalStats.instagram, filteredValue: filteredStats.instagram },
-    { icon: SiTiktok, color: 'text-black', title: 'TikTok', totalValue: totalStats.tiktok, filteredValue: filteredStats.tiktok },
     { icon: FaYoutube, color: 'text-red-600', title: 'YouTube', totalValue: totalStats.youtube, filteredValue: filteredStats.youtube },
+    { icon: SiTiktok, color: 'text-black', title: 'TikTok', totalValue: totalStats.tiktok, filteredValue: filteredStats.tiktok },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
+      <Card className="col-span-1 sm:col-span-2 lg:col-span-1">
+        <div className="flex flex-col items-center">
+          <Text className="text-sm">Total Seguidores</Text>
+          <Metric>{totalStats.total.toLocaleString()}</Metric>
+          <Text className="text-xs text-gray-500">Filtrados: {filteredStats.total.toLocaleString()}</Text>
+        </div>
+      </Card>
       {cards.map((card, index) => (
         <Card key={index} className="flex items-center p-4">
           <card.icon className={`${card.color} text-3xl mr-4`} />
           <div>
             <Text className="text-sm">{card.title}</Text>
-            <Metric>{card.totalValue.toLocaleString()}</Metric>
-            <Text className="text-xs text-gray-500">Filtrado: {card.filteredValue.toLocaleString()}</Text>
+            <Metric>{card.filteredValue.toLocaleString()}</Metric>
+            <Text className="text-xs text-gray-500">Total: {card.totalValue.toLocaleString()}</Text>
           </div>
         </Card>
       ))}
     </div>
   );
 };
-
 const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType }) => {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
   const [selectedRows, setSelectedRows] = useState([]);
@@ -90,13 +100,18 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType }) => {
     let sortableItems = [...data];
     if (sortConfig.key !== null) {
       sortableItems.sort((a, b) => {
-        if (a[sortConfig.key] < b[sortConfig.key]) {
-          return sortConfig.direction === 'ascending' ? -1 : 1;
+        if (sortConfig.key.includes('.')) {
+          const [network, metric] = sortConfig.key.split('.');
+          const aValue = a.social_networks[network]?.[metric] || 0;
+          const bValue = b.social_networks[network]?.[metric] || 0;
+          if (aValue < bValue) return sortConfig.direction === 'ascending' ? -1 : 1;
+          if (aValue > bValue) return sortConfig.direction === 'ascending' ? 1 : -1;
+          return 0;
+        } else {
+          if (a[sortConfig.key] < b[sortConfig.key]) return sortConfig.direction === 'ascending' ? -1 : 1;
+          if (a[sortConfig.key] > b[sortConfig.key]) return sortConfig.direction === 'ascending' ? 1 : -1;
+          return 0;
         }
-        if (a[sortConfig.key] > b[sortConfig.key]) {
-          return sortConfig.direction === 'ascending' ? 1 : -1;
-        }
-        return 0;
       });
     }
     return sortableItems;
@@ -111,6 +126,7 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType }) => {
     }
     setSortConfig({ key, direction });
   };
+
   const handleRowSelect = (institution) => {
     setSelectedRows(prev => 
       prev.includes(institution) 
@@ -147,18 +163,18 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType }) => {
           <Table.HeadCell>Facebook</Table.HeadCell>
           <Table.HeadCell>Twitter</Table.HeadCell>
           <Table.HeadCell>Instagram</Table.HeadCell>
+          <Table.HeadCell>YouTube</Table.HeadCell>
           <Table.HeadCell>TikTok</Table.HeadCell>
-          <Table.HeadCell>YouTube Suscriptores</Table.HeadCell>
         </Table.Head>
         <Table.Body>
           {selectedRows.map(institution => (
-            <Table.Row key={institution.Instituciones}>
-              <Table.Cell className="max-w-xs break-words">{institution.Instituciones}</Table.Cell>
-              <Table.Cell>{institution.Facebook}</Table.Cell>
-              <Table.Cell>{institution.Twitter}</Table.Cell>
-              <Table.Cell>{institution.Instagram}</Table.Cell>
-              <Table.Cell>{institution.TikTok}</Table.Cell>
-              <Table.Cell>{institution['Suscrip.']}</Table.Cell>
+            <Table.Row key={institution.Institucion}>
+              <Table.Cell className="max-w-xs break-words">{institution.Institucion}</Table.Cell>
+              <Table.Cell>{institution.social_networks.Facebook?.followers}</Table.Cell>
+              <Table.Cell>{institution.social_networks.X?.followers}</Table.Cell>
+              <Table.Cell>{institution.social_networks.Instagram?.followers}</Table.Cell>
+              <Table.Cell>{institution.social_networks.YouTube?.followers}</Table.Cell>
+              <Table.Cell>{institution.social_networks.TikTok?.followers}</Table.Cell>
             </Table.Row>
           ))}
         </Table.Body>
@@ -188,10 +204,10 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType }) => {
                   onChange={selectedRows.length === filteredData.length ? handleDeselectAll : handleSelectAll}
                 />
               </Table.HeadCell>
-              {['Instituciones', 'Tipo', 'Ciudad', 'Facebook', 'VideosFacebook', 'Twitter', 'Instagram', 'TikTok', 'LikesTikTok', 'Videos2', 'Visitas2', 'Suscrip.'].map((column) => (
+              {['Institucion', 'Tipo', 'Ciudad', 'Facebook.followers', 'X.followers', 'Instagram.followers', 'YouTube.followers', 'TikTok.followers'].map((column) => (
                 <Table.HeadCell key={column} onClick={() => handleSort(column)} className="cursor-pointer">
                   <div className="flex items-center">
-                    {column}
+                    {column.replace('.', ' ')}
                     <SortIcon column={column} />
                   </div>
                 </Table.HeadCell>
@@ -200,7 +216,7 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType }) => {
             <Table.Body className="divide-y">
               {filteredData.map((item) => (
                 <Table.Row 
-                  key={item.Instituciones} 
+                  key={item.Institucion} 
                   className="bg-white dark:border-gray-700 dark:bg-gray-800"
                   onClick={() => onInstitutionSelect(item)}
                 >
@@ -212,19 +228,15 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType }) => {
                     />
                   </Table.Cell>
                   <Table.Cell className="max-w-xs break-words font-medium text-gray-900 dark:text-white">
-                    {item.Instituciones}
+                    {item.Institucion}
                   </Table.Cell>
                   <Table.Cell>{item.Tipo}</Table.Cell>
                   <Table.Cell>{item.Ciudad}</Table.Cell>
-                  <Table.Cell>{item.Facebook}</Table.Cell>
-                  <Table.Cell>{item.VideosFacebook}</Table.Cell>
-                  <Table.Cell>{item.Twitter}</Table.Cell>
-                  <Table.Cell>{item.Instagram}</Table.Cell>
-                  <Table.Cell>{item.TikTok}</Table.Cell>
-                  <Table.Cell>{item.LikesTikTok}</Table.Cell>
-                  <Table.Cell>{item.Videos2}</Table.Cell>
-                  <Table.Cell>{item.Visitas2}</Table.Cell>
-                  <Table.Cell>{item['Suscrip.']}</Table.Cell>
+                  <Table.Cell>{item.social_networks.Facebook?.followers}</Table.Cell>
+                  <Table.Cell>{item.social_networks.X?.followers}</Table.Cell>
+                  <Table.Cell>{item.social_networks.Instagram?.followers}</Table.Cell>
+                  <Table.Cell>{item.social_networks.YouTube?.followers}</Table.Cell>
+                  <Table.Cell>{item.social_networks.TikTok?.followers}</Table.Cell>
                 </Table.Row>
               ))}
             </Table.Body>
@@ -238,43 +250,49 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType }) => {
 
 const InstitutionStats = ({ institution }) => {
   const socialMediaData = [
-    { name: 'Facebook', value: institution.Facebook || 0, color: 'blue' },
-    { name: 'Twitter', value: institution.Twitter || 0, color: 'cyan' },
-    { name: 'Instagram', value: institution.Instagram || 0, color: 'pink' },
-    { name: 'TikTok', value: institution.TikTok || 0, color: 'black' },
+    { name: 'Facebook', value: institution.social_networks.Facebook?.followers || 0, color: 'blue' },
+    { name: 'Twitter', value: institution.social_networks.X?.followers || 0, color: 'cyan' },
+    { name: 'Instagram', value: institution.social_networks.Instagram?.followers || 0, color: 'pink' },
+    { name: 'YouTube', value: institution.social_networks.YouTube?.followers || 0, color: 'red' },
+    { name: 'TikTok', value: institution.social_networks.TikTok?.followers || 0, color: 'black' },
   ];
 
   const youtubeData = [
-    { name: 'Videos', value: institution.Videos2 || 0 },
-    { name: 'Visitas', value: institution.Visitas2 || 0 },
-    { name: 'Suscriptores', value: institution['Suscrip.'] || 0 },
-  ];
-
-  const growthData = [
-    { date: "Ene 1", Facebook: 1000, Twitter: 500, Instagram: 700, TikTok: 300 },
-    { date: "Feb 1", Facebook: 1200, Twitter: 550, Instagram: 900, TikTok: 400 },
-    { date: "Mar 1", Facebook: 1500, Twitter: 600, Instagram: 1100, TikTok: 600 },
-    { date: "Abr 1", Facebook: 1800, Twitter: 700, Instagram: 1300, TikTok: 800 },
-    { date: "May 1", Facebook: 2000, Twitter: 800, Instagram: 1500, TikTok: 1000 },
+    { name: 'Seguidores', value: institution.social_networks.YouTube?.followers || 0 },
+    { name: 'Publicaciones', value: institution.social_networks.YouTube?.publications || 0 },
+    { name: 'Reacciones', value: institution.social_networks.YouTube?.reactions || 0 },
   ];
 
   return (
     <div className="space-y-6">
-      <div className='grid grid-cols-2'>
       <Card>
-        <Title className="mb-4 text-xl text-center">Datos de {institution.Instituciones}</Title>
+        <Title className="mb-4 text-xl text-center">Datos de {institution.Institucion}</Title>
         <Grid numColsLg={2} className="gap-4">
           <div>
             <Text className='text-xl text-center'><strong>Ciudad:</strong> {institution.Ciudad || 'N/A'}</Text>
             <Text className='text-xl text-center'><strong>Tipo:</strong> {institution.Tipo || 'Sin clasificar'}</Text>
           </div>
           <div>
-            <Text className='text-xl text-center'><strong>Facebook:</strong> {institution.Facebook || 0} seguidores</Text>
-            <Text className='text-xl text-center'><strong>Twitter:</strong> {institution.Twitter || 0} seguidores</Text>
-            <Text className='text-xl text-center'><strong>Instagram:</strong> {institution.Instagram || 0} seguidores</Text>
-            <Text className='text-xl text-center'><strong>TikTok:</strong> {institution.TikTok || 0} seguidores</Text>
+            {Object.entries(institution.social_networks).map(([network, data]) => (
+              <Text key={network} className='text-xl text-center'>
+                <strong>{network}:</strong> {data.followers || 0} seguidores
+              </Text>
+            ))}
           </div>
         </Grid>
+      </Card>
+
+      <Card>
+        <Title>Estadísticas de Redes Sociales</Title>
+        <BarChart
+          className="mt-4 h-80"
+          data={socialMediaData}
+          index="name"
+          categories={["value"]}
+          colors={["blue", "cyan", "pink", "red", "black"]}
+          yAxisWidth={48}
+          showLegend={false}
+        />
       </Card>
 
       <Card>
@@ -289,7 +307,7 @@ const InstitutionStats = ({ institution }) => {
             showLabel={true}
           />
           <div>
-          {youtubeData.map((item, index) => (
+            {youtubeData.map((item, index) => (
               <div key={index} className="flex justify-center space-x-6 items-center mt-2">
                 <Text>{item.name}</Text>
                 <Metric>{item.value.toLocaleString()}</Metric>
@@ -298,29 +316,18 @@ const InstitutionStats = ({ institution }) => {
           </div>
         </Grid>
       </Card>
-      </div>
 
       <Card>
-        <Title>Estadísticas de Redes Sociales</Title>
-        <BarChart
-          className="mt-4 h-80"
-          data={socialMediaData}
-          index="name"
-          categories={["value"]}
-          colors={["blue", "cyan", "pink", "black"]}
-          yAxisWidth={48}
-          showLegend={false}
-        />
-      </Card>
-
-      <Card>
-        <Title>Crecimiento de Seguidores</Title>
+        <Title>Engagement por Red Social</Title>
         <AreaChart
           className="mt-4 h-80"
-          data={growthData}
+          data={[
+            { date: "Ene", Facebook: institution.social_networks.Facebook?.engagement || 0, Twitter: institution.social_networks.X?.engagement || 0, Instagram: institution.social_networks.Instagram?.engagement || 0, YouTube: institution.social_networks.YouTube?.engagement || 0, TikTok: institution.social_networks.TikTok?.engagement || 0 },
+            // Aquí podrías agregar más datos si tuvieras información histórica
+          ]}
           index="date"
-          categories={["Facebook", "Twitter", "Instagram", "TikTok"]}
-          colors={["blue", "cyan", "pink", "black"]}
+          categories={["Facebook", "Twitter", "Instagram", "YouTube", "TikTok"]}
+          colors={["blue", "cyan", "pink", "red", "black"]}
         />
       </Card>
     </div>
@@ -328,41 +335,65 @@ const InstitutionStats = ({ institution }) => {
 };
 
 const SocialStatsDashboard = () => {
+  const [allData, setAllData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [activeCategory, setActiveCategory] = useState('Todos');
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedInstitution, setSelectedInstitution] = useState(null);
+  const [networkFilters, setNetworkFilters] = useState({
+    Facebook: true,
+    X: true,
+    Instagram: true,
+    YouTube: true,
+    TikTok: true
+  });
 
   useEffect(() => {
     setTimeout(() => {
+      setAllData(socialStatsData.data);
       setFilteredData(socialStatsData.data);
       setIsLoading(false);
     }, 1000);
   }, []);
 
+  const applyFilters = (data) => {
+    return data.filter(item => {
+      const categoryMatch = activeCategory === 'Todos' || item.Tipo === activeCategory;
+      const searchMatch = 
+        item.Institucion.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (item.Ciudad && item.Ciudad.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (item.Tipo && item.Tipo.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      const networkMatch = Object.entries(networkFilters).some(([network, isActive]) => 
+        isActive && item.social_networks[network] && item.social_networks[network].followers > 0
+      );
+
+      return categoryMatch && searchMatch && networkMatch;
+    });
+  };
+
   const handleCategorySelect = (category) => {
     setActiveCategory(category);
     setSelectedInstitution(null);
-    const newFilteredData = category === 'Todos' 
-      ? socialStatsData.data 
-      : socialStatsData.data.filter(item => item.Tipo === category);
-    setFilteredData(newFilteredData);
+    setFilteredData(applyFilters(allData));
+  };
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setFilteredData(applyFilters(allData));
+  };
+
+  const handleNetworkFilterChange = (network) => {
+    setNetworkFilters(prev => ({
+      ...prev,
+      [network]: !prev[network]
+    }));
+    setFilteredData(applyFilters(allData));
   };
 
   const handleInstitutionSelect = (institution) => {
     setSelectedInstitution(institution);
-  };
-
-  const handleSearch = (e) => {
-    const term = e.target.value.toLowerCase();
-    setSearchTerm(term);
-    const filtered = socialStatsData.data.filter(item =>
-      item.Instituciones.toLowerCase().includes(term) ||
-      (item.Ciudad && item.Ciudad.toLowerCase().includes(term)) ||
-      (item.Tipo && item.Tipo.toLowerCase().includes(term))
-    );
-    setFilteredData(filtered);
   };
 
   return (
@@ -374,16 +405,26 @@ const SocialStatsDashboard = () => {
         
         <ImageNavbar onCategorySelect={handleCategorySelect} activeCategory={activeCategory} />
         
-        <SummaryCards data={socialStatsData.data} filteredData={filteredData} />
+        <SummaryCards allData={allData} filteredData={filteredData} />
         
-        <div className="mb-6">
+        <div className="mb-6 flex flex-wrap items-center gap-4">
           <TextInput
             type="text"
             placeholder="Buscar por institución, ciudad o tipo..."
             value={searchTerm}
             onChange={handleSearch}
             icon={FaSearch}
+            className="flex-grow"
           />
+          {Object.entries(networkFilters).map(([network, isActive]) => (
+            <Button
+              key={network}
+              color={isActive ? "blue" : "gray"}
+              onClick={() => handleNetworkFilterChange(network)}
+            >
+              {network}
+            </Button>
+          ))}
         </div>
         
         {isLoading ? (

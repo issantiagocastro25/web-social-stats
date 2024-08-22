@@ -1,328 +1,374 @@
 {
   "data": [
     {
-      "Instituciones": "Escuela de Salud Sur Colombiana",
+      "Institucion": "Escuela de Salud Sur Colombiana",
       "Ciudad": "",
       "Tipo": "Educación",
-      "Facebook": 4074,
-      "Videos": 1,
-      "Visitas": 919,
-      "Visitas/Video": 919,
-      "Twitter": 0,
-      "Instagram": 538,
-      "Videos2": 0,
-      "Visitas2": 0,
-      "Suscrip.": 0,
-      "Visitas/video": null,
-      "TikTok": 1200,
-      "LikesTikTok": 15000,
-      "VideosFacebook": 45
+      "social_networks": {
+        "Facebook": {
+          "followers": 4074,
+          "publications": 45,
+          "reactions": 919,
+          "engagement": null
+        },
+        "X": {
+          "followers": 0,
+          "publications": 0,
+          "reactions": null,
+          "engagement": null
+        },
+        "Instagram": {
+          "followers": 538,
+          "publications": 0,
+          "reactions": null,
+          "engagement": null
+        },
+        "YouTube": {
+          "followers": 0,
+          "publications": 0,
+          "reactions": null,
+          "engagement": null
+        },
+        "TikTok": {
+          "followers": 1200,
+          "publications": 0,
+          "reactions": null,
+          "engagement": null
+        }
+      }
     },
     {
-      "Instituciones": "Asociación Colombiana de Facultades de Medicina (Ascofame)",
+      "Institucion": "Asociación Colombiana de Facultades de Medicina (Ascofame)",
       "Ciudad": "",
       "Tipo": "Educación",
-      "Facebook": 12781,
-      "Videos": 1,
-      "Visitas": 2129,
-      "Visitas/Video": 2129,
-      "Twitter": 4383,
-      "Instagram": 0,
-      "Videos2": 123,
-      "Visitas2": 57031,
-      "Suscrip.": 3420,
-      "Visitas/video": 464,
-      "TikTok": 3500,
-      "LikesTikTok": 42000,
-      "VideosFacebook": 78
+      "social_networks": {
+        "Facebook": {
+          "followers": 12781,
+          "publications": 78,
+          "reactions": 2129,
+          "engagement": null
+        },
+        "X": {
+          "followers": 4383,
+          "publications": 123,
+          "reactions": 57031,
+          "engagement": null
+        },
+        "Instagram": {
+          "followers": 0,
+          "publications": 0,
+          "reactions": null,
+          "engagement": null
+        },
+        "YouTube": {
+          "followers": 0,
+          "publications": 0,
+          "reactions": null,
+          "engagement": null
+        },
+        "TikTok": {
+          "followers": 3500,
+          "publications": 123,
+          "reactions": 57031,
+          "engagement": 464
+        }
+      }
     },
     {
-      "Instituciones": "Consultor Salud",
+      "Institucion": "Consultor Salud",
       "Ciudad": "",
       "Tipo": "Educación",
-      "Facebook": 64416,
-      "Videos": 22,
-      "Visitas": 25285,
-      "Visitas/Video": 1149,
-      "Twitter": 7305,
-      "Instagram": 4314,
-      "Videos2": 148,
-      "Visitas2": 147774,
-      "Suscrip.": 999,
-      "Visitas/video": 998,
-      "TikTok": 15000,
-      "LikesTikTok": 180000,
-      "VideosFacebook": 210
+      "social_networks": {
+        "Facebook": {
+          "followers": 64416,
+          "publications": 210,
+          "reactions": 25285,
+          "engagement": null
+        },
+        "X": {
+          "followers": 7305,
+          "publications": 148,
+          "reactions": 147774,
+          "engagement": null
+        },
+        "Instagram": {
+          "followers": 4314,
+          "publications": 0,
+          "reactions": null,
+          "engagement": null
+        },
+        "YouTube": {
+          "followers": 0,
+          "publications": 0,
+          "reactions": null,
+          "engagement": null
+        },
+        "TikTok": {
+          "followers": 15000,
+          "publications": 148,
+          "reactions": 147774,
+          "engagement": 998
+        }
+      }
     },
     {
-      "Instituciones": "Aliansalud",
+      "Institucion": "Aliansalud",
       "Ciudad": "Nacional",
       "Tipo": "EPS y Seguros",
-      "Facebook": 2819,
-      "Videos": 10,
-      "Visitas": 5529,
-      "Visitas/Video": 553,
-      "Twitter": 0,
-      "Instagram": 0,
-      "Videos2": 45,
-      "Visitas2": 90480,
-      "Suscrip.": 3140,
-      "Visitas/video": 2011,
-      "TikTok": 800,
-      "LikesTikTok": 9500,
-      "VideosFacebook": 65
+      "social_networks": {
+        "Facebook": {
+          "followers": 2819,
+          "publications": 65,
+          "reactions": 5529,
+          "engagement": null
+        },
+        "X": {
+          "followers": 0,
+          "publications": 45,
+          "reactions": 90480,
+          "engagement": null
+        },
+        "Instagram": {
+          "followers": 0,
+          "publications": 0,
+          "reactions": null,
+          "engagement": null
+        },
+        "YouTube": {
+          "followers": 0,
+          "publications": 0,
+          "reactions": null,
+          "engagement": null
+        },
+        "TikTok": {
+          "followers": 800,
+          "publications": 45,
+          "reactions": 90480,
+          "engagement": 2011
+        }
+      }
     },
     {
-      "Instituciones": "Asmet Salud",
+      "Institucion": "Asmet Salud",
       "Ciudad": "",
       "Tipo": "EPS y Seguros",
-      "Facebook": 19114,
-      "Videos": 92,
-      "Visitas": 71992,
-      "Visitas/Video": 783,
-      "Twitter": 1643,
-      "Instagram": 2201,
-      "Videos2": 139,
-      "Visitas2": 50493,
-      "Suscrip.": 1160,
-      "Visitas/video": 363,
-      "TikTok": 5200,
-      "LikesTikTok": 62000,
-      "VideosFacebook": 180
+      "social_networks": {
+        "Facebook": {
+          "followers": 19114,
+          "publications": 180,
+          "reactions": 71992,
+          "engagement": null
+        },
+        "X": {
+          "followers": 1643,
+          "publications": 139,
+          "reactions": 50493,
+          "engagement": null
+        },
+        "Instagram": {
+          "followers": 2201,
+          "publications": 0,
+          "reactions": null,
+          "engagement": null
+        },
+        "YouTube": {
+          "followers": 0,
+          "publications": 0,
+          "reactions": null,
+          "engagement": null
+        },
+        "TikTok": {
+          "followers": 5200,
+          "publications": 139,
+          "reactions": 50493,
+          "engagement": 363
+        }
+      }
     },
     {
-      "Instituciones": "Capital salud",
+      "Institucion": "Capital Salud",
       "Ciudad": "Nacional",
       "Tipo": "EPS y Seguros",
-      "Facebook": 9079,
-      "Videos": 34,
-      "Visitas": 3910,
-      "Visitas/Video": 115,
-      "Twitter": 6268,
-      "Instagram": 2236,
-      "Videos2": 105,
-      "Visitas2": 62697,
-      "Suscrip.": 910,
-      "Visitas/video": 597,
-      "TikTok": 3800,
-      "LikesTikTok": 45000,
-      "VideosFacebook": 120
+      "social_networks": {
+        "Facebook": {
+          "followers": 9079,
+          "publications": 120,
+          "reactions": 3910,
+          "engagement": null
+        },
+        "X": {
+          "followers": 6268,
+          "publications": 105,
+          "reactions": 62697,
+          "engagement": null
+        },
+        "Instagram": {
+          "followers": 2236,
+          "publications": 0,
+          "reactions": null,
+          "engagement": null
+        },
+        "YouTube": {
+          "followers": 0,
+          "publications": 0,
+          "reactions": null,
+          "engagement": null
+        },
+        "TikTok": {
+          "followers": 3800,
+          "publications": 105,
+          "reactions": 62697,
+          "engagement": 597
+        }
+      }
     },
     {
-      "Instituciones": "Clofan",
+      "Institucion": "Clofan",
       "Ciudad": "Cali",
       "Tipo": "IPS privadas",
-      "Facebook": 178094,
-      "Videos": 14,
-      "Visitas": 13822,
-      "Visitas/Video": 987,
-      "Twitter": 847,
-      "Instagram": 12754,
-      "Videos2": 260,
-      "Visitas2": 24488487,
-      "Suscrip.": 55400,
-      "Visitas/video": 94186,
-      "TikTok": 50000,
-      "LikesTikTok": 600000,
-      "VideosFacebook": 350
+      "social_networks": {
+        "Facebook": {
+          "followers": 178094,
+          "publications": 350,
+          "reactions": 13822,
+          "engagement": null
+        },
+        "X": {
+          "followers": 847,
+          "publications": 260,
+          "reactions": 24488487,
+          "engagement": null
+        },
+        "Instagram": {
+          "followers": 12754,
+          "publications": 0,
+          "reactions": null,
+          "engagement": null
+        },
+        "YouTube": {
+          "followers": 0,
+          "publications": 0,
+          "reactions": null,
+          "engagement": null
+        },
+        "TikTok": {
+          "followers": 50000,
+          "publications": 260,
+          "reactions": 24488487,
+          "engagement": 94186
+        }
+      }
     },
     {
-      "Instituciones": "F. Valle del Lili",
+      "Institucion": "F. Valle del Lili",
       "Ciudad": "Cali",
       "Tipo": "IPS privadas",
-      "Facebook": 147839,
-      "Videos": 169,
-      "Visitas": 578716,
-      "Visitas/Video": 3424,
-      "Twitter": 6667,
-      "Instagram": 31066,
-      "Videos2": 730,
-      "Visitas2": 9142340,
-      "Suscrip.": 43800,
-      "Visitas/video": 12524,
-      "TikTok": 40000,
-      "LikesTikTok": 480000,
-      "VideosFacebook": 420
+      "social_networks": {
+        "Facebook": {
+          "followers": 147839,
+          "publications": 420,
+          "reactions": 578716,
+          "engagement": null
+        },
+        "X": {
+          "followers": 6667,
+          "publications": 730,
+          "reactions": 9142340,
+          "engagement": null
+        },
+        "Instagram": {
+          "followers": 31066,
+          "publications": 0,
+          "reactions": null,
+          "engagement": null
+        },
+        "YouTube": {
+          "followers": 0,
+          "publications": 0,
+          "reactions": null,
+          "engagement": null
+        },
+        "TikTok": {
+          "followers": 40000,
+          "publications": 730,
+          "reactions": 9142340,
+          "engagement": 12524
+        }
+      }
     },
     {
-      "Instituciones": "EMI",
+      "Institucion": "EMI",
       "Ciudad": "Colombia",
       "Tipo": "IPS privadas",
-      "Facebook": 113721,
-      "Videos": 47,
-      "Visitas": 1576649,
-      "Visitas/Video": 33546,
-      "Twitter": null,
-      "Instagram": 9435,
-      "Videos2": 108,
-      "Visitas2": 7569491,
-      "Suscrip.": 2120,
-      "Visitas/video": 70088,
-      "TikTok": 25000,
-      "LikesTikTok": 300000,
-      "VideosFacebook": 280
+      "social_networks": {
+        "Facebook": {
+          "followers": 113721,
+          "publications": 280,
+          "reactions": 1576649,
+          "engagement": null
+        },
+        "X": {
+          "followers": null,
+          "publications": 108,
+          "reactions": 7569491,
+          "engagement": null
+        },
+        "Instagram": {
+          "followers": 9435,
+          "publications": 0,
+          "reactions": null,
+          "engagement": null
+        },
+        "YouTube": {
+          "followers": 0,
+          "publications": 0,
+          "reactions": null,
+          "engagement": null
+        },
+        "TikTok": {
+          "followers": 2350,
+          "publications": 108,
+          "reactions": 7569491,
+          "engagement": 466
+        }
+      }
     },
     {
-      "Instituciones": "Hospital Universitario de Santander",
-      "Ciudad": "Bucaramanga",
+      "Institucion": "Hospital Universitario del Valle",
+      "Ciudad": "Cali",
       "Tipo": "IPS Públicas",
-      "Facebook": 21326,
-      "Videos": 225,
-      "Visitas": 265119,
-      "Visitas/Video": 1178,
-      "Twitter": 3392,
-      "Instagram": 1169,
-      "Videos2": 117,
-      "Visitas2": 54564,
-      "Suscrip.": 310,
-      "Visitas/video": 466,
-      "TikTok": 8000,
-      "LikesTikTok": 95000,
-      "VideosFacebook": 320
-    },
-    {
-      "Instituciones": "Hospital Civil de Ipiales",
-      "Ciudad": "Marino",
-      "Tipo": "IPS Públicas",
-      "Facebook": 14611,
-      "Videos": 54,
-      "Visitas": 119556,
-      "Visitas/Video": 2214,
-      "Twitter": 337,
-      "Instagram": 632,
-      "Videos2": 6,
-      "Visitas2": 1715,
-      "Suscrip.": 6,
-      "Visitas/video": 286,
-      "TikTok": 3000,
-      "LikesTikTok": 36000,
-      "VideosFacebook": 150
-    },
-    {
-      "Instituciones": "Hospital departamental del Quindío 0 San Juan de Dios",
-      "Ciudad": "Armenia",
-      "Tipo": "IPS Públicas",
-      "Facebook": 14913,
-      "Videos": 27,
-      "Visitas": 58293,
-      "Visitas/Video": 2159,
-      "Twitter": 1308,
-      "Instagram": 1786,
-      "Videos2": 1,
-      "Visitas2": 1382,
-      "Suscrip.": 25,
-      "Visitas/video": 1382,
-      "TikTok": 4500,
-      "LikesTikTok": 54000,
-      "VideosFacebook": 130
-    },
-    {
-      "Instituciones": "Asociación colombiana de Diabetes",
-      "Ciudad": "Nacional",
-      "Tipo": "Org. admin",
-      "Facebook": 12044,
-      "Videos": 3,
-      "Visitas": 988,
-      "Visitas/Video": 329,
-      "Twitter": 374,
-      "Instagram": 3203,
-      "Videos2": 6,
-      "Visitas2": 1874,
-      "Suscrip.": 117,
-      "Visitas/video": 312,
-      "TikTok": 5500,
-      "LikesTikTok": 66000,
-      "VideosFacebook": 85
-    },
-    {
-      "Instituciones": "Asociación Colombiana de Empresas Sociales del Estado y Hospitales Públicos 0ACESI0",
-      "Ciudad": "Nacional",
-      "Tipo": "Org. admin",
-      "Facebook": 945,
-      "Videos": 6,
-      "Visitas": 4932,
-      "Visitas/Video": 822,
-      "Twitter": 8961,
-      "Instagram": 82,
-      "Videos2": 0,
-      "Visitas2": 0,
-      "Suscrip.": 0,
-      "Visitas/video": null,
-      "TikTok": 600,
-      "LikesTikTok": 7200,
-      "VideosFacebook": 40
-    },
-    {
-      "Instituciones": "Cruz Roja Colombiana",
-      "Ciudad": "Nacional",
-      "Tipo": "Org. admin",
-      "Facebook": 76673,
-      "Videos": 102,
-      "Visitas": 101490,
-      "Visitas/Video": 995,
-      "Twitter": 126695,
-      "Instagram": 18522,
-      "Videos2": 552,
-      "Visitas2": 696189,
-      "Suscrip.": 4620,
-      "Visitas/video": 1261,
-      "TikTok": 30000,
-      "LikesTikTok": 360000,
-      "VideosFacebook": 380
-    },
-    {
-      "Instituciones": "ACHC",
-      "Ciudad": "Nacional",
-      "Tipo": "Org. Profesionales",
-      "Facebook": 4594,
-      "Videos": 1,
-      "Visitas": 4594,
-      "Visitas/Video": 4594,
-      "Twitter": null,
-      "Instagram": null,
-      "Videos2": 331,
-      "Visitas2": 64339,
-      "Suscrip.": 393,
-      "Visitas/video": 194,
-      "TikTok": 1800,
-      "LikesTikTok": 21600,
-      "VideosFacebook": 55
-    },
-    {
-      "Instituciones": "Asociación colombiana de alergia",
-      "Ciudad": "Nacional",
-      "Tipo": "Org. Profesionales",
-      "Facebook": 5929,
-      "Videos": 12,
-      "Visitas": 494,
-      "Visitas/Video": 41,
-      "Twitter": 347,
-      "Instagram": null,
-      "Videos2": 0,
-      "Visitas2": 0,
-      "Suscrip.": 0,
-      "Visitas/video": null,
-      "TikTok": 2200,
-      "LikesTikTok": 26400,
-      "VideosFacebook": 70
-    },
-    {
-      "Instituciones": "Asociación colombiana de cirugía vascular",
-      "Ciudad": "Nacional",
-      "Tipo": "Org. Profesionales",
-      "Facebook": 3402,
-      "Videos": 0,
-      "Visitas": null,
-      "Visitas/Video": null,
-      "Twitter": 951,
-      "Instagram": 514,
-      "Videos2": 30,
-      "Visitas2": 7889,
-      "Suscrip.": 698,
-      "Visitas/video": 263,
-      "TikTok": 1500,
-      "LikesTikTok": 18000,
-      "VideosFacebook": 45
+      "social_networks": {
+        "Facebook": {
+          "followers": 40698,
+          "publications": 140,
+          "reactions": 6634,
+          "engagement": null
+        },
+        "X": {
+          "followers": 2553,
+          "publications": 95,
+          "reactions": 17434,
+          "engagement": null
+        },
+        "Instagram": {
+          "followers": 1964,
+          "publications": 0,
+          "reactions": null,
+          "engagement": null
+        },
+        "YouTube": {
+          "followers": 0,
+          "publications": 0,
+          "reactions": null,
+          "engagement": null
+        },
+        "TikTok": {
+          "followers": 16000,
+          "publications": 95,
+          "reactions": 17434,
+          "engagement": 103
+        }
+      }
     }
   ]
 }
