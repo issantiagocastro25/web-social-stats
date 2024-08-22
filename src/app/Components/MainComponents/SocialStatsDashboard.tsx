@@ -103,6 +103,42 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType }) => {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
   const [selectedRows, setSelectedRows] = useState([]);
   const [showComparison, setShowComparison] = useState(false);
+  const [visibleNetworks, setVisibleNetworks] = useState({
+    basic: true,
+    Facebook: true,
+    X: true,
+    Instagram: true,
+    YouTube: true,
+    TikTok: true
+  });
+
+  const columns = [
+    { key: 'Institucion', label: 'Institución', network: 'basic' },
+    { key: 'Tipo', label: 'Tipo', network: 'basic' },
+    { key: 'Ciudad', label: 'Ciudad', network: 'basic' },
+    { key: 'social_networks.Facebook.followers', label: 'Facebook Seguidores', network: 'Facebook' },
+    { key: 'social_networks.Facebook.publications', label: 'Facebook Publicaciones', network: 'Facebook' },
+    { key: 'social_networks.Facebook.reactions', label: 'Facebook Reacciones', network: 'Facebook' },
+    { key: 'social_networks.Facebook.engagement', label: 'Facebook Engagement', network: 'Facebook' },
+    { key: 'social_networks.X.followers', label: 'X Seguidores', network: 'X' },
+    { key: 'social_networks.X.publications', label: 'X Publicaciones', network: 'X' },
+    { key: 'social_networks.X.reactions', label: 'X Reacciones', network: 'X' },
+    { key: 'social_networks.X.engagement', label: 'X Engagement', network: 'X' },
+    { key: 'social_networks.Instagram.followers', label: 'Instagram Seguidores', network: 'Instagram' },
+    { key: 'social_networks.Instagram.publications', label: 'Instagram Publicaciones', network: 'Instagram' },
+    { key: 'social_networks.Instagram.reactions', label: 'Instagram Reacciones', network: 'Instagram' },
+    { key: 'social_networks.Instagram.engagement', label: 'Instagram Engagement', network: 'Instagram' },
+    { key: 'social_networks.YouTube.followers', label: 'YouTube Seguidores', network: 'YouTube' },
+    { key: 'social_networks.YouTube.publications', label: 'YouTube Publicaciones', network: 'YouTube' },
+    { key: 'social_networks.YouTube.reactions', label: 'YouTube Reacciones', network: 'YouTube' },
+    { key: 'social_networks.YouTube.engagement', label: 'YouTube Engagement', network: 'YouTube' },
+    { key: 'social_networks.TikTok.followers', label: 'TikTok Seguidores', network: 'TikTok' },
+    { key: 'social_networks.TikTok.publications', label: 'TikTok Publicaciones', network: 'TikTok' },
+    { key: 'social_networks.TikTok.reactions', label: 'TikTok Reacciones', network: 'TikTok' },
+    { key: 'social_networks.TikTok.engagement', label: 'TikTok Engagement', network: 'TikTok' },
+  ];
+
+  const visibleColumns = columns.filter(column => visibleNetworks[column.network]);
 
   const sortedData = useMemo(() => {
     let sortableItems = [...data];
@@ -160,6 +196,10 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType }) => {
     setShowComparison(true);
   };
 
+  const toggleNetwork = (network) => {
+    setVisibleNetworks(prev => ({ ...prev, [network]: !prev[network] }));
+  };
+
   const SortIcon = ({ column }) => {
     if (sortConfig.key !== column) {
       return <FaSort className="ml-1 text-gray-400" />;
@@ -167,47 +207,19 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType }) => {
     return sortConfig.direction === 'ascending' ? <FaSortUp className="ml-1 text-blue-500" /> : <FaSortDown className="ml-1 text-blue-500" />;
   };
 
-  const columns = [
-    { key: 'Institucion', label: 'Institución' },
-    { key: 'Tipo', label: 'Tipo' },
-    { key: 'Ciudad', label: 'Ciudad' },
-    { key: 'social_networks.Facebook.followers', label: 'Facebook Seguidores' },
-    { key: 'social_networks.Facebook.publications', label: 'Facebook Publicaciones' },
-    { key: 'social_networks.Facebook.reactions', label: 'Facebook Reacciones' },
-    { key: 'social_networks.Facebook.engagement', label: 'Facebook Engagement' },
-    { key: 'social_networks.X.followers', label: 'X Seguidores' },
-    { key: 'social_networks.X.publications', label: 'X Publicaciones' },
-    { key: 'social_networks.X.reactions', label: 'X Reacciones' },
-    { key: 'social_networks.X.engagement', label: 'X Engagement' },
-    { key: 'social_networks.Instagram.followers', label: 'Instagram Seguidores' },
-    { key: 'social_networks.Instagram.publications', label: 'Instagram Publicaciones' },
-    { key: 'social_networks.Instagram.reactions', label: 'Instagram Reacciones' },
-    { key: 'social_networks.Instagram.engagement', label: 'Instagram Engagement' },
-    { key: 'social_networks.YouTube.followers', label: 'YouTube Seguidores' },
-    { key: 'social_networks.YouTube.publications', label: 'YouTube Publicaciones' },
-    { key: 'social_networks.YouTube.reactions', label: 'YouTube Reacciones' },
-    { key: 'social_networks.YouTube.engagement', label: 'YouTube Engagement' },
-    { key: 'social_networks.TikTok.followers', label: 'TikTok Seguidores' },
-    { key: 'social_networks.TikTok.publications', label: 'TikTok Publicaciones' },
-    { key: 'social_networks.TikTok.reactions', label: 'TikTok Reacciones' },
-    { key: 'social_networks.TikTok.engagement', label: 'TikTok Engagement' },
-  ];
-
   const ComparisonView = () => (
     <Card>
       <h3 className="text-lg font-bold mb-4">Comparación de Entidades Seleccionadas</h3>
       <Table>
         <Table.Head>
-          <Table.HeadCell>Institución</Table.HeadCell>
-          {columns.slice(3).map(column => (
+          {visibleColumns.map(column => (
             <Table.HeadCell key={column.key}>{column.label}</Table.HeadCell>
           ))}
         </Table.Head>
         <Table.Body>
           {selectedRows.map(institution => (
             <Table.Row key={institution.Institucion}>
-              <Table.Cell className="max-w-xs break-words">{institution.Institucion}</Table.Cell>
-              {columns.slice(3).map(column => (
+              {visibleColumns.map(column => (
                 <Table.Cell key={column.key}>
                   {column.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : 'N/A'), institution)}
                 </Table.Cell>
@@ -221,8 +233,28 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType }) => {
 
   return (
     <div>
-      <div className="mb-4 flex justify-between items-center">
-        <h2 className="text-xl font-bold">Datos de Instituciones</h2>
+      <div className="mb-4 flex flex-wrap justify-between items-center">
+        <h2 className="text-xl font-bold mb-2">Datos de Instituciones</h2>
+        <div className="flex flex-wrap gap-2 mb-2">
+          <Button size="xs" color={visibleNetworks.basic ? "blue" : "gray"} onClick={() => toggleNetwork('basic')}>
+            Datos Básicos
+          </Button>
+          <Button size="xs" color={visibleNetworks.Facebook ? "blue" : "gray"} onClick={() => toggleNetwork('Facebook')}>
+            <FaFacebook className="mr-2" />Facebook
+          </Button>
+          <Button size="xs" color={visibleNetworks.X ? "blue" : "gray"} onClick={() => toggleNetwork('X')}>
+            <FaTwitter className="mr-2" />X
+          </Button>
+          <Button size="xs" color={visibleNetworks.Instagram ? "blue" : "gray"} onClick={() => toggleNetwork('Instagram')}>
+            <FaInstagram className="mr-2" />Instagram
+          </Button>
+          <Button size="xs" color={visibleNetworks.YouTube ? "blue" : "gray"} onClick={() => toggleNetwork('YouTube')}>
+            <FaYoutube className="mr-2" />YouTube
+          </Button>
+          <Button size="xs" color={visibleNetworks.TikTok ? "blue" : "gray"} onClick={() => toggleNetwork('TikTok')}>
+            <SiTiktok className="mr-2" />TikTok
+          </Button>
+        </div>
         <div className="flex space-x-2">
           <Button size="sm" onClick={handleSelectAll}>Seleccionar Todos</Button>
           <Button size="sm" onClick={handleDeselectAll}>Deseleccionar Todos</Button>
@@ -241,7 +273,7 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType }) => {
                   onChange={selectedRows.length === filteredData.length ? handleDeselectAll : handleSelectAll}
                 />
               </Table.HeadCell>
-              {columns.map((column) => (
+              {visibleColumns.map((column) => (
                 <Table.HeadCell 
                   key={column.key} 
                   onClick={() => handleSort(column.key)} 
@@ -268,7 +300,7 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType }) => {
                       onClick={(e) => e.stopPropagation()}
                     />
                   </Table.Cell>
-                  {columns.map(column => (
+                  {visibleColumns.map(column => (
                     <Table.Cell key={column.key} className="max-w-xs break-words font-medium text-gray-900 dark:text-white">
                       {column.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : 'N/A'), item)}
                     </Table.Cell>
