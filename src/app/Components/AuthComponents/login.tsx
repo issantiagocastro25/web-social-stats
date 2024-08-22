@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 
 import ButtonGoogle from "./google/ButtonGoogle";
 import { getGoogleLoginUrl } from '../../../api/auth';
+import ButtonLinkedIn from "./linkedin/ButtonLinkedIn";
 
 
 export default function Login() {
@@ -91,6 +92,7 @@ export default function Login() {
                     </button>
                     <div className="bg-slate-600 w-full h-0.5 rounded-lg opacity-20"></div>
                     <ButtonGoogle/>
+                    <ButtonLinkedIn/>
                 </form>
                 <div className="mt-4 text-center">
                     <Label className="text-sm font-light">
