@@ -5,6 +5,13 @@ import { SiTiktok } from 'react-icons/si';
 import { Title, Text, Grid, Col, Metric, BarChart, DonutChart, AreaChart } from '@tremor/react';
 import socialStatsData from '@/app/Principal/main/socialStatsData.json';
 
+const XIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
+  </svg>
+);
+
+
 const ImageNavbar = ({ onCategorySelect, activeCategory }) => {
   const categories = [
     { name: 'Todos', image: '/assets/imgs/images.png' },
@@ -45,7 +52,7 @@ const SummaryCards = ({ allData, filteredData }) => {
   const calculateStats = (data) => {
     return data.reduce((acc, item) => ({
       facebook: acc.facebook + (item.social_networks.Facebook?.followers || 0),
-      twitter: acc.twitter + (item.social_networks.X?.followers || 0),
+      x: acc.x + (item.social_networks.X?.followers || 0),
       instagram: acc.instagram + (item.social_networks.Instagram?.followers || 0),
       youtube: acc.youtube + (item.social_networks.YouTube?.followers || 0),
       tiktok: acc.tiktok + (item.social_networks.TikTok?.followers || 0),
@@ -55,7 +62,7 @@ const SummaryCards = ({ allData, filteredData }) => {
         (item.social_networks.Instagram?.followers || 0) +
         (item.social_networks.YouTube?.followers || 0) +
         (item.social_networks.TikTok?.followers || 0),
-    }), { facebook: 0, twitter: 0, instagram: 0, youtube: 0, tiktok: 0, total: 0 });
+    }), { facebook: 0, x: 0, instagram: 0, youtube: 0, tiktok: 0, total: 0 });
   };
 
   const totalStats = calculateStats(allData);
@@ -63,7 +70,7 @@ const SummaryCards = ({ allData, filteredData }) => {
 
   const cards = [
     { icon: FaFacebook, color: 'text-blue-600', title: 'Facebook', totalValue: totalStats.facebook, filteredValue: filteredStats.facebook },
-    { icon: FaTwitter, color: 'text-blue-400', title: 'Twitter', totalValue: totalStats.twitter, filteredValue: filteredStats.twitter },
+    { icon: XIcon, color: 'text-black', title: 'X', totalValue: totalStats.x, filteredValue: filteredStats.x },
     { icon: FaInstagram, color: 'text-pink-600', title: 'Instagram', totalValue: totalStats.instagram, filteredValue: filteredStats.instagram },
     { icon: FaYoutube, color: 'text-red-600', title: 'YouTube', totalValue: totalStats.youtube, filteredValue: filteredStats.youtube },
     { icon: SiTiktok, color: 'text-black', title: 'TikTok', totalValue: totalStats.tiktok, filteredValue: filteredStats.tiktok },
@@ -91,6 +98,7 @@ const SummaryCards = ({ allData, filteredData }) => {
     </div>
   );
 };
+
 const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType }) => {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
   const [selectedRows, setSelectedRows] = useState([]);
@@ -250,18 +258,28 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType }) => {
 
 const InstitutionStats = ({ institution }) => {
   const socialMediaData = [
-    { name: 'Facebook', value: institution.social_networks.Facebook?.followers || 0, color: 'blue' },
-    { name: 'Twitter', value: institution.social_networks.X?.followers || 0, color: 'cyan' },
-    { name: 'Instagram', value: institution.social_networks.Instagram?.followers || 0, color: 'pink' },
-    { name: 'YouTube', value: institution.social_networks.YouTube?.followers || 0, color: 'red' },
-    { name: 'TikTok', value: institution.social_networks.TikTok?.followers || 0, color: 'black' },
+    { name: 'Facebook', value: institution.social_networks.Facebook?.followers || 0, color: 'blue', icon: FaFacebook },
+    { name: 'X', value: institution.social_networks.X?.followers || 0, color: 'black', icon: XIcon },
+    { name: 'Instagram', value: institution.social_networks.Instagram?.followers || 0, color: 'pink', icon: FaInstagram },
+    { name: 'YouTube', value: institution.social_networks.YouTube?.followers || 0, color: 'red', icon: FaYoutube },
+    { name: 'TikTok', value: institution.social_networks.TikTok?.followers || 0, color: 'black', icon: SiTiktok },
   ];
+
 
   const youtubeData = [
     { name: 'Seguidores', value: institution.social_networks.YouTube?.followers || 0 },
     { name: 'Publicaciones', value: institution.social_networks.YouTube?.publications || 0 },
     { name: 'Reacciones', value: institution.social_networks.YouTube?.reactions || 0 },
   ];
+
+  // Simulated annual growth data (replace with actual data if available)
+  const annualGrowthData = [
+    { year: '2020', Facebook: 5, X: 3, Instagram: 8, YouTube: 10, TikTok: 15 },
+    { year: '2021', Facebook: 7, X: 4, Instagram: 10, YouTube: 12, TikTok: 20 },
+    { year: '2022', Facebook: 6, X: 5, Instagram: 12, YouTube: 15, TikTok: 25 },
+    { year: '2023', Facebook: 8, X: 6, Instagram: 15, YouTube: 18, TikTok: 30 },
+  ];
+
 
   return (
     <div className="space-y-6">
@@ -318,17 +336,23 @@ const InstitutionStats = ({ institution }) => {
       </Card>
 
       <Card>
-        <Title>Engagement por Red Social</Title>
+        <Title>Crecimiento Anual en Redes Sociales</Title>
         <AreaChart
           className="mt-4 h-80"
-          data={[
-            { date: "Ene", Facebook: institution.social_networks.Facebook?.engagement || 0, Twitter: institution.social_networks.X?.engagement || 0, Instagram: institution.social_networks.Instagram?.engagement || 0, YouTube: institution.social_networks.YouTube?.engagement || 0, TikTok: institution.social_networks.TikTok?.engagement || 0 },
-            // Aquí podrías agregar más datos si tuvieras información histórica
-          ]}
-          index="date"
+          data={annualGrowthData}
+          index="year"
           categories={["Facebook", "Twitter", "Instagram", "YouTube", "TikTok"]}
           colors={["blue", "cyan", "pink", "red", "black"]}
+          valueFormatter={(number) => `${number}%`}
         />
+        <div className="mt-4 flex justify-center space-x-4">
+          {socialMediaData.map((network) => (
+            <div key={network.name} className="flex items-center">
+              <network.icon className={`text-${network.color}-500 mr-2`} />
+              <Text>{network.name}</Text>
+            </div>
+          ))}
+        </div>
       </Card>
     </div>
   );
@@ -341,13 +365,6 @@ const SocialStatsDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedInstitution, setSelectedInstitution] = useState(null);
-  const [networkFilters, setNetworkFilters] = useState({
-    Facebook: true,
-    X: true,
-    Instagram: true,
-    YouTube: true,
-    TikTok: true
-  });
 
   useEffect(() => {
     setTimeout(() => {
@@ -357,43 +374,28 @@ const SocialStatsDashboard = () => {
     }, 1000);
   }, []);
 
-  const applyFilters = (data) => {
-    return data.filter(item => {
-      const categoryMatch = activeCategory === 'Todos' || item.Tipo === activeCategory;
-      const searchMatch = 
-        item.Institucion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (item.Ciudad && item.Ciudad.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (item.Tipo && item.Tipo.toLowerCase().includes(searchTerm.toLowerCase()));
-      
-      const networkMatch = Object.entries(networkFilters).some(([network, isActive]) => 
-        isActive && item.social_networks[network] && item.social_networks[network].followers > 0
-      );
-
-      return categoryMatch && searchMatch && networkMatch;
-    });
-  };
-
   const handleCategorySelect = (category) => {
     setActiveCategory(category);
     setSelectedInstitution(null);
-    setFilteredData(applyFilters(allData));
-  };
-
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-    setFilteredData(applyFilters(allData));
-  };
-
-  const handleNetworkFilterChange = (network) => {
-    setNetworkFilters(prev => ({
-      ...prev,
-      [network]: !prev[network]
-    }));
-    setFilteredData(applyFilters(allData));
+    const newFilteredData = category === 'Todos' 
+      ? allData 
+      : allData.filter(item => item.Tipo === category);
+    setFilteredData(newFilteredData);
   };
 
   const handleInstitutionSelect = (institution) => {
     setSelectedInstitution(institution);
+  };
+
+  const handleSearch = (e) => {
+    const term = e.target.value.toLowerCase();
+    setSearchTerm(term);
+    const filtered = allData.filter(item =>
+      item.Institucion.toLowerCase().includes(term) ||
+      (item.Ciudad && item.Ciudad.toLowerCase().includes(term)) ||
+      (item.Tipo && item.Tipo.toLowerCase().includes(term))
+    );
+    setFilteredData(filtered);
   };
 
   return (
@@ -407,24 +409,14 @@ const SocialStatsDashboard = () => {
         
         <SummaryCards allData={allData} filteredData={filteredData} />
         
-        <div className="mb-6 flex flex-wrap items-center gap-4">
+        <div className="mb-6">
           <TextInput
             type="text"
             placeholder="Buscar por institución, ciudad o tipo..."
             value={searchTerm}
             onChange={handleSearch}
             icon={FaSearch}
-            className="flex-grow"
           />
-          {Object.entries(networkFilters).map(([network, isActive]) => (
-            <Button
-              key={network}
-              color={isActive ? "blue" : "gray"}
-              onClick={() => handleNetworkFilterChange(network)}
-            >
-              {network}
-            </Button>
-          ))}
         </div>
         
         {isLoading ? (
