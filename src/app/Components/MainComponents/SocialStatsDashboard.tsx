@@ -6,8 +6,10 @@ import { Title, Text, Grid, Col, Metric, BarChart, DonutChart, AreaChart } from 
 import { fetchSocialStats } from '@/api/list/listData';
 
 
+
+
 const XIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
     <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
   </svg>
 );
@@ -15,7 +17,7 @@ const XIcon = () => (
 
 const ImageNavbar = ({ onCategorySelect, activeCategory }) => {
   const categories = [
-    { name: 'Todos', image: '/assets/imgs/images.png' },
+    { name: 'todos', image: '/assets/imgs/images.png' },
     { name: 'Educación', image: '/assets/imgs/4.jpg' },
     { name: 'EPS y Seguros', image: '/assets/imgs/3.jpg' },
     { name: 'IPS privadas', image: '/assets/imgs/1.jpg' },
@@ -23,6 +25,7 @@ const ImageNavbar = ({ onCategorySelect, activeCategory }) => {
     { name: 'Org. admin', image: '/assets/imgs/5.jpg' },
     { name: 'Org. Profesionales', image: '/assets/imgs/6.png' },
     { name: 'Farmacias', image: '/assets/imgs/8.jpeg' },
+    
   ];
 
   return (
@@ -79,7 +82,7 @@ const SummaryCards = ({ data = [] }) => {
 
   const cards = [
     { icon: FaFacebook, color: 'text-blue-600', title: 'Facebook', value: stats.facebook },
-    { icon: FaTwitter, color: 'text-blue-400', title: 'X', value: stats.twitter },
+    { icon: XIcon, color: 'text-blue-400', title: 'X', value: stats.twitter },
     { icon: FaInstagram, color: 'text-pink-600', title: 'Instagram', value: stats.instagram },
     { icon: FaYoutube, color: 'text-red-600', title: 'YouTube', value: stats.youtube },
     { icon: SiTiktok, color: 'text-black', title: 'TikTok', value: stats.tiktok },
@@ -112,11 +115,11 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType }) => {
   const [showComparison, setShowComparison] = useState(false);
   const [visibleNetworks, setVisibleNetworks] = useState({
     basic: true,
-    Facebook: true,
-    X: true,
-    Instagram: true,
-    YouTube: true,
-    TikTok: true
+    Facebook: false,
+    X: false,
+    Instagram: false,
+    YouTube: false,
+    TikTok: false
   });
 
   const columns = [
@@ -243,22 +246,22 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType }) => {
       <div className="mb-4 flex flex-wrap justify-between items-center">
         <h2 className="text-xl font-bold mb-2">Datos de Instituciones</h2>
         <div className="flex flex-wrap gap-2 mb-2">
-          <Button size="xs" color={visibleNetworks.basic ? "blue" : "gray"} onClick={() => toggleNetwork('basic')}>
+          <Button size="sm" color={visibleNetworks.basic ? "blue" : "gray"} onClick={() => toggleNetwork('basic')}>
             Datos Básicos
           </Button>
-          <Button size="xs" color={visibleNetworks.Facebook ? "blue" : "gray"} onClick={() => toggleNetwork('Facebook')}>
+          <Button size="sm" color={visibleNetworks.Facebook ? "blue" : "gray"} onClick={() => toggleNetwork('Facebook')}>
             <FaFacebook className="mr-2" />Facebook
           </Button>
           <Button size="xs" color={visibleNetworks.X ? "blue" : "gray"} onClick={() => toggleNetwork('X')}>
-            <FaTwitter className="mr-2" />X
+            <XIcon className="mr-2" />
           </Button>
-          <Button size="xs" color={visibleNetworks.Instagram ? "blue" : "gray"} onClick={() => toggleNetwork('Instagram')}>
+          <Button size="sm" color={visibleNetworks.Instagram ? "blue" : "gray"} onClick={() => toggleNetwork('Instagram')}>
             <FaInstagram className="mr-2" />Instagram
           </Button>
-          <Button size="xs" color={visibleNetworks.YouTube ? "blue" : "gray"} onClick={() => toggleNetwork('YouTube')}>
+          <Button size="sm" color={visibleNetworks.YouTube ? "blue" : "gray"} onClick={() => toggleNetwork('YouTube')}>
             <FaYoutube className="mr-2" />YouTube
           </Button>
-          <Button size="xs" color={visibleNetworks.TikTok ? "blue" : "gray"} onClick={() => toggleNetwork('TikTok')}>
+          <Button size="sm" color={visibleNetworks.TikTok ? "blue" : "gray"} onClick={() => toggleNetwork('TikTok')}>
             <SiTiktok className="mr-2" />TikTok
           </Button>
         </div>
@@ -409,7 +412,7 @@ const InstitutionStats = ({ institution }) => {
           className="mt-4 h-80"
           data={annualGrowthData}
           index="year"
-          categories={["Facebook", "Twitter", "Instagram", "YouTube", "TikTok"]}
+          categories={["Facebook", "X", "Instagram", "YouTube", "TikTok"]}
           colors={["blue", "cyan", "pink", "red", "black"]}
           valueFormatter={(number) => `${number}%`}
         />
@@ -430,7 +433,7 @@ const InstitutionStats = ({ institution }) => {
 const SocialStatsDashboard = () => {
   const [allData, setAllData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
-  const [activeCategory, setActiveCategory] = useState('Todos');
+  const [activeCategory, setActiveCategory] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -441,12 +444,14 @@ const SocialStatsDashboard = () => {
       try {
         setIsLoading(true);
         setError(null);
-        const response = await fetchSocialStats();
+        console.log('Fetching data for category:', activeCategory);
+        const response = await fetchSocialStats({ category: activeCategory });
+        console.log('Response received:', response);
         if (response && Array.isArray(response.metrics)) {
           setAllData(response.metrics);
           setFilteredData(response.metrics);
         } else {
-          throw new Error('Data structure is not as expected');
+          throw new Error(`Data structure is not as expected: ${JSON.stringify(response)}`);
         }
       } catch (err) {
         setError(err.message || 'An error occurred while fetching data');
@@ -457,12 +462,12 @@ const SocialStatsDashboard = () => {
     };
 
     loadData();
-  }, []);
+  }, [activeCategory]);
 
-  const handleCategorySelect = (category) => {
+   const handleCategorySelect = (category) => {
     setActiveCategory(category);
     setSelectedInstitution(null);
-    const newFilteredData = category === 'Todos' 
+    const newFilteredData = category === '' 
       ? allData 
       : allData.filter(item => item.Tipo === category);
     setFilteredData(newFilteredData);
@@ -486,7 +491,8 @@ const SocialStatsDashboard = () => {
   if (error) {
     return (
       <div className="text-center text-red-500">
-        <p>Error: {error}</p>
+        <h2 className="text-xl font-bold mb-4">Error</h2>
+        <p>{error}</p>
         <button 
           className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
           onClick={() => window.location.reload()}
@@ -497,7 +503,7 @@ const SocialStatsDashboard = () => {
     );
   }
 
-  return (
+   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
@@ -506,7 +512,9 @@ const SocialStatsDashboard = () => {
         
         <ImageNavbar onCategorySelect={handleCategorySelect} activeCategory={activeCategory} />
         
-        {!isLoading && filteredData.length > 0 && <SummaryCards data={filteredData} />}
+        {!isLoading && allData.length > 0 && (
+          <SummaryCards allData={allData} filteredData={filteredData} />
+        )}
         
         <div className="mb-6">
           <TextInput
@@ -521,6 +529,17 @@ const SocialStatsDashboard = () => {
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
             <Spinner size="xl" />
+          </div>
+        ) : error ? (
+          <div className="text-center text-red-500">
+            <h2 className="text-xl font-bold mb-4">Error</h2>
+            <p>{error}</p>
+            <button 
+              className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              onClick={() => window.location.reload()}
+            >
+              Intentar de nuevo
+            </button>
           </div>
         ) : filteredData.length > 0 ? (
           <Grid numColsLg={3} className="gap-6">
