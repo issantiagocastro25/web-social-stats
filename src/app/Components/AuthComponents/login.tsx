@@ -17,15 +17,6 @@ export default function Login() {
     const [error, setError] = useState('');
     const router = useRouter();
 
-    const handleGoogleLogin = async () => {
-        try {
-          const loginUrl = await getGoogleLoginUrl();
-          window.location.href = loginUrl;
-        } catch (error) {
-          console.error('Error initiating Google login:', error);
-        }
-      };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
