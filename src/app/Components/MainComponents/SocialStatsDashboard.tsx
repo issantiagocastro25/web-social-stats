@@ -4,6 +4,7 @@ import { FaFacebook, FaTwitter, FaInstagram, FaYoutube, FaSearch, FaSort, FaSort
 import { SiTiktok } from 'react-icons/si';
 import { Title, Text, Grid, Col, Metric, BarChart, LineChart, ScatterChart, DonutChart, AreaChart } from '@tremor/react';
 import { fetchSocialStats } from '@/api/list/listData';
+import NavbarComponent from '@/app/Components/MainComponents/navBar';
 
 const XIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -39,7 +40,7 @@ const InstitutionStats = ({ institution }) => {
     <div className="space-y-6">
       <Card>
         <Title className="mb-4 text-xl text-center">Datos de {institution.Institucion}</Title>
-        <Grid numColsLg={2} className="gap-4">
+        <Grid numcolslg={2} className="gap-4">
           <div>
             <Text className='text-xl text-center'><strong>Ciudad:</strong> {institution.Ciudad || 'N/A'}</Text>
             <Text className='text-xl text-center'><strong>Tipo:</strong> {institution.Tipo || 'Sin clasificar'}</Text>
@@ -69,7 +70,7 @@ const InstitutionStats = ({ institution }) => {
 
       <Card>
         <Title className='text-xl text-center'>Estadísticas de YouTube</Title>
-        <Grid numColsLg={2} className="gap-4 mt-4">
+        <Grid numcolslg={2} className="gap-4 mt-4">
           <DonutChart
             className="h-60"
             data={youtubeData}
@@ -114,7 +115,7 @@ const InstitutionStats = ({ institution }) => {
 
 const ImageNavbar = ({ onCategorySelect, activeCategory }) => {
   const categories = [
-    { name: 'Todos', image: '/assets/imgs/images.png' },
+    { name: 'todos', image: '/assets/imgs/images.png' },
     { name: 'Educación', image: '/assets/imgs/4.jpg' },
     { name: 'EPS y Seguros', image: '/assets/imgs/3.jpg' },
     { name: 'IPS privadas', image: '/assets/imgs/1.jpg' },
@@ -514,13 +515,12 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType, selecte
 const SocialStatsDashboard = () => {
   const [allData, setAllData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
-  const [activeCategory, setActiveCategory] = useState('');
+  const [activeCategory, setActiveCategory] = useState('todos');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedInstitution, setSelectedInstitution] = useState(null);
-  const [selectedYear, setSelectedYear] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState('');
+  const [selectedYear, setSelectedYear] = useState('2021');
   const [selectedInstitutions, setSelectedInstitutions] = useState([]);
 
   useEffect(() => {
@@ -544,24 +544,25 @@ const SocialStatsDashboard = () => {
         setIsLoading(false);
       }
     };
-  
+
     loadData();
   }, [activeCategory, selectedYear]);
 
   const handleCategorySelect = (category) => {
     setActiveCategory(category);
     setSelectedInstitution(null);
-    const newFilteredData = allData.filter(item => 
-      (category === 'todos' || item.Tipo === category) &&
-      (!selectedYear || item.year === selectedYear)
-    );
-    setFilteredData(newFilteredData);
   };
-  
 
+  const handleYearChange = (e) => {
+    setSelectedYear(e.target.value);
+  };
 
   const handleInstitutionSelect = (institution) => {
     setSelectedInstitution(institution);
+  };
+
+  const handleInstitutionsSelect = (institutions) => {
+    setSelectedInstitutions(institutions);
   };
 
   const handleSearch = (e) => {
@@ -575,31 +576,19 @@ const SocialStatsDashboard = () => {
     setFilteredData(filtered);
   };
 
-  const handleYearChange = (e) => {
-    setSelectedYear(e.target.value);
-  };
-
-  const handleMonthChange = (e) => {
-    setSelectedMonth(e.target.value);
-  };
-
-  const handleInstitutionsSelect = (institutions) => {
-    setSelectedInstitutions(institutions);
-  };
-
   return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
-            Dashboard de Estadísticas Sociales
-          </h1>
-          
-          <ImageNavbar onCategorySelect={handleCategorySelect} activeCategory={activeCategory} />
-          
-          {!isLoading && filteredData.length > 0 && (
-            <SummaryCards groupData={filteredData} selectedData={selectedInstitutions} />
-          )}
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
+          Dashboard de Estadísticas Sociales
+        </h1>
         
+        <ImageNavbar onCategorySelect={handleCategorySelect} activeCategory={activeCategory} />
+        
+        {!isLoading && filteredData.length > 0 && (
+          <SummaryCards groupData={filteredData} selectedData={selectedInstitutions} />
+        )}
+      
         <div className="mb-6 flex space-x-4">
           <TextInput
             type="text"
@@ -609,14 +598,9 @@ const SocialStatsDashboard = () => {
             icon={FaSearch}
           />
           <Select value={selectedYear} onChange={handleYearChange}>
-            <option value="">Todos los años</option>
-            <option value="2020">2020</option>
             <option value="2021">2021</option>
+            <option value="2020">2020</option>
           </Select>
-          {/*<Select value={selectedMonth} onChange={handleMonthChange}>
-            <option value="">Todos los meses</option>
-            {/* Add month options 
-          </Select>*/}
         </div>
         
         {isLoading ? (
@@ -635,7 +619,7 @@ const SocialStatsDashboard = () => {
             </button>
           </div>
         ) : filteredData.length > 0 ? (
-          <Grid numColsLg={3} className="gap-6">
+          <Grid numcolslg={3} className="gap-6">
             <Col numColSpanLg={2}>
               <Card>
                 <InteractiveDataTable 
@@ -643,7 +627,6 @@ const SocialStatsDashboard = () => {
                   onInstitutionSelect={handleInstitutionSelect}
                   selectedType={activeCategory}
                   selectedYear={selectedYear}
-                  selectedMonth={selectedMonth}
                   onInstitutionsSelect={handleInstitutionsSelect}
                 />
               </Card>

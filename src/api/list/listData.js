@@ -4,35 +4,21 @@ const API_BASE_URL = 'http://186.29.167.91:8000';
 
 export const fetchSocialStats = async (options = {}) => {
   const {
-    category = '',
-    params = {},
-    year,
-    month
+    category = 'todos',
+    year = '2021',
   } = options;
 
+  const date = year === '2020' ? '2020-12-01' : '2021-06-01';
+  
   let fullUrl = `${API_BASE_URL}/api/social-metrics/`;
 
+  // No es necesario usar encodeURIComponent aquí
   const queryParams = new URLSearchParams();
-  
-  if (category && category.toLowerCase() !== 'todos') {
-    const formattedCategory = category.trim()
-      .replace(/\s+/g, '')
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
-    queryParams.append('type', formattedCategory);
-  }
-
-  if (year) queryParams.append('year', year);
-  if (month) queryParams.append('month', month);
-
-  for (const [key, value] of Object.entries(params)) {
-    queryParams.append(key, value);
-  }
+  queryParams.append('type', category);  // Se elimina encodeURIComponent
+  queryParams.append('date', date);
 
   const queryString = queryParams.toString();
-  if (queryString) {
-    fullUrl += `?${queryString}`;
-  }
+  fullUrl += `?${queryString}`;
 
   console.log('Fetching data from:', fullUrl);
 
@@ -53,18 +39,6 @@ export const fetchSocialStats = async (options = {}) => {
     return response.data;
   } catch (error) {
     console.error('Error fetching social stats:', error);
-    
-    if (error.response) {
-      console.error('Error data:', error.response.data);
-      console.error('Error status:', error.response.status);
-      console.error('Error headers:', error.response.headers);
-      throw new Error(`Server error: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
-    } else if (error.request) {
-      console.error('No response received:', error.request);
-      throw new Error('No response received from server');
-    } else {
-      console.error('Error message:', error.message);
-      throw new Error(`Request error: ${error.message}`);
-    }
+    throw error;
   }
 };
