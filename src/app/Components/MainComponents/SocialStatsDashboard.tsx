@@ -530,8 +530,7 @@ const SocialStatsDashboard = () => {
         setError(null);
         const response = await fetchSocialStats({ 
           category: activeCategory,
-          year: selectedYear,
-          month: selectedMonth
+          year: selectedYear
         });
         if (response && Array.isArray(response.metrics)) {
           setAllData(response.metrics);
@@ -545,18 +544,20 @@ const SocialStatsDashboard = () => {
         setIsLoading(false);
       }
     };
-
+  
     loadData();
-  }, [activeCategory, selectedYear, selectedMonth]);
+  }, [activeCategory, selectedYear]);
 
   const handleCategorySelect = (category) => {
     setActiveCategory(category);
     setSelectedInstitution(null);
-    const newFilteredData = category === 'todos' 
-      ? allData 
-      : allData.filter(item => item.Tipo === category);
+    const newFilteredData = allData.filter(item => 
+      (category === 'todos' || item.Tipo === category) &&
+      (!selectedYear || item.year === selectedYear)
+    );
     setFilteredData(newFilteredData);
   };
+  
 
 
   const handleInstitutionSelect = (institution) => {
@@ -609,12 +610,13 @@ const SocialStatsDashboard = () => {
           />
           <Select value={selectedYear} onChange={handleYearChange}>
             <option value="">Todos los años</option>
-            {/* Add year options dynamically based on your data */}
+            <option value="2020">2020</option>
+            <option value="2021">2021</option>
           </Select>
-          <Select value={selectedMonth} onChange={handleMonthChange}>
+          {/*<Select value={selectedMonth} onChange={handleMonthChange}>
             <option value="">Todos los meses</option>
-            {/* Add month options */}
-          </Select>
+            {/* Add month options 
+          </Select>*/}
         </div>
         
         {isLoading ? (
