@@ -1,27 +1,30 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://192.168.0.102:8000';
+const API_BASE_URL = 'http://186.29.167.91:8000';
 
 export const fetchSocialStats = async (options = {}) => {
   const {
     category = '',
     params = {},
+    year,
+    month
   } = options;
 
   let fullUrl = `${API_BASE_URL}/api/social-metrics/`;
 
   const queryParams = new URLSearchParams();
   
-  // Reemplazar espacios por guiones bajos y eliminar tildes
-  if (category) {
+  if (category && category.toLowerCase() !== 'todos') {
     const formattedCategory = category.trim()
-      .replace(/\s+/g, ' ')
+      .replace(/\s+/g, '')
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "");
     queryParams.append('type', formattedCategory);
   }
 
-  // Agregar otros parámetros si existen
+  if (year) queryParams.append('year', year);
+  if (month) queryParams.append('month', month);
+
   for (const [key, value] of Object.entries(params)) {
     queryParams.append(key, value);
   }
@@ -43,7 +46,6 @@ export const fetchSocialStats = async (options = {}) => {
 
     console.log('Response received:', response.data);
     
-    // Asegúrate de que la respuesta tenga la estructura esperada
     if (!response.data || !Array.isArray(response.data.metrics)) {
       throw new Error('Unexpected data structure received from the server');
     }
