@@ -321,16 +321,16 @@ const ComparisonTable = ({ selectedInstitutions }) => {
   );
 };
 
-const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType, selectedYear, selectedMonth, onInstitutionsSelect }) => {
+const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType, selectedYear, onInstitutionsSelect }) => {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
   const [selectedRows, setSelectedRows] = useState([]);
   const [visibleNetworks, setVisibleNetworks] = useState({
     basic: true,
-    Facebook: false,
-    X: false,
-    Instagram: false,
-    YouTube: false,
-    TikTok: false
+    Facebook: true,
+    X: true,
+    Instagram: true,
+    YouTube: true,
+    TikTok: true
   });
 
   const columns = [
@@ -366,7 +366,7 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType, selecte
     if (sortConfig.key !== null) {
       sortableItems.sort((a, b) => {
         const getValue = (obj, path) => {
-          const value = path.split('.').reduce((o, key) => (o && o[key]!== undefined ? o[key] : null), obj);
+          const value = path.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : null), obj);
           return value !== null ? value : '';
         };
 
@@ -387,14 +387,6 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType, selecte
     return sortableItems;
   }, [data, sortConfig]);
 
-  const filteredData = useMemo(() => {
-    return sortedData.filter(item => 
-      (selectedType === 'todos' || item.Tipo === selectedType) &&
-      (!selectedYear || item.year === selectedYear) &&
-      (!selectedMonth || item.month === selectedMonth)
-    );
-  }, [sortedData, selectedType, selectedYear, selectedMonth]);
-
   const handleSort = (key) => {
     let direction = 'ascending';
     if (sortConfig.key === key && sortConfig.direction === 'ascending') {
@@ -414,7 +406,7 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType, selecte
   };
 
   const handleSelectAll = () => {
-    const newSelection = selectedRows.length === filteredData.length ? [] : filteredData;
+    const newSelection = selectedRows.length === sortedData.length ? [] : sortedData;
     setSelectedRows(newSelection);
     onInstitutionsSelect(newSelection);
   };
@@ -456,7 +448,7 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType, selecte
         </div>
         <div className="flex space-x-2">
           <Button size="sm" onClick={handleSelectAll}>
-            {selectedRows.length === filteredData.length ? 'Deseleccionar Todos' : 'Seleccionar Todos'}
+            {selectedRows.length === sortedData.length ? 'Deseleccionar Todos' : 'Seleccionar Todos'}
           </Button>
         </div>
       </div>
@@ -466,7 +458,7 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType, selecte
             <Table.Head className="sticky top-0 bg-white dark:bg-gray-800 z-10">
               <Table.HeadCell className="w-4 sticky left-0 bg-white dark:bg-gray-800 z-20">
                 <Checkbox 
-                  checked={selectedRows.length === filteredData.length}
+                  checked={selectedRows.length === sortedData.length}
                   onChange={handleSelectAll}
                 />
               </Table.HeadCell>
@@ -484,7 +476,7 @@ const InteractiveDataTable = ({ data, onInstitutionSelect, selectedType, selecte
               ))}
             </Table.Head>
             <Table.Body className="divide-y">
-              {filteredData.map((item) => (
+              {sortedData.map((item) => (
                 <Table.Row 
                   key={item.Institucion} 
                   className="bg-white dark:border-gray-700 dark:bg-gray-800"
@@ -621,15 +613,15 @@ const SocialStatsDashboard = () => {
         ) : filteredData.length > 0 ? (
           <Grid numcolslg={3} className="gap-6">
             <Col numColSpanLg={2}>
-              <Card>
-                <InteractiveDataTable 
-                  data={filteredData}
-                  onInstitutionSelect={handleInstitutionSelect}
-                  selectedType={activeCategory}
-                  selectedYear={selectedYear}
-                  onInstitutionsSelect={handleInstitutionsSelect}
-                />
-              </Card>
+            <Card>
+              <InteractiveDataTable 
+                data={filteredData}
+                onInstitutionSelect={handleInstitutionSelect}
+                selectedType={activeCategory}
+                selectedYear={selectedYear}
+                onInstitutionsSelect={handleInstitutionsSelect}
+              />
+            </Card>
             </Col>
             <Col>
               {selectedInstitution ? (
