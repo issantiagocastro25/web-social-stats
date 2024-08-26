@@ -33,7 +33,7 @@ const GroupSummaryTable = ({ allData }) => {
   const { groups, totalFollowers } = groupSummary;
 
   return (
-    <Card>
+    <Card className='mb-4'>
       <Title className="mb-4">Resumen por Grupos</Title>
       <Table>
         <TableHead>

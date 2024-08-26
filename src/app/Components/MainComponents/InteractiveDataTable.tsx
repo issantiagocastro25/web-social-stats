@@ -30,8 +30,8 @@ const InteractiveDataTable = ({
     { key: 'Tipo', label: 'Tipo', network: 'basic' },
     { key: 'Ciudad', label: 'Ciudad', network: 'basic' },
     { key: 'social_networks.Facebook.followers', label: 'Facebook Seguidores', network: 'Facebook' },
-    { key: 'social_networks.Facebook.publications', label: 'Facebook Publicaciones', network: 'Facebook' },
-    { key: 'social_networks.Facebook.reactions', label: 'Facebook Reacciones', network: 'Facebook' },
+    { key: 'social_networks.Facebook.publications', label: 'Facebook Videos', network: 'Facebook' },
+    { key: 'social_networks.Facebook.reactions', label: 'Facebook visitas videos', network: 'Facebook' },
     { key: 'social_networks.Facebook.engagement', label: 'Facebook Engagement', network: 'Facebook' },
     { key: 'social_networks.X.followers', label: 'X Seguidores', network: 'X' },
     { key: 'social_networks.X.publications', label: 'X Publicaciones', network: 'X' },
@@ -41,10 +41,10 @@ const InteractiveDataTable = ({
     { key: 'social_networks.Instagram.publications', label: 'Instagram Publicaciones', network: 'Instagram' },
     { key: 'social_networks.Instagram.reactions', label: 'Instagram Reacciones', network: 'Instagram' },
     { key: 'social_networks.Instagram.engagement', label: 'Instagram Engagement', network: 'Instagram' },
-    { key: 'social_networks.YouTube.followers', label: 'YouTube Seguidores', network: 'YouTube' },
-    { key: 'social_networks.YouTube.publications', label: 'YouTube Publicaciones', network: 'YouTube' },
-    { key: 'social_networks.YouTube.reactions', label: 'YouTube Reacciones', network: 'YouTube' },
-    { key: 'social_networks.YouTube.engagement', label: 'YouTube Engagement', network: 'YouTube' },
+    { key: 'social_networks.YouTube.followers', label: 'YouTube Suscriptores', network: 'YouTube' },
+    { key: 'social_networks.YouTube.publications', label: 'YouTube Videos', network: 'YouTube' },
+    { key: 'social_networks.YouTube.reactions', label: 'YouTube Vistas', network: 'YouTube' },
+    { key: 'social_networks.YouTube.engagement', label: 'YouTube Vistas/Videos', network: 'YouTube' },
     { key: 'social_networks.TikTok.followers', label: 'TikTok Seguidores', network: 'TikTok' },
     { key: 'social_networks.TikTok.publications', label: 'TikTok Publicaciones', network: 'TikTok' },
     { key: 'social_networks.TikTok.reactions', label: 'TikTok Reacciones', network: 'TikTok' },
@@ -182,7 +182,7 @@ const InteractiveDataTable = ({
               {sortedData.map((item) => (
                 <Table.Row 
                   key={item.Institucion} 
-                  className={`bg-white dark:border-gray-700 dark:bg-gray-800 ${selectedInstitution === item ? 'shadow-lg bg-gray-100' : ''}`}
+                  className={`bg-white dark:border-gray-700 dark:bg-gray-800 ${selectedInstitution === item ? 'shadow-lg bg-blue-200' : ''}`}
                   onClick={() => onInstitutionSelect(item)}
                 >
                   <Table.Cell className="w-4 sticky left-0 bg-white dark:bg-gray-800 z-10">
