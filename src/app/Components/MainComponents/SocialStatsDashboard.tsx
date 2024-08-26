@@ -3,12 +3,12 @@ import { Spinner, TextInput, Card, Select } from 'flowbite-react';
 import { FaSearch } from 'react-icons/fa';
 import { Grid, Col } from '@tremor/react';
 import { fetchSocialStats } from '@/api/list/listData';
-import NavbarComponent from '@/app/Components/MainComponents/navBar';
 import ImageNavbar from './ImageNavBar';
 import SummaryCards from './SummaryCards';
 import InteractiveDataTable from './InteractiveDataTable';
 import ChartsSection from './ChartsSection';
 import TemporalAnalysisTable from './TemporalAnalysisTable';
+import GroupSummaryTable from './GroupSummaryTable';
 
 const SocialStatsDashboard = () => {
   const [allData, setAllData] = useState([]);
@@ -110,7 +110,6 @@ const SocialStatsDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <NavbarComponent />
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
           Dashboard de Estadísticas Sociales
@@ -153,26 +152,29 @@ const SocialStatsDashboard = () => {
           </div>
         ) : filteredData.length > 0 ? (
           <>
-              <Card>
-                <InteractiveDataTable 
-                  data={filteredData}
-                  onInstitutionSelect={handleInstitutionSelect}
-                  selectedType={activeCategory}
-                  selectedYear={selectedYear}
-                  onInstitutionsSelect={handleInstitutionsSelect}
-                  selectedInstitution={selectedInstitution}
-                  onTemporalAnalysis={handleTemporalAnalysis}
-                />
-      
-                {showTemporalAnalysis && selectedInstitutions.length > 0 && (
-                  <TemporalAnalysisTable selectedInstitutions={selectedInstitutions} />
-                )}
+            {activeCategory === 'todos' && (
+              <GroupSummaryTable allData={allData} />
+            )}
+            <Card>
+              <InteractiveDataTable 
+                data={filteredData}
+                onInstitutionSelect={handleInstitutionSelect}
+                selectedType={activeCategory}
+                selectedYear={selectedYear}
+                onInstitutionsSelect={handleInstitutionsSelect}
+                selectedInstitution={selectedInstitution}
+                onTemporalAnalysis={handleTemporalAnalysis}
+              />
+            </Card>
+            
+            {showTemporalAnalysis && selectedInstitutions.length > 0 && (
+              <TemporalAnalysisTable selectedInstitutions={selectedInstitutions} />
+            )}
             
             <ChartsSection 
               selectedInstitution={selectedInstitution}
               selectedInstitutions={selectedInstitutions}
             />
-            </Card>
           </>
         ) : (
           <Card>
@@ -180,7 +182,6 @@ const SocialStatsDashboard = () => {
           </Card>
         )}
       </div>
-
     </div>
   );
 };

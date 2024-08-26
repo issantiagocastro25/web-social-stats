@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Title, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell } from '@tremor/react';
+import { Card, Title, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Text, Badge } from '@tremor/react';
 import { fetchSocialStats } from '@/api/list/listData';
 
 const TemporalAnalysisTable = ({ selectedInstitutions }) => {
@@ -36,40 +36,47 @@ const TemporalAnalysisTable = ({ selectedInstitutions }) => {
   if (error) return <div>Error: {error}</div>;
 
   const years = ['2020', '2021'];
+  const networks = ['Facebook', 'X', 'Instagram', 'YouTube', 'TikTok'];
 
   const getFollowers = (yearData, network) => {
     return yearData?.social_networks?.[network]?.followers ?? 'N/A';
   };
 
+  const getGrowthRate = (institution, network) => {
+    const followers2020 = getFollowers(temporalData['2020']?.find(item => item.Institucion === institution.Institucion), network);
+    const followers2021 = getFollowers(temporalData['2021']?.find(item => item.Institucion === institution.Institucion), network);
+    
+    if (followers2020 === 'N/A' || followers2021 === 'N/A') return 'N/A';
+    
+    const growthRate = ((followers2021 - followers2020) / followers2020) * 100;
+    return growthRate.toFixed(2);
+  };
+
   return (
     <Card>
-      <Title>Análisis Temporal de Instituciones Seleccionadas</Title>
+      <Title className="mb-4">Análisis Temporal de Instituciones Seleccionadas</Title>
       <Table>
         <TableHead>
           <TableRow>
-            <TableHeaderCell>Año</TableHeaderCell>
+            <TableHeaderCell>Red Social</TableHeaderCell>
             {selectedInstitutions.map(inst => (
               <TableHeaderCell key={inst.Institucion}>{inst.Institucion}</TableHeaderCell>
             ))}
           </TableRow>
         </TableHead>
         <TableBody>
-          {years.map(year => (
-            <TableRow key={year}>
-              <TableCell>{year}</TableCell>
+          {networks.map(network => (
+            <TableRow key={network}>
+              <TableCell>{network}</TableCell>
               {selectedInstitutions.map(inst => {
-                const yearData = temporalData[year]?.find(item => item.Institucion === inst.Institucion);
+                const growthRate = getGrowthRate(inst, network);
                 return (
                   <TableCell key={inst.Institucion}>
-                    {yearData ? (
-                      <>
-                        <div>Facebook: {getFollowers(yearData, 'Facebook')}</div>
-                        <div>X: {getFollowers(yearData, 'X')}</div>
-                        <div>Instagram: {getFollowers(yearData, 'Instagram')}</div>
-                        <div>YouTube: {getFollowers(yearData, 'YouTube')}</div>
-                        <div>TikTok: {getFollowers(yearData, 'TikTok')}</div>
-                      </>
-                    ) : 'N/A'}
+                    <Text><strong>2020:</strong> {getFollowers(temporalData['2020']?.find(item => item.Institucion === inst.Institucion), network)}</Text>
+                    <Text><strong>2021:</strong> {getFollowers(temporalData['2021']?.find(item => item.Institucion === inst.Institucion), network)}</Text>
+                    <Badge color={growthRate > 0 ? 'green' : growthRate < 0 ? 'red' : 'gray'}>
+                      {growthRate !== 'N/A' ? `${growthRate}%` : 'N/A'}
+                    </Badge>
                   </TableCell>
                 );
               })}
