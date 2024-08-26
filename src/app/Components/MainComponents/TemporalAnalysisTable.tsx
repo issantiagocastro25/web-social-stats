@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Title, Table } from '@tremor/react';
+import { Card, Title, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell } from '@tremor/react';
 import { fetchSocialStats } from '@/api/list/listData';
 
 const TemporalAnalysisTable = ({ selectedInstitutions }) => {
@@ -45,20 +45,22 @@ const TemporalAnalysisTable = ({ selectedInstitutions }) => {
     <Card>
       <Title>Análisis Temporal de Instituciones Seleccionadas</Title>
       <Table>
-        <Table.Head>
-          <Table.HeadCell>Año</Table.HeadCell>
-          {selectedInstitutions.map(inst => (
-            <Table.HeadCell key={inst.Institucion}>{inst.Institucion}</Table.HeadCell>
-          ))}
-        </Table.Head>
-        <Table.Body>
+        <TableHead>
+          <TableRow>
+            <TableHeaderCell>Año</TableHeaderCell>
+            {selectedInstitutions.map(inst => (
+              <TableHeaderCell key={inst.Institucion}>{inst.Institucion}</TableHeaderCell>
+            ))}
+          </TableRow>
+        </TableHead>
+        <TableBody>
           {years.map(year => (
-            <Table.Row key={year}>
-              <Table.Cell>{year}</Table.Cell>
+            <TableRow key={year}>
+              <TableCell>{year}</TableCell>
               {selectedInstitutions.map(inst => {
                 const yearData = temporalData[year]?.find(item => item.Institucion === inst.Institucion);
                 return (
-                  <Table.Cell key={inst.Institucion}>
+                  <TableCell key={inst.Institucion}>
                     {yearData ? (
                       <>
                         <div>Facebook: {getFollowers(yearData, 'Facebook')}</div>
@@ -68,12 +70,12 @@ const TemporalAnalysisTable = ({ selectedInstitutions }) => {
                         <div>TikTok: {getFollowers(yearData, 'TikTok')}</div>
                       </>
                     ) : 'N/A'}
-                  </Table.Cell>
+                  </TableCell>
                 );
               })}
-            </Table.Row>
+            </TableRow>
           ))}
-        </Table.Body>
+        </TableBody>
       </Table>
     </Card>
   );
