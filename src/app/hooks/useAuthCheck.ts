@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { checkAuthStatus } from '@/api/auth';
 
-export function useAuthCheck(requireAuth: boolean = true, dashboardPath: string = '/Principal/main') {
+export function useAuthCheck(requireAuth: boolean = true, dashboardPath: string = '/stats') {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();

@@ -6,12 +6,23 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 import { forgotPassword } from '../../../api/auth'; // Asegúrate de que la ruta sea correcta
+import { useAuthCheck } from "@/app/hooks/useAuthCheck";
 
 export default function ForgotPass() {
     const [email, setEmail] = useState('');
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+
+    const { isAuthenticated } = useAuthCheck(false);
+
+    if (isLoading) {
+        return <div>Cargando...</div>;
+    }
+
+    if (isAuthenticated) {
+        return null; // El hook se encargará de la redirección al dashboard
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault();

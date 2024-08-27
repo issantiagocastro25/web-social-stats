@@ -5,6 +5,7 @@ import { Button, Card, Label, TextInput, Alert } from "flowbite-react";
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { resetPassword } from '@/api/auth';
+import { useAuthCheck } from "@/app/hooks/useAuthCheck";
 
 export default function ResetPassword() {
     const [password1, setPassword1] = useState('');
@@ -14,6 +15,7 @@ export default function ResetPassword() {
     const [isLoading, setIsLoading] = useState(false);
     const [resetKey, setResetKey] = useState('');
     const router = useRouter();
+    const { isAuthenticated} = useAuthCheck(false);
 
     useEffect(() => {
         // Extraer la clave de restablecimiento de la URL
@@ -21,6 +23,15 @@ export default function ResetPassword() {
         const key = pathParts[pathParts.length - 1];
         setResetKey(key);
     }, []);
+
+
+    if (isLoading) {
+        return <div>Cargando...</div>;
+    }
+
+    if (isAuthenticated) {
+        return null; // El hook se encargará de la redirección al dashboard
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
