@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Button, Card, Progress, Table } from 'flowbite-react';
 import api from '../../../api/index';
+import * as XLSX from 'xlsx';
 
 const YouTubeBulkUpload = () => {
     const [file, setFile] = useState(null);
@@ -61,8 +62,27 @@ const YouTubeBulkUpload = () => {
         setError('');
     };
 
+    const handleDownloadExcel = () => {
+        const worksheet = XLSX.utils.json_to_sheet(results);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Canales de YouTube");
+        
+        // Generar el archivo Excel
+        const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+        const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        
+        // Crear un enlace de descarga y hacer clic en él
+        const url = window.URL.createObjectURL(data);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'canales_youtube.xlsx');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
-        <Card className=''>
+        <Card>
             <h2 className="text-2xl font-bold mb-4">Carga Masiva de Canales de YouTube</h2>
             <div className="mb-4">
                 <input
@@ -84,6 +104,11 @@ const YouTubeBulkUpload = () => {
                 <Button onClick={handleClear} color="light">
                     Limpiar
                 </Button>
+                {results.length > 0 && (
+                    <Button onClick={handleDownloadExcel} color="success">
+                        Descargar Excel
+                    </Button>
+                )}
             </div>
             {uploading && (
                 <Progress progress={progress} color="blue" className="mt-4" />
