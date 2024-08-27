@@ -95,7 +95,7 @@ const TemporalAnalysisTable = ({ selectedInstitutions }) => {
                         <div key={metric} className="mb-1">
                           <Text className="font-semibold">{metric}:</Text>
                           <Badge color={growth > 0 ? 'green' : growth < 0 ? 'red' : 'gray'}>
-                            {growth !== 'N/A' ? `${growth}%` : 'N/A'}
+                            {growth !== 'N/A' ? `${growth}% (${formatNumber(currentValue)})` : 'N/A'}
                           </Badge>
                         </div>
                       );
