@@ -1,7 +1,9 @@
-import React, { useMemo } from 'react';
-import { Card, Title, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Text, Badge } from '@tremor/react';
+import React, { useMemo, useState } from 'react';
+import { Card, Title, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Text, Badge, Button } from '@tremor/react';
 
 const GroupSummaryTable = ({ allData }) => {
+  const [showPercentages, setShowPercentages] = useState(false);
+
   const groupSummary = useMemo(() => {
     const groups = {};
     let totalFollowers = 0;
@@ -32,15 +34,32 @@ const GroupSummaryTable = ({ allData }) => {
 
   const { groups, totalFollowers } = groupSummary;
 
+  const toggleView = () => {
+    setShowPercentages(!showPercentages);
+  };
+
+  const formatValue = (value, total) => {
+    if (showPercentages) {
+      const percentage = (value / total) * 100;
+      return `${percentage.toFixed(2)}%`;
+    }
+    return value.toLocaleString();
+  };
+
   return (
-    <Card className='mb-4'>
-      <Title className="mb-4">Resumen por Grupos</Title>
+    <Card>
+      <div className="flex justify-between items-center mb-4">
+        <Title>Resumen por Grupos</Title>
+        <Button onClick={toggleView}>
+          {showPercentages ? 'Tabla de Números' : 'Tabla de Porcentajes'}
+        </Button>
+      </div>
       <Table>
         <TableHead>
           <TableRow>
             <TableHeaderCell>Grupo</TableHeaderCell>
             <TableHeaderCell>Total Seguidores</TableHeaderCell>
-            <TableHeaderCell>% del Total</TableHeaderCell>
+            {/*<TableHeaderCell>% del Total</TableHeaderCell>*/}
             <TableHeaderCell>Facebook</TableHeaderCell>
             <TableHeaderCell>X</TableHeaderCell>
             <TableHeaderCell>Instagram</TableHeaderCell>
@@ -54,18 +73,18 @@ const GroupSummaryTable = ({ allData }) => {
             <TableRow key={groupName}>
               <TableCell>{groupName}</TableCell>
               <TableCell>
-                <Text>{data.total.toLocaleString()}</Text>
+                <Text>{formatValue(data.total, totalFollowers)}</Text>
               </TableCell>
-              <TableCell>
+              {/*<TableCell>
                 <Badge color="blue">
                   {((data.total / totalFollowers) * 100).toFixed(2)}%
                 </Badge>
-              </TableCell>
-              <TableCell>{data.Facebook.toLocaleString()}</TableCell>
-              <TableCell>{data.X.toLocaleString()}</TableCell>
-              <TableCell>{data.Instagram.toLocaleString()}</TableCell>
-              <TableCell>{data.YouTube.toLocaleString()}</TableCell>
-              <TableCell>{data.TikTok.toLocaleString()}</TableCell>
+              </TableCell>*/}
+              <TableCell>{formatValue(data.Facebook, data.total)}</TableCell>
+              <TableCell>{formatValue(data.X, data.total)}</TableCell>
+              <TableCell>{formatValue(data.Instagram, data.total)}</TableCell>
+              <TableCell>{formatValue(data.YouTube, data.total)}</TableCell>
+              <TableCell>{formatValue(data.TikTok, data.total)}</TableCell>
               <TableCell>{data.count}</TableCell>
             </TableRow>
           ))}

@@ -121,19 +121,7 @@ const SocialStatsDashboard = () => {
           <SummaryCards groupData={filteredData} selectedData={selectedInstitutions} allData={allData} totalStats={totalStats} />
         )}
       
-        <div className="mb-6 flex space-x-4">
-          <TextInput
-            type="text"
-            placeholder="Buscar por institución, ciudad o tipo..."
-            value={searchTerm}
-            onChange={handleSearch}
-            icon={FaSearch}
-          />
-          <Select value={selectedYear} onChange={handleYearChange}>
-            <option value="2021">2021</option>
-            <option value="2020">2020</option>
-          </Select>
-        </div>
+        
         
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
@@ -153,8 +141,22 @@ const SocialStatsDashboard = () => {
         ) : filteredData.length > 0 ? (
           <>
             {activeCategory === 'todos' && (
-              <GroupSummaryTable allData={allData} />
+              <div className='mb-6'><GroupSummaryTable allData={allData}/></div>
+              
             )}
+            <div className="mb-6 flex space-x-4">
+          <TextInput
+            type="text"
+            placeholder="Buscar por institución, ciudad o tipo..."
+            value={searchTerm}
+            onChange={handleSearch}
+            icon={FaSearch}
+          />
+          <Select value={selectedYear} onChange={handleYearChange}>
+            <option value="2021">2021</option>
+            <option value="2020">2020</option>
+          </Select>
+        </div>
             <Card>
               <InteractiveDataTable 
                 data={filteredData}

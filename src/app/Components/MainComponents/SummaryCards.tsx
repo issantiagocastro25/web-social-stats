@@ -4,7 +4,7 @@ import { FaFacebook, FaInstagram, FaYoutube } from 'react-icons/fa';
 import { SiTiktok } from 'react-icons/si';
 import XIcon from './XIcon';
 
-const SummaryCards = ({ groupData = [], selectedData = [], allData = [], totalStats }) => {
+const SummaryCards = ({ groupData = [], selectedData = [], allData = [] }) => {
   const calculateStats = (data) => {
     return data.reduce((acc, item) => ({
       facebook: acc.facebook + (item.social_networks?.Facebook?.followers || 0),
@@ -21,15 +21,16 @@ const SummaryCards = ({ groupData = [], selectedData = [], allData = [], totalSt
     }), { facebook: 0, twitter: 0, instagram: 0, youtube: 0, tiktok: 0, total: 0 });
   };
 
+  const allStats = useMemo(() => calculateStats(allData), [allData]);
   const groupStats = useMemo(() => calculateStats(groupData), [groupData]);
   const selectedStats = useMemo(() => calculateStats(selectedData), [selectedData]);
 
   const networkCards = [
-    { icon: FaFacebook, color: 'text-blue-600', title: 'Facebook', totalValue: totalStats?.facebook || 0, groupValue: groupStats.facebook, selectedValue: selectedStats.facebook },
-    { icon: XIcon, color: 'text-blue-400', title: 'X', totalValue: totalStats?.twitter || 0, groupValue: groupStats.twitter, selectedValue: selectedStats.twitter },
-    { icon: FaInstagram, color: 'text-pink-600', title: 'Instagram', totalValue: totalStats?.instagram || 0, groupValue: groupStats.instagram, selectedValue: selectedStats.instagram },
-    { icon: FaYoutube, color: 'text-red-600', title: 'YouTube', totalValue: totalStats?.youtube || 0, groupValue: groupStats.youtube, selectedValue: selectedStats.youtube },
-    { icon: SiTiktok, color: 'text-black', title: 'TikTok', totalValue: totalStats?.tiktok || 0, groupValue: groupStats.tiktok, selectedValue: selectedStats.tiktok },
+    { icon: FaFacebook, color: 'text-blue-600', title: 'Facebook', allValue: allStats.facebook, groupValue: groupStats.facebook, selectedValue: selectedStats.facebook },
+    { icon: XIcon, color: 'text-blue-400', title: 'X', allValue: allStats.twitter, groupValue: groupStats.twitter, selectedValue: selectedStats.twitter },
+    { icon: FaInstagram, color: 'text-pink-600', title: 'Instagram', allValue: allStats.instagram, groupValue: groupStats.instagram, selectedValue: selectedStats.instagram },
+    { icon: FaYoutube, color: 'text-red-600', title: 'YouTube', allValue: allStats.youtube, groupValue: groupStats.youtube, selectedValue: selectedStats.youtube },
+    { icon: SiTiktok, color: 'text-black', title: 'TikTok', allValue: allStats.tiktok, groupValue: groupStats.tiktok, selectedValue: selectedStats.tiktok },
   ];
 
   const calculatePercentage = (value, total) => {
@@ -41,15 +42,13 @@ const SummaryCards = ({ groupData = [], selectedData = [], allData = [], totalSt
       <Card className="col-span-1 sm:col-span-2 lg:col-span-1">
         <div className="flex flex-col items-center">
           <Text className="text-sm">Total Seguidores</Text>
-          <Metric>{totalStats?.total.toLocaleString()}</Metric>
+          <Metric>{allStats.total.toLocaleString()}</Metric>
           <Text className="text-xs text-gray-500">
-            Seleccionados: {selectedStats.total.toLocaleString()} / {groupStats.total.toLocaleString()}
+            Grupo actual: {groupStats.total.toLocaleString()}
           </Text>
           <Text className="text-xs text-gray-500">
+            Seleccionados: {selectedStats.total.toLocaleString()} 
             ({calculatePercentage(selectedStats.total, groupStats.total)}% del grupo)
-          </Text>
-          <Text className="text-xs text-gray-500">
-            Grupo: {calculatePercentage(groupStats.total, totalStats?.total)}% del total
           </Text>
         </div>
       </Card>
@@ -57,15 +56,13 @@ const SummaryCards = ({ groupData = [], selectedData = [], allData = [], totalSt
         <Card key={index} className="flex flex-col items-center p-4">
           <card.icon className={`${card.color} text-3xl mb-2`} />
           <Text className="text-sm">{card.title}</Text>
-          <Metric>{card.totalValue.toLocaleString()}</Metric>
+          <Metric>{card.allValue.toLocaleString()}</Metric>
           <Text className="text-xs text-gray-500">
-            Seleccionados: {card.selectedValue.toLocaleString()} / {card.groupValue.toLocaleString()}
+            Grupo: {card.groupValue.toLocaleString()}
           </Text>
           <Text className="text-xs text-gray-500">
+            Seleccionados: {card.selectedValue.toLocaleString()} 
             ({calculatePercentage(card.selectedValue, card.groupValue)}% del grupo)
-          </Text>
-          <Text className="text-xs text-gray-500">
-            Grupo: {calculatePercentage(card.groupValue, card.totalValue)}% del total
           </Text>
         </Card>
       ))}
