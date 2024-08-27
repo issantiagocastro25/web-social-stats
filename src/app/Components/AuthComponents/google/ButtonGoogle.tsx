@@ -21,7 +21,7 @@ function ButtonGoogle() {
             <button
                 type='button'
                 onClick={handleGoogleLogin}
-                className="flex justify-items-center bg-gray-100 hover:bg-gray-300 ring-1 ring-zinc-700 text-zinc-800 font-bold py-1.5 px-4 rounded"
+                className="w-full flex justify-items-center bg-gray-100 hover:bg-gray-300 ring-1 ring-zinc-700 text-zinc-800 font-bold py-1.5 px-4 rounded"
                 >
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="30" height="30" viewBox="0 0 48 48">

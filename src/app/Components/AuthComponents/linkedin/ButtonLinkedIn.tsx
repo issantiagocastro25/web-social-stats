@@ -2,7 +2,6 @@
 'use client';
 
 import React from 'react';
-import { Button } from 'flowbite-react';
 
 const LinkedInLoginButton: React.FC = () => {
   const handleLinkedInLogin = async () => {
@@ -19,7 +18,7 @@ const LinkedInLoginButton: React.FC = () => {
     <button
       type='button'
       onClick={handleLinkedInLogin}
-      className="flex justify-items-center bg-gray-100 hover:bg-gray-300 ring-1 ring-zinc-700 text-zinc-800 font-bold py-1.5 px-4 rounded"
+      className="w-full flex justify-items-center bg-gray-100 hover:bg-gray-300 ring-1 ring-zinc-700 text-zinc-800 font-bold py-1.5 px-4 rounded"
     >
       <div>
           <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="30" height="30" viewBox="0 0 48 48">
