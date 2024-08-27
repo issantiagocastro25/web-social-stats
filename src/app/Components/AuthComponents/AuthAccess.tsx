@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ButtonGoogle from './google/ButtonGoogle';
 import ButtonLinkedIn from './linkedin/ButtonLinkedIn';
+import { useAuthCheck } from '@/app/hooks/useAuthCheck';
+import LoadingLogin from '../Loadings/LoadingLogin';
 
 const LoginRegisterCard: React.FC = () => {
     const [isLoginView, setIsLoginView] = useState(true);
@@ -21,6 +23,16 @@ const LoginRegisterCard: React.FC = () => {
 
     const [showModal, setShowModal] = useState(false);
     const [acceptTerms, setAcceptTerms] = useState(false);
+
+    const { isAuthenticated, isLoading } = useAuthCheck(false);
+
+    if (isLoading) {
+        return <><LoadingLogin/></>;
+    }
+
+    if (isAuthenticated) {
+        return null; // El hook se encargará de la redirección al dashboard
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
