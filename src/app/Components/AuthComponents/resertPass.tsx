@@ -44,7 +44,7 @@ export default function ResetPassword() {
             const result = await resetPassword(resetKey, password1, password2);
             if (result.success) {
                 setMessage('Tu contraseña ha sido restablecida exitosamente');
-                setTimeout(() => router.push('/Auth/login'), 3000);
+                setTimeout(() => router.push('/auth/access'), 2500);
             } else {
                 setError(result.error || 'Ocurrió un error al restablecer la contraseña');
             }
@@ -103,7 +103,7 @@ export default function ResetPassword() {
                 <div className="mt-4 text-center">
                     <Label className="text-sm font-light">
                         ¿Ya tienes una cuenta?{" "}
-                        <Link href="/Auth/login" className="text-cyan-500 hover:underline">
+                        <Link href="/auth/access" className="text-cyan-500 hover:underline">
                             Iniciar sesión
                         </Link>
                     </Label>

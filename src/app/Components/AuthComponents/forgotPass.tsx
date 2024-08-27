@@ -69,14 +69,14 @@ export default function ForgotPass() {
                         </button>
                     </form>
                     <span className="text-xs text-slate-600 mt-4">Regresar al{" "}
-                        <Link href="/Auth/login" className="text-cyan-500 hover:underline">
+                        <Link href="/auth/access" className="text-cyan-500 hover:underline">
                             inicio de sesión
                         </Link>
                     </span>
                     <div className="mt-4 text-center">
                         <Label className="text-sm font-light">
                             ¿No tienes una cuenta todavía?{" "}
-                            <Link href="/Auth/register" className="text-cyan-500 hover:underline">
+                            <Link href="/auth/access" className="text-cyan-500 hover:underline">
                                 Registrarse
                             </Link>
                         </Label>
