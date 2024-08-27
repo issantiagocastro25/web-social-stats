@@ -9,7 +9,7 @@ import { getUserDetail } from '@/api/user';
 const DashboardNavbar = () => {
   const router = useRouter();
   const pathname = usePathname();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -25,8 +25,7 @@ const DashboardNavbar = () => {
         }
       } catch (error) {
         console.error('Error checking authentication:', error);
-      } finally {
-        setIsLoading(false);
+        setIsAuthenticated(false);
       }
     };
     checkAuth();
@@ -49,11 +48,13 @@ const DashboardNavbar = () => {
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
-  if (isLoading) {
-    return <div className="h-16 bg-white shadow-md"></div>; // Placeholder durante la carga
+  // No renderizar nada hasta que se confirme el estado de autenticación
+  if (isAuthenticated === null) {
+    return null;
   }
 
-  if (pathname !== '/stats' && !isAuthenticated) {
+  // No renderizar el navbar en ciertas rutas o si no está autenticado
+  if (!isAuthenticated) {
     return null;
   }
 

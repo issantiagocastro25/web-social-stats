@@ -17,8 +17,6 @@ const UserProfile = () => {
 
     const { isAuthenticated, isLoading } = useAuthCheck();
 
-    
-
     useEffect(() => {
         if (isAuthenticated) {
             fetchUserDetail();
