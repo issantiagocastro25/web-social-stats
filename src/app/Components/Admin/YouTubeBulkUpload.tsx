@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Button, Card, Progress, Table } from 'flowbite-react';
 import api from '../../../api/index';
 import * as XLSX from 'xlsx';
+import { useAuthCheck } from '@/app/hooks/useAuthCheck';
+
 
 const YouTubeBulkUpload = () => {
     const [file, setFile] = useState(null);
@@ -10,6 +12,17 @@ const YouTubeBulkUpload = () => {
     const [progress, setProgress] = useState(0);
     const [results, setResults] = useState([]);
     const [error, setError] = useState('');
+
+
+    const { isAuthenticated, isLoading } = useAuthCheck();
+
+    if (isLoading) {
+        return <div>Cargando...</div>;
+    }
+
+    if (!isAuthenticated) {
+        return null; // El hook se encargará de la redirección
+    }
 
     const handleFileChange = (e) => {
         setFile(e.target.files[0]);
