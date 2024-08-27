@@ -17,7 +17,7 @@ export function useAuthCheck(requireAuth: boolean = true, dashboardPath: string 
                 
                 if (requireAuth && !authStatus.is_authenticated) {
                     // Si se requiere autenticación y el usuario no está autenticado, redirige al login
-                    router.push('/Auth/login');
+                    router.push('/auth/access');
                 } else if (!requireAuth && authStatus.is_authenticated) {
                     // Si no se requiere autenticación (como en la página de login) y el usuario está autenticado, redirige al dashboard
                     router.push(dashboardPath);
