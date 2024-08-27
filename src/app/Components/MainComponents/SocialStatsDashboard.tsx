@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Spinner, TextInput, Card, Select } from 'flowbite-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Spinner, TextInput, Card, Select, Button } from 'flowbite-react';
 import { FaSearch } from 'react-icons/fa';
+import { BiTimeFive } from 'react-icons/bi';
 import { Grid, Col } from '@tremor/react';
 import { fetchSocialStats } from '@/api/list/listData';
+import NavbarComponent from '@/app/Components/MainComponents/navBar';
 import ImageNavbar from './ImageNavBar';
 import SummaryCards from './SummaryCards';
 import InteractiveDataTable from './InteractiveDataTable';
@@ -23,36 +25,6 @@ const SocialStatsDashboard = () => {
   const [showTemporalAnalysis, setShowTemporalAnalysis] = useState(false);
   const [totalStats, setTotalStats] = useState(null);
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const date = selectedYear === '2021' ? '2021-06-01' : '2020-12-01';
-        const response = await fetchSocialStats({ 
-          category: activeCategory,
-          date: date
-        });
-        if (response && Array.isArray(response.metrics)) {
-          setAllData(response.metrics);
-          setFilteredData(response.metrics);
-          if (activeCategory === 'todos') {
-            setTotalStats(calculateTotalStats(response.metrics));
-          }
-        } else {
-          throw new Error(`Data structure is not as expected: ${JSON.stringify(response)}`);
-        }
-      } catch (err) {
-        setError(err.message || 'An error occurred while fetching data');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadData();
-  }, [activeCategory, selectedYear]);
-
-
   const calculateTotalStats = (data) => {
     return data.reduce((acc, item) => ({
       facebook: acc.facebook + (item.social_networks?.Facebook?.followers || 0),
@@ -69,15 +41,43 @@ const SocialStatsDashboard = () => {
     }), { facebook: 0, twitter: 0, instagram: 0, youtube: 0, tiktok: 0, total: 0 });
   };
 
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await fetchSocialStats({ 
+          category: activeCategory,
+          year: selectedYear
+        });
+        if (response && Array.isArray(response.metrics)) {
+          setAllData(response.metrics);
+          setFilteredData(response.metrics);
+          setTotalStats(calculateTotalStats(response.metrics));
+        } else {
+          throw new Error(`Data structure is not as expected: ${JSON.stringify(response)}`);
+        }
+      } catch (err) {
+        setError(err.message || 'An error occurred while fetching data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, [activeCategory, selectedYear]);
+
   const handleCategorySelect = (category) => {
     setActiveCategory(category);
     setSelectedInstitution(null);
     setSelectedInstitutions([]);
     if (category === 'todos') {
+      setFilteredData(allData);
       setTotalStats(calculateTotalStats(allData));
     } else {
-      const filteredData = allData.filter(item => item.Tipo === category);
-      setFilteredData(filteredData);
+      const filtered = allData.filter(item => item.Tipo === category);
+      setFilteredData(filtered);
+      setTotalStats(calculateTotalStats(filtered));
     }
   };
 
@@ -93,6 +93,10 @@ const SocialStatsDashboard = () => {
     setSelectedInstitutions(institutions);
   };
 
+  const handleTemporalAnalysis = () => {
+    setShowTemporalAnalysis(prev => !prev);
+  };
+
   const handleSearch = (e) => {
     const term = e.target.value.toLowerCase();
     setSearchTerm(term);
@@ -102,10 +106,7 @@ const SocialStatsDashboard = () => {
       (item.Tipo && item.Tipo.toLowerCase().includes(term))
     );
     setFilteredData(filtered);
-  };
-
-  const handleTemporalAnalysis = () => {
-    setShowTemporalAnalysis(prev => !prev);
+    setTotalStats(calculateTotalStats(filtered));
   };
 
   return (
@@ -140,11 +141,9 @@ const SocialStatsDashboard = () => {
           </div>
         ) : filteredData.length > 0 ? (
           <>
-            {activeCategory === 'todos' && (
-              <div className='mb-6'><GroupSummaryTable allData={allData}/></div>
-              
-            )}
-            <div className="mb-6 flex space-x-4">
+            {activeCategory === 'todos' && <GroupSummaryTable allData={allData} />}
+            
+            <div className="my-6 flex space-x-4 items-center">
           <TextInput
             type="text"
             placeholder="Buscar por institución, ciudad o tipo..."
@@ -156,7 +155,11 @@ const SocialStatsDashboard = () => {
             <option value="2021">2021</option>
             <option value="2020">2020</option>
           </Select>
+          <Button color="success" onClick={handleTemporalAnalysis}>
+            <BiTimeFive className="mr-2" />Análisis Temporal
+          </Button>
         </div>
+
             <Card>
               <InteractiveDataTable 
                 data={filteredData}
@@ -165,9 +168,10 @@ const SocialStatsDashboard = () => {
                 selectedYear={selectedYear}
                 onInstitutionsSelect={handleInstitutionsSelect}
                 selectedInstitution={selectedInstitution}
-                onTemporalAnalysis={handleTemporalAnalysis}
               />
             </Card>
+
+
             
             {showTemporalAnalysis && selectedInstitutions.length > 0 && (
               <TemporalAnalysisTable selectedInstitutions={selectedInstitutions} />

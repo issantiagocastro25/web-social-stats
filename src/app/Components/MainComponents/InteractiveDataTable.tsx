@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Table, Checkbox, Button } from 'flowbite-react';
-import { FaFacebook, FaInstagram, FaYoutube, FaSort, FaSortUp, FaSortDown, FaTrash } from 'react-icons/fa';
+import { FaFacebook, FaInstagram, FaYoutube, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
 import { SiTiktok } from 'react-icons/si';
-import { BiTimeFive } from 'react-icons/bi';
 import XIcon from './XIcon';
 
 const InteractiveDataTable = ({ 
@@ -11,8 +10,7 @@ const InteractiveDataTable = ({
   selectedType, 
   selectedYear, 
   onInstitutionsSelect, 
-  selectedInstitution,
-  onTemporalAnalysis
+  selectedInstitution
 }) => {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
   const [selectedRows, setSelectedRows] = useState([]);
@@ -30,8 +28,8 @@ const InteractiveDataTable = ({
     { key: 'Tipo', label: 'Tipo', network: 'basic' },
     { key: 'Ciudad', label: 'Ciudad', network: 'basic' },
     { key: 'social_networks.Facebook.followers', label: 'Facebook Seguidores', network: 'Facebook' },
-    { key: 'social_networks.Facebook.publications', label: 'Facebook Videos', network: 'Facebook' },
-    { key: 'social_networks.Facebook.reactions', label: 'Facebook visitas videos', network: 'Facebook' },
+    { key: 'social_networks.Facebook.publications', label: 'Facebook Publicaciones', network: 'Facebook' },
+    { key: 'social_networks.Facebook.reactions', label: 'Facebook Reacciones', network: 'Facebook' },
     { key: 'social_networks.Facebook.engagement', label: 'Facebook Engagement', network: 'Facebook' },
     { key: 'social_networks.X.followers', label: 'X Seguidores', network: 'X' },
     { key: 'social_networks.X.publications', label: 'X Publicaciones', network: 'X' },
@@ -41,10 +39,10 @@ const InteractiveDataTable = ({
     { key: 'social_networks.Instagram.publications', label: 'Instagram Publicaciones', network: 'Instagram' },
     { key: 'social_networks.Instagram.reactions', label: 'Instagram Reacciones', network: 'Instagram' },
     { key: 'social_networks.Instagram.engagement', label: 'Instagram Engagement', network: 'Instagram' },
-    { key: 'social_networks.YouTube.followers', label: 'YouTube Suscriptores', network: 'YouTube' },
-    { key: 'social_networks.YouTube.publications', label: 'YouTube Videos', network: 'YouTube' },
-    { key: 'social_networks.YouTube.reactions', label: 'YouTube Vistas', network: 'YouTube' },
-    { key: 'social_networks.YouTube.engagement', label: 'YouTube Vistas/Videos', network: 'YouTube' },
+    { key: 'social_networks.YouTube.followers', label: 'YouTube Seguidores', network: 'YouTube' },
+    { key: 'social_networks.YouTube.publications', label: 'YouTube Publicaciones', network: 'YouTube' },
+    { key: 'social_networks.YouTube.reactions', label: 'YouTube Reacciones', network: 'YouTube' },
+    { key: 'social_networks.YouTube.engagement', label: 'YouTube Engagement', network: 'YouTube' },
     { key: 'social_networks.TikTok.followers', label: 'TikTok Seguidores', network: 'TikTok' },
     { key: 'social_networks.TikTok.publications', label: 'TikTok Publicaciones', network: 'TikTok' },
     { key: 'social_networks.TikTok.reactions', label: 'TikTok Reacciones', network: 'TikTok' },
@@ -103,11 +101,6 @@ const InteractiveDataTable = ({
     onInstitutionsSelect(newSelection);
   };
 
-  const handleClearSelection = () => {
-    setSelectedRows([]);
-    onInstitutionsSelect([]);
-  };
-
   const toggleNetwork = (network) => {
     setVisibleNetworks(prev => ({ ...prev, [network]: !prev[network] }));
   };
@@ -119,14 +112,15 @@ const InteractiveDataTable = ({
     return sortConfig.direction === 'ascending' ? <FaSortUp className="ml-1 text-blue-500" /> : <FaSortDown className="ml-1 text-blue-500" />;
   };
 
+  const formatValue = (value) => {
+    return typeof value === 'number' ? value.toLocaleString('es-ES', { maximumFractionDigits: 2 }) : value;
+  };
+
   return (
     <div>
       <div className="mb-4 flex flex-wrap justify-between items-center">
         <h2 className="text-xl font-bold mb-2">Datos de Instituciones</h2>
         <div className="flex flex-wrap gap-2 mb-2">
-          <Button size="sm" color={visibleNetworks.basic ? "blue" : "gray"} onClick={() => toggleNetwork('basic')}>
-            Datos Básicos
-          </Button>
           <Button size="sm" color={visibleNetworks.Facebook ? "blue" : "gray"} onClick={() => toggleNetwork('Facebook')}>
             <FaFacebook className="mr-2" />Facebook
           </Button>
@@ -146,12 +140,6 @@ const InteractiveDataTable = ({
         <div className="flex space-x-2">
           <Button size="sm" onClick={handleSelectAll}>
             {selectedRows.length === sortedData.length ? 'Deseleccionar Todos' : 'Seleccionar Todos'}
-          </Button>
-          <Button size="sm" color="failure" onClick={handleClearSelection}>
-            <FaTrash className="mr-2" />Borrar Selección
-          </Button>
-          <Button size="sm" color="success" onClick={onTemporalAnalysis}>
-            <BiTimeFive className="mr-2" />Análisis Temporal
           </Button>
         </div>
       </div>
@@ -182,7 +170,7 @@ const InteractiveDataTable = ({
               {sortedData.map((item) => (
                 <Table.Row 
                   key={item.Institucion} 
-                  className={`bg-white dark:border-gray-700 dark:bg-gray-800 ${selectedInstitution === item ? 'shadow-lg bg-blue-200' : ''}`}
+                  className={`bg-white dark:border-gray-700 dark:bg-gray-800 ${selectedInstitution === item ? 'shadow-lg bg-gray-100' : ''}`}
                   onClick={() => onInstitutionSelect(item)}
                 >
                   <Table.Cell className="w-4 sticky left-0 bg-white dark:bg-gray-800 z-10">
@@ -194,7 +182,7 @@ const InteractiveDataTable = ({
                   </Table.Cell>
                   {visibleColumns.map(column => (
                     <Table.Cell key={column.key} className="max-w-xs break-words font-medium text-gray-900 dark:text-white">
-                      {column.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : 'N/A'), item)}
+                      {formatValue(column.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : 'N/A'), item))}
                     </Table.Cell>
                   ))}
                 </Table.Row>

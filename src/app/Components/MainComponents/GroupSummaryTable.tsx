@@ -51,7 +51,7 @@ const GroupSummaryTable = ({ allData }) => {
       <div className="flex justify-between items-center mb-4">
         <Title>Resumen por Grupos</Title>
         <Button onClick={toggleView}>
-          {showPercentages ? 'Tabla de Números' : 'Tabla de Porcentajes'}
+          {showPercentages ? 'Mostrar Números' : 'Mostrar Porcentajes'}
         </Button>
       </div>
       <Table>
