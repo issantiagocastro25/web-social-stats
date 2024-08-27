@@ -69,7 +69,7 @@ const DashboardNavbar = () => {
           alt="Awindows Logo"
         />
       </Navbar.Brand>
-      <div className="flex md:order-2 items-center">
+      <div className="flex md:order-2">
         {isAuthenticated && user ? (
           <Dropdown
             arrowIcon={false}
@@ -107,16 +107,22 @@ const DashboardNavbar = () => {
           </Dropdown>
         ) : (
           <div className="flex items-center space-x-4">
-            <button onClick={() => navigateTo('/Auth/login')} className="text-gray-800 hover:bg-gray-100 px-3 py-2 rounded">
+            <button onClick={() => navigateTo('/auth/access')} className="text-gray-800 hover:bg-gray-100 px-3 py-2 rounded">
               Entrar
             </button>
-            <button onClick={() => navigateTo('/Auth/register')} className="text-gray-800 hover:bg-gray-100 px-3 py-2 rounded">
+            <button onClick={() => navigateTo('/auth/access')} className="text-gray-800 hover:bg-gray-100 px-3 py-2 rounded">
               Registrarse
             </button>
           </div>
         )}
         <Navbar.Toggle />
       </div>
+      <Navbar.Collapse className='items-start'>
+        <Navbar.Link href="/administration/youtube">Administración</Navbar.Link>
+        <Navbar.Link href="#">Services</Navbar.Link>
+        <Navbar.Link href="#">Pricing</Navbar.Link>
+        <Navbar.Link href="#">Contact</Navbar.Link>
+      </Navbar.Collapse>
     </Navbar>
   );
 };
