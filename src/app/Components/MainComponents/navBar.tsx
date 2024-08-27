@@ -39,7 +39,7 @@ const DashboardNavbar = () => {
       if (result.success) {
         setIsAuthenticated(false);
         setUser(null);
-        router.push('/Auth/login');
+        router.push('/auth/access');
       } else {
         console.error(result.error);
       }
@@ -56,7 +56,7 @@ const DashboardNavbar = () => {
     return <div className='my-4'><LoadingNavbar/></div>;
   }
 
-  if (pathname !== '/Principal/main' && !isAuthenticated) {
+  if (pathname !== '/stats' && !isAuthenticated) {
     return null;
   }
 
@@ -86,10 +86,10 @@ const DashboardNavbar = () => {
               <span className="block text-sm">{user.first_name} {user.last_name}</span>
               <span className="block truncate text-sm font-medium">{user.email}</span>
             </Dropdown.Header>
-            <Dropdown.Item onClick={() => navigateTo('/Profile/user-profile')}>
+            <Dropdown.Item onClick={() => navigateTo('/profile/user-profile')}>
               Perfil
             </Dropdown.Item>
-            <Dropdown.Item onClick={() => navigateTo('/Principal/main')}>
+            <Dropdown.Item onClick={() => navigateTo('/stats')}>
               Dashboard
             </Dropdown.Item>
             <Dropdown.Item onClick={() => navigateTo('/settings')}>
