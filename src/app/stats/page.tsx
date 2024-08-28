@@ -6,6 +6,7 @@ import SocialStatsDashboard from '@/app/Components/MainComponents/SocialStatsDas
 const MainPage = () => {
   return (
     <>
+    <title>Social</title>
       <SocialStatsDashboard />
     </>
   );

@@ -170,7 +170,7 @@ const InteractiveDataTable = ({
               {sortedData.map((item) => (
                 <Table.Row 
                   key={item.Institucion} 
-                  className={`bg-white dark:border-gray-700 dark:bg-gray-800 ${selectedInstitution === item ? 'shadow-lg bg-gray-100' : ''}`}
+                  className={`bg-white dark:border-gray-700 dark:bg-gray-800 ${selectedInstitution === item ? 'shadow-lg bg-blue-200' : ''}`}
                   onClick={() => onInstitutionSelect(item)}
                 >
                   <Table.Cell className="w-4 sticky left-0 bg-white dark:bg-gray-800 z-10">
