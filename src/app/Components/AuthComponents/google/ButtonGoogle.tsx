@@ -29,7 +29,7 @@ function ButtonGoogle() {
                         </svg>
                     </div>
                     <span className='m-auto w-full '>
-                        Iniciar Sesión con Google
+                        Continuar con Google
                     </span>
             </button>
         </>

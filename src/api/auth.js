@@ -57,29 +57,29 @@ export const logout = async () => {
   }
 };
 
-export const signup = async (email, password1, password2, firstName, lastName, type_identification, identification, phone) => {
+export const signup = async (email, password, password2, firstName, lastName, identification, phone) => {
   try {
-
-    // Primero, obtenemos el token CSRF
-    //await api.get('/accounts/signup/');
-
-    const response = await api.post('/accounts/signup/', {
+    const response = await api.post('/api/register/', {
       email,
-      password1,
-      password2,
+      password: password,
+      password2: password2,
       first_name: firstName,
       last_name: lastName,
-      type_identification: type_identification,
       identification: identification,
-      phone: phone
-    }, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
+      phone
     });
     return response.data;
   } catch (error) {
-    throw error;
+    if (error.response) {
+      // El servidor respondió con un estado fuera del rango de 2xx
+      throw new Error(error.response.data.message || 'Error en el registro');
+    } else if (error.request) {
+      // La petición fue hecha pero no se recibió respuesta
+      throw new Error('No se pudo conectar con el servidor');
+    } else {
+      // Algo ocurrió al configurar la petición que provocó un error
+      throw new Error('Error en la configuración de la petición');
+    }
   }
 };
 
