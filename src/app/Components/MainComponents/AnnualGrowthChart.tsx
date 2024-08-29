@@ -1,9 +1,32 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, Title, AreaChart } from '@tremor/react';
 
 const AnnualGrowthChart = ({ data }) => {
-  // Verificar si data es undefined o no es un array
-  if (!data || !Array.isArray(data) || data.length === 0) {
+  const chartData = useMemo(() => {
+    if (!data || data.length === 0) return [];
+
+    const groupedData = data.reduce((acc, item) => {
+      const year = new Date(item.date).getFullYear();
+      if (!acc[year]) {
+        acc[year] = {
+          year: year.toString(),
+          Facebook: 0,
+          X: 0,
+          Instagram: 0,
+          YouTube: 0,
+          TikTok: 0
+        };
+      }
+      Object.entries(item.social_networks).forEach(([network, stats]) => {
+        acc[year][network] += stats.followers;
+      });
+      return acc;
+    }, {});
+
+    return Object.values(groupedData);
+  }, [data]);
+
+  if (chartData.length === 0) {
     return (
       <Card>
         <Title>Crecimiento Anual de Seguidores por Red Social</Title>
@@ -11,11 +34,6 @@ const AnnualGrowthChart = ({ data }) => {
       </Card>
     );
   }
-
-  const chartData = data.map(item => ({
-    year: item.year,
-    ...item.social_networks
-  }));
 
   return (
     <Card>
@@ -26,7 +44,7 @@ const AnnualGrowthChart = ({ data }) => {
         index="year"
         categories={["Facebook", "X", "Instagram", "YouTube", "TikTok"]}
         colors={["blue", "gray", "pink", "red", "black"]}
-        valueFormatter={(number) => `${number.toLocaleString()}`}
+        valueFormatter={(number) => `${number.toLocaleString()} seguidores`}
       />
     </Card>
   );

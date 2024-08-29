@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Title, Table } from '@tremor/react';
+import { Card, Title, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell } from '@tremor/react';
 
 const ComparisonTable = ({ selectedInstitutions }) => {
   const columns = [
@@ -17,25 +17,27 @@ const ComparisonTable = ({ selectedInstitutions }) => {
     <Card>
       <Title>Comparación de Instituciones Seleccionadas</Title>
       <Table>
-        <Table.Head>
-          {columns.map((column) => (
-            <Table.HeadCell key={column.key}>{column.label}</Table.HeadCell>
-          ))}
-        </Table.Head>
-        <Table.Body>
+        <TableHead>
+          <TableRow>
+            {columns.map((column) => (
+              <TableHeaderCell key={column.key}>{column.label}</TableHeaderCell>
+            ))}
+          </TableRow>
+        </TableHead>
+        <TableBody>
           {selectedInstitutions.map((institution) => (
-            <Table.Row key={institution.Institucion}>
-              <Table.Cell>{institution.Institucion}</Table.Cell>
-              <Table.Cell>{institution.Tipo}</Table.Cell>
-              <Table.Cell>{institution.Ciudad}</Table.Cell>
-              <Table.Cell>{institution.social_networks?.Facebook?.followers || 0}</Table.Cell>
-              <Table.Cell>{institution.social_networks?.X?.followers || 0}</Table.Cell>
-              <Table.Cell>{institution.social_networks?.Instagram?.followers || 0}</Table.Cell>
-              <Table.Cell>{institution.social_networks?.YouTube?.followers || 0}</Table.Cell>
-              <Table.Cell>{institution.social_networks?.TikTok?.followers || 0}</Table.Cell>
-            </Table.Row>
+            <TableRow key={institution.Institucion}>
+              <TableCell>{institution.Institucion}</TableCell>
+              <TableCell>{institution.Tipo}</TableCell>
+              <TableCell>{institution.Ciudad}</TableCell>
+              <TableCell>{institution.social_networks?.Facebook?.followers.toLocaleString() || '0'}</TableCell>
+              <TableCell>{institution.social_networks?.X?.followers.toLocaleString() || '0'}</TableCell>
+              <TableCell>{institution.social_networks?.Instagram?.followers.toLocaleString() || '0'}</TableCell>
+              <TableCell>{institution.social_networks?.YouTube?.followers.toLocaleString() || '0'}</TableCell>
+              <TableCell>{institution.social_networks?.TikTok?.followers.toLocaleString() || '0'}</TableCell>
+            </TableRow>
           ))}
-        </Table.Body>
+        </TableBody>
       </Table>
     </Card>
   );
