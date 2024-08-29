@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Spinner, TextInput, Card, Select, Button } from 'flowbite-react';
 import { FaSearch } from 'react-icons/fa';
 import { BiTimeFive } from 'react-icons/bi';
@@ -12,51 +12,34 @@ import ChartsSection from './ChartsSection';
 import TemporalAnalysisTable from './TemporalAnalysisTable';
 import GroupSummaryTable from './GroupSummaryTable';
 
+const AVAILABLE_DATES = [
+  '2021-06-01', '2020-12-01', '2019-12-01', '2019-06-01', 
+  '2018-12-01', '2017-12-01', '2016-12-01'
+];
+
 const SocialStatsDashboard = () => {
-  const [allData, setAllData] = useState([]);
+  const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [activeCategory, setActiveCategory] = useState('todos');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedInstitution, setSelectedInstitution] = useState(null);
-  const [selectedYear, setSelectedYear] = useState('2021');
+  const [selectedDate, setSelectedDate] = useState('2021-06-01');
   const [selectedInstitutions, setSelectedInstitutions] = useState([]);
   const [showTemporalAnalysis, setShowTemporalAnalysis] = useState(false);
-  const [totalStats, setTotalStats] = useState(null);
-
-  const calculateTotalStats = (data) => {
-    return data.reduce((acc, item) => ({
-      facebook: acc.facebook + (item.social_networks?.Facebook?.followers || 0),
-      twitter: acc.twitter + (item.social_networks?.X?.followers || 0),
-      instagram: acc.instagram + (item.social_networks?.Instagram?.followers || 0),
-      youtube: acc.youtube + (item.social_networks?.YouTube?.followers || 0),
-      tiktok: acc.tiktok + (item.social_networks?.TikTok?.followers || 0),
-      total: acc.total + 
-        (item.social_networks?.Facebook?.followers || 0) +
-        (item.social_networks?.X?.followers || 0) +
-        (item.social_networks?.Instagram?.followers || 0) +
-        (item.social_networks?.YouTube?.followers || 0) +
-        (item.social_networks?.TikTok?.followers || 0),
-    }), { facebook: 0, twitter: 0, instagram: 0, youtube: 0, tiktok: 0, total: 0 });
-  };
 
   useEffect(() => {
     const loadData = async () => {
+      setIsLoading(true);
+      setError(null);
       try {
-        setIsLoading(true);
-        setError(null);
         const response = await fetchSocialStats({ 
-          category: activeCategory,
-          year: selectedYear
+          category: activeCategory, 
+          date: selectedDate 
         });
-        if (response && Array.isArray(response.metrics)) {
-          setAllData(response.metrics);
-          setFilteredData(response.metrics);
-          setTotalStats(calculateTotalStats(response.metrics));
-        } else {
-          throw new Error(`Data structure is not as expected: ${JSON.stringify(response)}`);
-        }
+        setData(response.metrics);
+        setFilteredData(response.metrics);
       } catch (err) {
         setError(err.message || 'An error occurred while fetching data');
       } finally {
@@ -65,32 +48,26 @@ const SocialStatsDashboard = () => {
     };
 
     loadData();
-  }, [activeCategory, selectedYear]);
+  }, [activeCategory, selectedDate]);
 
   const handleCategorySelect = (category) => {
     setActiveCategory(category);
     setSelectedInstitution(null);
     setSelectedInstitutions([]);
-    if (category === 'todos') {
-      setFilteredData(allData);
-      setTotalStats(calculateTotalStats(allData));
-    } else {
-      const filtered = allData.filter(item => item.Tipo === category);
-      setFilteredData(filtered);
-      setTotalStats(calculateTotalStats(filtered));
-    }
   };
 
-  const handleYearChange = (e) => {
-    setSelectedYear(e.target.value);
+  const handleDateChange = (e) => {
+    setSelectedDate(e.target.value);
   };
 
   const handleInstitutionSelect = (institution) => {
     setSelectedInstitution(institution);
+    setSelectedInstitutions([institution]);
   };
 
   const handleInstitutionsSelect = (institutions) => {
     setSelectedInstitutions(institutions);
+    setSelectedInstitution(institutions.length === 1 ? institutions[0] : null);
   };
 
   const handleTemporalAnalysis = () => {
@@ -100,17 +77,17 @@ const SocialStatsDashboard = () => {
   const handleSearch = (e) => {
     const term = e.target.value.toLowerCase();
     setSearchTerm(term);
-    const filtered = allData.filter(item =>
+    const filtered = data.filter(item =>
       item.Institucion.toLowerCase().includes(term) ||
       (item.Ciudad && item.Ciudad.toLowerCase().includes(term)) ||
       (item.Tipo && item.Tipo.toLowerCase().includes(term))
     );
     setFilteredData(filtered);
-    setTotalStats(calculateTotalStats(filtered));
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <NavbarComponent />
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
           Dashboard de Estadísticas Sociales
@@ -119,10 +96,26 @@ const SocialStatsDashboard = () => {
         <ImageNavbar onCategorySelect={handleCategorySelect} activeCategory={activeCategory} />
         
         {!isLoading && filteredData.length > 0 && (
-          <SummaryCards groupData={filteredData} selectedData={selectedInstitutions} allData={allData} totalStats={totalStats} />
+          <SummaryCards groupData={filteredData} selectedData={selectedInstitutions} allData={data} />
         )}
       
-        
+        <div className="mb-6 flex space-x-4 items-center">
+          <TextInput
+            type="text"
+            placeholder="Buscar por institución, ciudad o tipo..."
+            value={searchTerm}
+            onChange={handleSearch}
+            icon={FaSearch}
+          />
+          <Select value={selectedDate} onChange={handleDateChange}>
+            {AVAILABLE_DATES.map(date => (
+              <option key={date} value={date}>{date}</option>
+            ))}
+          </Select>
+          <Button color="success" onClick={handleTemporalAnalysis}>
+            <BiTimeFive className="mr-2" />Análisis Temporal
+          </Button>
+        </div>
         
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
@@ -141,45 +134,31 @@ const SocialStatsDashboard = () => {
           </div>
         ) : filteredData.length > 0 ? (
           <>
-            {activeCategory === 'todos' && <GroupSummaryTable allData={allData} />}
+            {activeCategory === 'todos' && <GroupSummaryTable allData={filteredData} />}
             
-            <div className="my-6 flex space-x-4 items-center">
-          <TextInput
-            type="text"
-            placeholder="Buscar por institución, ciudad o tipo..."
-            value={searchTerm}
-            onChange={handleSearch}
-            icon={FaSearch}
-          />
-          <Select value={selectedYear} onChange={handleYearChange}>
-            <option value="2021">2021</option>
-            <option value="2020">2020</option>
-          </Select>
-          <Button color="success" onClick={handleTemporalAnalysis}>
-            <BiTimeFive className="mr-2" />Análisis Temporal
-          </Button>
-        </div>
-
             <Card>
               <InteractiveDataTable 
                 data={filteredData}
                 onInstitutionSelect={handleInstitutionSelect}
                 selectedType={activeCategory}
-                selectedYear={selectedYear}
+                selectedDate={selectedDate}
                 onInstitutionsSelect={handleInstitutionsSelect}
                 selectedInstitution={selectedInstitution}
               />
             </Card>
-
-
             
             {showTemporalAnalysis && selectedInstitutions.length > 0 && (
-              <TemporalAnalysisTable selectedInstitutions={selectedInstitutions} />
+              <TemporalAnalysisTable 
+                selectedInstitutions={selectedInstitutions} 
+                activeCategory={activeCategory}
+                availableDates={AVAILABLE_DATES}
+              />
             )}
             
             <ChartsSection 
-              selectedInstitution={selectedInstitution}
               selectedInstitutions={selectedInstitutions}
+              activeCategory={activeCategory}
+              availableDates={AVAILABLE_DATES}
             />
           </>
         ) : (

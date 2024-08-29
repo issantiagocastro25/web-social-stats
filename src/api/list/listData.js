@@ -5,16 +5,13 @@ const API_BASE_URL = 'https://api-social-stats.windowschannel.us';
 export const fetchSocialStats = async (options = {}) => {
   const {
     category = 'todos',
-    year = '2021',
+    date = '2021-06-01',
   } = options;
 
-  const date = year === '2020' ? '2020-12-01' : '2021-06-01';
-  
   let fullUrl = `${API_BASE_URL}/api/social-metrics/`;
 
-  // No es necesario usar encodeURIComponent aquí
   const queryParams = new URLSearchParams();
-  queryParams.append('type', category);  // Se elimina encodeURIComponent
+  queryParams.append('type', category);
   queryParams.append('date', date);
 
   const queryString = queryParams.toString();

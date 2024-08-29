@@ -91,7 +91,7 @@ const GroupSummaryTable = ({ allData }) => {
         <TableHead>
           <TableRow>
             <TableHeaderCell onClick={() => requestSort('Tipo')} className="cursor-pointer">
-              Grupo <SortIcon columnKey="Tipo" />
+              Grupo {/*<SortIcon columnKey="Tipo" />*/}
             </TableHeaderCell>
             <TableHeaderCell onClick={() => requestSort('total')} className="cursor-pointer">
               Total Seguidores <SortIcon columnKey="total" />
