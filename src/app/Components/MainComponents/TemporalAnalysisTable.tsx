@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Title, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Text, Badge } from '@tremor/react';
-import { fetchSocialStats } from '@/api/list/listData';
+import React, { useMemo } from 'react';
+import { Card, Title, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Text } from '@tremor/react';
 
 interface Institution {
   Institucion: string;
@@ -16,74 +15,63 @@ interface Institution {
 
 interface TemporalAnalysisTableProps {
   selectedInstitutions: Institution[];
-  activeCategory: string;
+  temporalData: any[];
   availableDates: string[];
 }
 
-const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({ 
-  selectedInstitutions, 
-  activeCategory, 
-  availableDates 
+const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
+  selectedInstitutions,
+  temporalData,
+  availableDates,
 }) => {
-  const [temporalData, setTemporalData] = useState<{ [key: string]: Institution[] }>({});
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const loadTemporalData = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const dataPromises = availableDates.map(date => 
-          fetchSocialStats({ 
-            category: activeCategory, 
-            date,
-            institutions: selectedInstitutions.map(inst => inst.Institucion)
-          })
-        );
-        const results = await Promise.all(dataPromises);
-        const newTemporalData = Object.fromEntries(availableDates.map((date, index) => [date, results[index].metrics]));
-        setTemporalData(newTemporalData);
-      } catch (err) {
-        setError('An error occurred while fetching temporal data');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (selectedInstitutions.length > 0) {
-      loadTemporalData();
-    }
-  }, [selectedInstitutions, activeCategory, availableDates]);
-
-  if (isLoading) return <div>Loading temporal data...</div>;
-  if (error) return <div>Error: {error}</div>;
-
   const networks = ['Facebook', 'X', 'Instagram', 'YouTube', 'TikTok'];
   const metrics = ['followers', 'publications', 'reactions', 'engagement'];
 
-  const getMetricValue = (institution: string, date: string, network: string, metric: string) => {
-    const institutionData = temporalData[date]?.find(item => item.Institucion === institution);
-    return institutionData?.social_networks?.[network]?.[metric] ?? 'N/A';
+  const processedData = useMemo(() => {
+    const data: { [key: string]: any } = {};
+    selectedInstitutions.forEach(institution => {
+      data[institution.Institucion] = {};
+      availableDates.forEach(date => {
+        const institutionData = temporalData.find(
+          item => item.Institucion === institution.Institucion && item.date === date
+        );
+        data[institution.Institucion][date] = institutionData?.social_networks || {};
+      });
+    });
+    return data;
+  }, [selectedInstitutions, temporalData, availableDates]);
+
+  const formatValue = (value: number | null | undefined) => {
+    if (value === null || value === undefined) return 'N/A';
+    return value.toLocaleString();
   };
 
-  const formatNumber = (number: number | string) => {
-    return typeof number === 'number' ? number.toLocaleString('es-ES', { maximumFractionDigits: 2 }) : number;
-  };
+  console.log('Processed Data:', processedData);  // Para depuración
+
+  if (selectedInstitutions.length === 0 || temporalData.length === 0) {
+    return (
+      <Card>
+        <Title>Análisis Temporal de Instituciones Seleccionadas</Title>
+        <Text>No hay datos disponibles para mostrar.</Text>
+      </Card>
+    );
+  }
 
   return (
     <Card>
-      <Title className="mb-4">Análisis Temporal de Instituciones Seleccionadas</Title>
+      <Title>Análisis Temporal de Instituciones Seleccionadas</Title>
       {selectedInstitutions.map(institution => (
-        <div key={institution.Institucion} className="mb-8">
-          <Title className="text-lg mb-2">{institution.Institucion}</Title>
-          <Table>
+        <div key={institution.Institucion} className="mt-6">
+          <Title className="text-lg">{institution.Institucion}</Title>
+          <Table className="mt-4">
             <TableHead>
               <TableRow>
                 <TableHeaderCell>Fecha</TableHeaderCell>
                 {networks.flatMap(network => 
                   metrics.map(metric => (
-                    <TableHeaderCell key={`${network}-${metric}`}>{`${network} ${metric}`}</TableHeaderCell>
+                    <TableHeaderCell key={`${network}-${metric}`}>
+                      {`${network} ${metric}`}
+                    </TableHeaderCell>
                   ))
                 )}
               </TableRow>
@@ -95,7 +83,9 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
                   {networks.flatMap(network => 
                     metrics.map(metric => (
                       <TableCell key={`${network}-${metric}`}>
-                        <Text>{formatNumber(getMetricValue(institution.Institucion, date, network, metric))}</Text>
+                        <Text>
+                          {formatValue(processedData[institution.Institucion]?.[date]?.[network]?.[metric])}
+                        </Text>
                       </TableCell>
                     ))
                   )}

@@ -2,32 +2,39 @@ import axios from 'axios';
 
 const API_BASE_URL = 'https://api-social-stats.windowschannel.us';
 
-export const fetchTemporalData = async (institutions, dates) => {
+export const fetchTemporalData = async (institutions, dates, onProgress) => {
   try {
-    const chunkSize = 5; // Ajusta este valor según sea necesario
-    const results = [];
+    let allResults = [];
+    const batchSize = 5; // Ajusta este valor según sea necesario
 
-    for (let i = 0; i < dates.length; i += chunkSize) {
-      const datesToFetch = dates.slice(i, i + chunkSize);
-      const dataPromises = datesToFetch.map(date => 
+    for (let i = 0; i < dates.length; i += batchSize) {
+      const batchDates = dates.slice(i, i + batchSize);
+      const batchPromises = batchDates.map(date => 
         fetchSocialStats({ date, institutions })
       );
-      const chunkResults = await Promise.all(dataPromises);
-      results.push(...chunkResults.flatMap(result => result.metrics));
-
-      // Añade un pequeño retraso entre las peticiones para evitar sobrecarga
-      if (i + chunkSize < dates.length) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      const batchResults = await Promise.all(batchPromises);
+      
+      const flattenedResults = batchResults.flatMap(result => 
+        result.metrics.map(item => ({ ...item, date: batchDates[batchResults.indexOf(result)] }))
+      );
+      
+      allResults = [...allResults, ...flattenedResults];
+      
+      // Informar del progreso
+      if (onProgress) {
+        onProgress((i + batchSize) / dates.length);
       }
+
+      // Pequeña pausa para evitar sobrecargar el servidor
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
-    return results;
+    return allResults;
   } catch (error) {
     console.error('Error fetching temporal data:', error);
     throw error;
   }
 };
-
 export const fetchSocialStats = async (options = {}) => {
   const {
     category = 'todos',
