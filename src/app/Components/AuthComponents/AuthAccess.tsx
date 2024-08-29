@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Button, Card, Label, Checkbox, TextInput, Modal } from "flowbite-react";
-import { login, signup } from '../../../api/auth';
+import { login, logout, signup } from '../../../api/auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ButtonGoogle from './google/ButtonGoogle';
@@ -48,7 +48,7 @@ const LoginRegisterCard: React.FC = () => {
                     setError('Las contraseñas no coinciden');
                     return;
                 }
-                await signup(email, password1, firstName, lastName, identification);
+                await signup(email, password1, password2, firstName, lastName, identification);
                 setIsLoginView(true);
             }
         } catch (err) {
@@ -188,13 +188,9 @@ const LoginRegisterCard: React.FC = () => {
                             <Button type="submit" className="w-full enabled:hover:bg-[#6b3e7b] rounded-lg bg-[#7A4993] hover:bg-[#6b3e7b] text-white">
                                 {isLoginView ? 'Iniciar Sesión' : 'Registrarse'}
                             </Button>
-                            {isLoginView &&(
-                                <>
-                                    <div className="bg-slate-600 w-full h-0.5 rounded-lg opacity-20"></div>
-                                    <ButtonGoogle/>
-                                    <ButtonLinkedIn/>
-                                </>
-                            )}
+                            <div className="bg-slate-600 w-full h-0.5 rounded-lg opacity-20"></div>
+                            <ButtonGoogle/>
+                            <ButtonLinkedIn/>
                         </form>
                         {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
                     </div>
