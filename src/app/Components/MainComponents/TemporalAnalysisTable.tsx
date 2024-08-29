@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { Card, Title, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Text } from '@tremor/react';
+import React, { useMemo, useState } from 'react';
+import { Card, Title, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Text, Button } from '@tremor/react';
 
 interface Institution {
   Institucion: string;
@@ -24,6 +24,7 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
   temporalData,
   availableDates,
 }) => {
+  const [showPercentages, setShowPercentages] = useState(false);
   const networks = ['Facebook', 'X', 'Instagram', 'YouTube', 'TikTok'];
   const metrics = ['followers', 'publications', 'reactions', 'engagement'];
 
@@ -41,12 +42,23 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
     return data;
   }, [selectedInstitutions, temporalData, availableDates]);
 
-  const formatValue = (value: number | null | undefined) => {
+  const calculatePercentageChange = (currentValue: number, previousValue: number) => {
+    if (previousValue === 0) return currentValue > 0 ? 100 : 0;
+    return ((currentValue - previousValue) / previousValue) * 100;
+  };
+
+  const formatValue = (value: number | null | undefined, previousValue: number | null | undefined) => {
     if (value === null || value === undefined) return 'N/A';
+    if (showPercentages && previousValue !== null && previousValue !== undefined) {
+      const percentageChange = calculatePercentageChange(value, previousValue);
+      return `${percentageChange.toFixed(2)}%`;
+    }
     return value.toLocaleString();
   };
 
-  console.log('Processed Data:', processedData);  // Para depuración
+  const togglePercentages = () => {
+    setShowPercentages(!showPercentages);
+  };
 
   if (selectedInstitutions.length === 0 || temporalData.length === 0) {
     return (
@@ -59,7 +71,12 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
 
   return (
     <Card>
-      <Title>Análisis Temporal de Instituciones Seleccionadas</Title>
+      <div className="flex justify-between items-center mb-4">
+        <Title>Análisis Temporal de Instituciones Seleccionadas</Title>
+        <Button onClick={togglePercentages}>
+          {showPercentages ? 'Mostrar Valores Reales' : 'Mostrar Porcentajes'}
+        </Button>
+      </div>
       {selectedInstitutions.map(institution => (
         <div key={institution.Institucion} className="mt-6">
           <Title className="text-lg">{institution.Institucion}</Title>
@@ -77,17 +94,23 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
               </TableRow>
             </TableHead>
             <TableBody>
-              {availableDates.map(date => (
+              {availableDates.map((date, index) => (
                 <TableRow key={date}>
                   <TableCell>{date}</TableCell>
                   {networks.flatMap(network => 
-                    metrics.map(metric => (
-                      <TableCell key={`${network}-${metric}`}>
-                        <Text>
-                          {formatValue(processedData[institution.Institucion]?.[date]?.[network]?.[metric])}
-                        </Text>
-                      </TableCell>
-                    ))
+                    metrics.map(metric => {
+                      const currentValue = processedData[institution.Institucion]?.[date]?.[network]?.[metric];
+                      const previousValue = index > 0 
+                        ? processedData[institution.Institucion]?.[availableDates[index - 1]]?.[network]?.[metric]
+                        : undefined;
+                      return (
+                        <TableCell key={`${network}-${metric}`}>
+                          <Text>
+                            {formatValue(currentValue, previousValue)}
+                          </Text>
+                        </TableCell>
+                      );
+                    })
                   )}
                 </TableRow>
               ))}

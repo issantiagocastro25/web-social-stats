@@ -18,8 +18,8 @@ const NextArrow = (props: any) => {
   const { className, style, onClick } = props;
   return (
     <div
-      className={`${className} z-10`}
-      style={{ ...style, display: "block", right: "10px" }}
+      className={`${className} z-15`}
+      style={{ ...style, display: "block", right: "0px" }}
       onClick={onClick}
     >
       <FaChevronRight className="text-blue-500 text-2xl" />
@@ -32,7 +32,7 @@ const PrevArrow = (props: any) => {
   return (
     <div
       className={`${className} z-10`}
-      style={{ ...style, display: "block", left: "10px" }}
+      style={{ ...style, display: "block", left: "0px" }}
       onClick={onClick}
     >
       <FaChevronLeft className="text-blue-500 text-2xl" />
@@ -65,21 +65,21 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
       {
         breakpoint: 1024,
         settings: {
-          slidesToShow: 3,
+          slidesToShow: 4,
           slidesToScroll: 1,
         }
       },
       {
         breakpoint: 600,
         settings: {
-          slidesToShow: 2,
+          slidesToShow: 3,
           slidesToScroll: 1
         }
       },
       {
         breakpoint: 480,
         settings: {
-          slidesToShow: 1,
+          slidesToShow: 2,
           slidesToScroll: 1
         }
       }
@@ -87,7 +87,7 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
   };
 
   return (
-    <div className="mb-8 relative">
+    <div className="mb-8 px-24 relative">
       <Slider {...settings}>
         {categories.map((category) => (
           <div key={category.name} className="px-2">
@@ -95,7 +95,7 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
               className={`flex flex-col items-center p-4 rounded-lg cursor-pointer transition-all duration-300 ${
                 category.name === activeCategory
                   ? 'bg-blue-200 shadow-md'
-                  : 'hover:bg-gray-200'
+                  : 'hover:bg-white-100'
               }`}
               onClick={() => onCategorySelect(category.name)}
             >
