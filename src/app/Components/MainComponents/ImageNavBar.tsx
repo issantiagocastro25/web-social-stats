@@ -10,7 +10,7 @@ const ImageNavbar = ({ onCategorySelect, activeCategory }) => {
       { name: 'Org. Profesionales', image: '/assets/imgs/6.png' },
       { name: 'Org. admin', image: '/assets/imgs/5.jpg' },
       { name: 'Farmacias', image: '/assets/imgs/8.jpeg' },
-      { name: 'Los 15 mejores Hospitales de Latinoamérica', image: '/assets/imgs/images.png' }
+      { name: 'Los 15 mejores Hospitales de Latinoamérica', image: '/assets/imgs/9.jpeg' }
   ];
 
   return (
