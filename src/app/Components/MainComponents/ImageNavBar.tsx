@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 interface Category {
+  id: number;
   name: string;
-  image: string;
+  institution_count: number;
 }
 
 interface ImageNavbarProps {
@@ -41,23 +42,44 @@ const PrevArrow = (props: any) => {
 };
 
 const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCategory }) => {
-  const categories: Category[] = [
-    { name: 'todos', image: '/assets/imgs/images.png' },
-    { name: 'IPS privadas', image: '/assets/imgs/1.jpg' },
-    { name: 'IPS Públicas', image: '/assets/imgs/2.jpg' },
-    { name: 'EPS y Seguros', image: '/assets/imgs/3.jpg' },
-    { name: 'Educación', image: '/assets/imgs/4.jpg' },
-    { name: 'Org. Profesionales', image: '/assets/imgs/6.png' },
-    { name: 'Org. admin', image: '/assets/imgs/5.jpg' },
-    { name: 'Farmacias', image: '/assets/imgs/8.jpeg' },
-    { name: 'Los 15 mejores Hospitales de Latinoamérica', image: '/assets/imgs/9.jpeg' }
-  ];
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('http://192.168.0.102:8000/api/social-metrics/institutions/categories');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data: Category[] = await response.json();
+        
+        // Calcular el total de instituciones
+        const totalInstitutions = data.reduce((sum, category) => sum + category.institution_count, 0);
+        
+        // Añadir la categoría "todos" al principio del array
+        const allCategories = [
+          { id: 0, name: 'todos', institution_count: totalInstitutions },
+          ...data
+        ];
+        
+        setCategories(allCategories);
+        setIsLoading(false);
+      } catch (error) {
+        setError('Error fetching categories');
+        setIsLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const settings = {
     dots: false,
     infinite: true,
     speed: 500,
-    slidesToShow: 5,
+    slidesToShow: 4,
     slidesToScroll: 1,
     nextArrow: <NextArrow />,
     prevArrow: <PrevArrow />,
@@ -65,47 +87,58 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
       {
         breakpoint: 1024,
         settings: {
-          slidesToShow: 4,
+          slidesToShow: 3,
           slidesToScroll: 1,
         }
       },
       {
         breakpoint: 600,
         settings: {
-          slidesToShow: 3,
+          slidesToShow: 2,
           slidesToScroll: 1
         }
       },
       {
         breakpoint: 480,
         settings: {
-          slidesToShow: 2,
+          slidesToShow: 1,
           slidesToScroll: 1
         }
       }
     ]
   };
 
+  if (isLoading) {
+    return <div>Loading categories...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
   return (
-    <div className="mb-8 px-24 relative">
+    <div className="mb-8 relative">
       <Slider {...settings}>
         {categories.map((category) => (
-          <div key={category.name} className="px-2">
+          <div key={category.id} className="px-2">
             <div
               className={`flex flex-col items-center p-4 rounded-lg cursor-pointer transition-all duration-300 ${
                 category.name === activeCategory
                   ? 'bg-blue-200 shadow-md'
-                  : 'hover:bg-white-100'
+                  : 'hover:bg-gray-200'
               }`}
               onClick={() => onCategorySelect(category.name)}
             >
               <img
-                src={category.image}
+                src={category.id === 0 ? '/assets/imgs/all.jpg' : `/assets/imgs/${category.id}.jpg`}
                 alt={category.name}
                 className="w-40 h-40 object-cover rounded-xl mb-4"
               />
               <span className="text-sm font-medium text-gray-700 text-center">
                 {category.name}
+              </span>
+              <span className="text-xs text-gray-500">
+                {category.institution_count} instituciones
               </span>
             </div>
           </div>
