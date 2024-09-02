@@ -72,7 +72,7 @@ export const signup = async (email, password, password2, firstName, lastName, id
   } catch (error) {
     if (error.response) {
       // El servidor respondió con un estado fuera del rango de 2xx
-      throw new Error(error.response.data.message || 'Error en el registro');
+      throw new Error(error.response.data.message || error.response.data.password || 'Error en el registro');
     } else if (error.request) {
       // La petición fue hecha pero no se recibió respuesta
       throw new Error('No se pudo conectar con el servidor');
@@ -83,30 +83,21 @@ export const signup = async (email, password, password2, firstName, lastName, id
   }
 };
 
-export const resetPassword = async (resetKey, password1, password2) => {
+export const resetPassword = async (uidb64, token, newPassword) => {
   try {
-    const response = await api.post(`/api/password/reset/key/${resetKey}/`, {
-      new_password1: password1,
-      new_password2: password2
-    });
-    
-    if (response.data.success) {
-      return {
-        success: true,
-        message: 'Password reset successfully'
-      };
-    } else {
-      return {
-        success: false,
-        error: response.data.error || 'An error occurred during password reset'
-      };
-    }
+    const response = await api.post('/api/reset-password/', { uidb64, token, new_password: newPassword });
+    return response.data;
   } catch (error) {
-    console.error('Error in password reset:', error);
-    return {
-      success: false,
-      error: error.response?.data?.error || 'An error occurred during password reset'
-    };
+    throw error;
+  }
+};
+
+export const requestPasswordReset = async (email) => {
+  try {
+    const response = await api.post('/api/forgot-password/', { email });
+    return response.data;
+  } catch (error) {
+    throw error;
   }
 };
 
@@ -127,30 +118,9 @@ export const changePassword = async (oldPassword, newPassword1, newPassword2) =>
 // Nueva función para manejar la lógica de "Olvidé mi contraseña"
 export const forgotPassword = async (email) => {
   try {
-    const response = await api.post('/api/forgot-password/', {
-      email: email
-    }, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    if (response.status === 200) {
-      return {
-        success: true,
-        message: response.data.message
-      };
-    } else {
-      return {
-        success: false,
-        error: response.data.error || 'Ocurrió un error. Por favor, intenta de nuevo.'
-      };
-    }
+    const response = await api.post('/api/forgot-password/', { email });
+    return response.data;
   } catch (error) {
-    console.error('Error en la solicitud de restablecimiento de contraseña:', error);
-    return {
-      success: false,
-      error: 'Ocurrió un error al conectar con el servidor. Por favor, intenta de nuevo.'
-    };
+    throw error;
   }
 };
