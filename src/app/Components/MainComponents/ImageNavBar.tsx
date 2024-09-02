@@ -8,6 +8,7 @@ interface Category {
   id: number;
   name: string;
   institution_count: number;
+  url : string;
 }
 
 interface ImageNavbarProps {
@@ -130,7 +131,7 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
               onClick={() => onCategorySelect(category.name)}
             >
               <img
-                src={category.id === 0 ? '/assets/imgs/all.jpg' : `/assets/imgs/${category.id}.jpg`}
+                src={category.url}
                 alt={category.name}
                 className="w-40 h-40 object-cover rounded-xl mb-4"
               />
