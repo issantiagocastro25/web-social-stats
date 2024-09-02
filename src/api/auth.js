@@ -1,4 +1,5 @@
 import api from './index';
+import axios from 'axios';
 
 export const login = async (email, password, remember) => {
   try {
@@ -97,6 +98,9 @@ export const requestPasswordReset = async (email) => {
     const response = await api.post('/api/forgot-password/', { email });
     return response.data;
   } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw error.response.data;
+    }
     throw error;
   }
 };

@@ -20,12 +20,26 @@ export default function ForgotPassword() {
         setError('');
 
         try {
-            await requestPasswordReset(email);
-            setMessage('Si existe una cuenta con este correo, recibirás un enlace para restablecer tu contraseña.');
-            setTimeout(() => router.push('/auth/access'), 5000);
-        } catch (err) {
+            const response = await requestPasswordReset(email);
+            if (response.message) {
+                setMessage(response.message);
+                setTimeout(() => router.push('/auth/access'), 5000);
+            }
+        } catch (err: any) {
             console.error('Error al solicitar restablecimiento de contraseña:', err);
-            setError('Ocurrió un error. Por favor, intenta de nuevo.');
+            if (err.response && err.response.data) {
+                if (err.response.data.error) {
+                    setError(err.response.data.error);
+                } else if (err.response.data.message) {
+                    setMessage(err.response.data.message);
+                } else {
+                    setError('Ocurrió un error. Por favor, intenta de nuevo.');
+                }
+            } else if (err.error) {
+                setError(err.error);
+            } else {
+                setError('Ocurrió un error. Por favor, intenta de nuevo.');
+            }
         } finally {
             setIsLoading(false);
         }
