@@ -77,6 +77,8 @@ const UserProfile = () => {
   if (!userDetail) return <div className="text-center p-4">No user data available</div>;
 
   return (
+    <>
+    <title>Profile</title>
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6">Perfil de Usuario</h1>
       
@@ -138,6 +140,7 @@ const UserProfile = () => {
         </form>
       </div>
     </div>
+    </>
   );
 };
 
