@@ -4,7 +4,7 @@ import { getUserDetail, updateUserProfile, changePassword } from '@/api/user';
 import { Button, TextInput, Label, Alert } from 'flowbite-react';
 
 import {useAuthCheck} from '@/app/hooks/useAuthCheck';
-import LoadingBasic from '@/app/Components/Loadings/LoadingBasic';
+import LoadingProfile from '@/app/Components/Loadings/LoadingProfile';
 
 const UserProfile = () => {
     const [userDetail, setUserDetail] = useState(null);
@@ -22,9 +22,6 @@ const UserProfile = () => {
             fetchUserDetail();
         }
     }, [isAuthenticated]);
-    if (isLoading) {
-        return <div className='my-4'><LoadingBasic/></div>;
-    }
 
     if (!isAuthenticated) {
         return null;
@@ -75,7 +72,7 @@ const UserProfile = () => {
     }
   };
 
-  if (loading) return <div className="text-center p-4">Cargando...</div>;
+  if (loading) return <div className="text-center p-4"><LoadingProfile/></div>;
   if (error) return <div className="text-center p-4 text-red-500">Error: {error}</div>;
   if (!userDetail) return <div className="text-center p-4">No user data available</div>;
 
