@@ -61,7 +61,7 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
         
         // Añadir la categoría "todos" al principio del array
         const allCategories = [
-          { id: 0, name: 'todos', institution_count: totalInstitutions },
+          
           ...data
         ];
         
