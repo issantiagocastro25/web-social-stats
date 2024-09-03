@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Spinner, TextInput, Card, Select, Button, Progress } from 'flowbite-react';
 import { FaSearch } from 'react-icons/fa';
 import { Grid } from '@tremor/react';
-import { fetchSocialStats, fetchTemporalData } from '@/api/list/listData';
+import { fetchSocialStats, fetchTemporalData, fetchSummaryCardsData, fetchCategories } from '@/api/list/listData';
 import NavbarComponent from '@/app/Components/MainComponents/navBar';
 import ImageNavbar from './ImageNavBar';
 import SummaryCards from './SummaryCards';
@@ -12,17 +12,25 @@ import ComparisonCharts from './ComparisonCharts';
 import ComparisonTable from './ComparisonTable';
 import AnnualGrowthChart from './AnnualGrowthChart';
 import TemporalAnalysisTable from './TemporalAnalysisTable';
-import GroupSummaryTable from './GroupSummaryTable';
 
 const AVAILABLE_DATES = [
   '2021-06-01', '2020-12-01', '2019-12-01', '2019-06-01', 
   '2018-12-01', '2017-12-01', '2016-12-01'
 ];
 
+interface Category {
+  id: number;
+  name: string;
+  institution_count: number | null;
+  url: string;
+  ordering: number;
+}
+
 const SocialStatsDashboard: React.FC = () => {
   const [data, setData] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState<any[]>([]);
-  const [activeCategory, setActiveCategory] = useState<string>('todos');
+  const [activeCategory, setActiveCategory] = useState<string>('Todos');
+  const [activeCategoryId, setActiveCategoryId] = useState<number>(97);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -32,43 +40,60 @@ const SocialStatsDashboard: React.FC = () => {
   const [showTemporalAnalysis, setShowTemporalAnalysis] = useState<boolean>(false);
   const [temporalData, setTemporalData] = useState<any[]>([]);
   const [isLoadingTemporal, setIsLoadingTemporal] = useState<boolean>(false);
-  const [temporalLoadingProgress, setTemporalLoadingProgress] = useState<number>(0);
+  const [summaryCardsData, setSummaryCardsData] = useState<any>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  const loadCategories = useCallback(async () => {
+    try {
+      const fetchedCategories = await fetchCategories();
+      setCategories(fetchedCategories);
+      const todosCategory = fetchedCategories.find(cat => cat.name === "Todos");
+      if (todosCategory) {
+        setActiveCategory(todosCategory.name);
+        setActiveCategoryId(todosCategory.id);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Error al cargar las categorías');
+    }
+  }, []);
+
+  useEffect(() => {
+    loadCategories();
+  }, [loadCategories]);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const cacheKey = `socialStats_${activeCategory}_${selectedDate}`;
-      const cachedData = sessionStorage.getItem(cacheKey);
-      
-      if (cachedData) {
-        const parsedData = JSON.parse(cachedData);
-        setData(parsedData);
-        setFilteredData(parsedData);
-      } else {
-        const response = await fetchSocialStats({ 
-          category: activeCategory, 
-          date: selectedDate 
-        });
-        setData(response.metrics);
-        setFilteredData(response.metrics);
-        sessionStorage.setItem(cacheKey, JSON.stringify(response.metrics));
-      }
+      const [socialStatsResponse, summaryCardsResponse] = await Promise.all([
+        fetchSocialStats({ category: activeCategory, date: selectedDate }),
+        fetchSummaryCardsData(activeCategoryId, selectedDate)
+      ]);
+
+      setData(socialStatsResponse.metrics);
+      setFilteredData(socialStatsResponse.metrics);
+      setSummaryCardsData(summaryCardsResponse);
     } catch (err: any) {
       setError(err.message || 'An error occurred while fetching data');
     } finally {
       setIsLoading(false);
     }
-  }, [activeCategory, selectedDate]);
+  }, [activeCategory, activeCategoryId, selectedDate]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (categories.length > 0) {
+      loadData();
+    }
+  }, [loadData, categories]);
 
-  const handleCategorySelect = (category: string) => {
-    setActiveCategory(category);
-    setSelectedInstitution(null);
-    setSelectedInstitutions([]);
+  const handleCategorySelect = (categoryName: string) => {
+    const category = categories.find(cat => cat.name === categoryName);
+    if (category) {
+      setActiveCategory(category.name);
+      setActiveCategoryId(category.id);
+      setSelectedInstitution(null);
+      setSelectedInstitutions([]);
+    }
   };
 
   const handleDateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -97,25 +122,11 @@ const SocialStatsDashboard: React.FC = () => {
 
     setIsLoadingTemporal(true);
     setShowTemporalAnalysis(true);
-    setTemporalLoadingProgress(0);
 
     try {
       const institutionNames = institutionsToAnalyze.map(inst => inst.Institucion);
-      const cacheKey = `temporalData_${institutionNames.join('_')}`;
-      const cachedData = sessionStorage.getItem(cacheKey);
-
-      if (cachedData) {
-        setTemporalData(JSON.parse(cachedData));
-        setTemporalLoadingProgress(100);
-      } else {
-        const temporalDataResult = await fetchTemporalData(
-          institutionNames, 
-          AVAILABLE_DATES,
-          (progress) => setTemporalLoadingProgress(progress * 100)
-        );
-        setTemporalData(temporalDataResult);
-        sessionStorage.setItem(cacheKey, JSON.stringify(temporalDataResult));
-      }
+      const temporalDataResult = await fetchTemporalData(institutionNames, AVAILABLE_DATES);
+      setTemporalData(temporalDataResult);
     } catch (err: any) {
       setError(err.message || 'Ocurrió un error al obtener los datos temporales');
     } finally {
@@ -136,21 +147,25 @@ const SocialStatsDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <NavbarComponent />
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
           Dashboard de Estadísticas Sociales
         </h1>
 
-        <ImageNavbar onCategorySelect={handleCategorySelect} activeCategory={activeCategory} />
-
-        {!isLoading && filteredData.length > 0 && (
-          <SummaryCards groupData={filteredData} selectedData={selectedInstitutions} allData={data} />
+        {categories.length > 0 && (
+          <ImageNavbar 
+            onCategorySelect={handleCategorySelect} 
+            activeCategory={activeCategory} 
+            categories={categories} 
+          />
         )}
 
+        {!isLoading && summaryCardsData && (
+          <SummaryCards data={summaryCardsData} />
+        )}
 
-        <GroupSummaryTable allData={filteredData} />
-
-        <div className="my-6 flex space-x-4 items-center">
+        <div className="mb-6 flex space-x-4 items-center">
           <TextInput
             type="text"
             placeholder="Buscar por institución, ciudad o tipo..."
@@ -214,8 +229,8 @@ const SocialStatsDashboard: React.FC = () => {
             {showTemporalAnalysis && (
               isLoadingTemporal ? (
                 <div className="mt-4">
-                  <Progress progress={temporalLoadingProgress} color="blue" />
-                  <p className="text-center mt-2">Cargando datos temporales: {temporalLoadingProgress.toFixed(0)}%</p>
+                  <Progress progress={100} color="blue" />
+                  <p className="text-center mt-2">Cargando datos temporales...</p>
                 </div>
               ) : temporalData.length > 0 ? (
                 <>
