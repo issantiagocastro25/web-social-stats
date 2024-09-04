@@ -12,6 +12,7 @@ import ComparisonCharts from './ComparisonCharts';
 import ComparisonTable from './ComparisonTable';
 import AnnualGrowthChart from './AnnualGrowthChart';
 import TemporalAnalysisTable from './TemporalAnalysisTable';
+import GroupSummaryTable from './GroupSummaryTable';
 
 const AVAILABLE_DATES = [
   '2021-06-01', '2020-12-01', '2019-12-01', '2019-06-01', 
@@ -164,6 +165,8 @@ const SocialStatsDashboard: React.FC = () => {
         {!isLoading && summaryCardsData && (
           <SummaryCards data={summaryCardsData} />
         )}
+
+        <GroupSummaryTable summaryCardsData={summaryCardsData} />
 
         <div className="mb-6 flex space-x-4 items-center">
           <TextInput
