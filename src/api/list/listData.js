@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://api-social-stats.windowschannel.us';
+const API_BASE_URL = 'http://186.30.107.85:8000';
 
 export const fetchSocialStats = async (options = {}) => {
   const {
@@ -29,9 +29,9 @@ export const fetchSocialStats = async (options = {}) => {
 
     console.log('Response received:', response.data);
     
-    if (!response.data || !Array.isArray(response.data.metrics)) {
-      throw new Error('Unexpected data structure received from the server');
-    }
+    // if (!response.data || !Array.isArray(response.data.metrics)) {
+    //   throw new Error('Unexpected data structure received from the server');
+    // }
 
     return response.data;
   } catch (error) {
@@ -44,7 +44,7 @@ export const fetchTemporalData = async (institutions, dates) => {
   try {
     const results = await Promise.all(dates.map(async (date) => {
       const response = await fetchSocialStats({ date, institutions });
-      return response.metrics.map(item => ({ ...item, date }));
+      return response.data.map(item => ({ ...item, date }));
     }));
     return results.flat();
   } catch (error) {
@@ -55,7 +55,7 @@ export const fetchTemporalData = async (institutions, dates) => {
 
 export const fetchSummaryCardsData = async (institutionId, date) => {
   try {
-    const response = await axios.get(`http://192.168.0.102:8000/api/social-metrics/stats`, {
+    const response = await axios.get(`${API_BASE_URL}/api/social-metrics/stats`, {
       params: {
         type_institution_id: institutionId,
         stats_date: date
@@ -69,7 +69,7 @@ export const fetchSummaryCardsData = async (institutionId, date) => {
 };
 export const fetchCategories = async () => {
   try {
-    const response = await axios.get('http://192.168.0.102:8000/api/social-metrics/institutions/categories');
+    const response = await axios.get(`${API_BASE_URL}/api/social-metrics/institutions/categories`);
     return response.data;
   } catch (error) {
     console.error('Error fetching categories:', error);

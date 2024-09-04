@@ -50,7 +50,7 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('http://192.168.0.102:8000/api/social-metrics/institutions/categories');
+        const response = await fetch('http://186.30.107.85:8000/api/social-metrics/institutions/categories');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }

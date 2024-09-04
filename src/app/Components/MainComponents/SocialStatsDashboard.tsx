@@ -28,7 +28,7 @@ interface Category {
 
 const SocialStatsDashboard: React.FC = () => {
   const [data, setData] = useState<any[]>([]);
-  const [filteredData, setFilteredData] = useState<any[]>([]);
+  const [filteredData, setFilteredData] = useState<any[]>([]); // Se indica array vació para evitar fallos
   const [activeCategory, setActiveCategory] = useState<string>('Todos');
   const [activeCategoryId, setActiveCategoryId] = useState<number>(97);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -202,7 +202,7 @@ const SocialStatsDashboard: React.FC = () => {
               Intentar de nuevo
             </button>
           </div>
-        ) : filteredData.length > 0 ? (
+        ) : filteredData && filteredData.length > 0 ? (
           <>
             <Card>
               <InteractiveDataTable 
