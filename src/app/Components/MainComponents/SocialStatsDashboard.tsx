@@ -30,7 +30,7 @@ interface Category {
 const SocialStatsDashboard: React.FC = () => {
   const [data, setData] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState<any[]>([]); // Se indica array vació para evitar fallos
-  const [activeCategory, setActiveCategory] = useState<string>('Todos');
+  const [activeCategory, setActiveCategory] = useState<string>('otros');
   const [activeCategoryId, setActiveCategoryId] = useState<number>(97);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +48,7 @@ const SocialStatsDashboard: React.FC = () => {
     try {
       const fetchedCategories = await fetchCategories();
       setCategories(fetchedCategories);
-      const todosCategory = fetchedCategories.find(cat => cat.name === "Todos");
+      const todosCategory = fetchedCategories.find(cat => cat.name === "otros");
       if (todosCategory) {
         setActiveCategory(todosCategory.name);
         setActiveCategoryId(todosCategory.id);
@@ -158,6 +158,7 @@ const SocialStatsDashboard: React.FC = () => {
             onCategorySelect={handleCategorySelect} 
             activeCategory={activeCategory} 
             categories={categories} 
+
           />
         )}
 

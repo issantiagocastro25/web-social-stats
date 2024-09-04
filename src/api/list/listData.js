@@ -75,4 +75,4 @@ export const fetchCategories = async () => {
     console.error('Error fetching categories:', error);
     throw error;
   }
-};
+};  

@@ -50,11 +50,16 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
   useEffect(() => {
     const fetchCategories = async () => {
       try {
+        const responseStats = await fetch('http://186.30.107.85:8000/api/social-metrics/stats?stats_date=2021-06-01');
         const response = await fetch('http://186.30.107.85:8000/api/social-metrics/institutions/categories');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
         const data: Category[] = await response.json();
+
+        const otros: Category[] = await responseStats.json() ;
+
+        console.log(otros);
         
         // Calcular el total de instituciones
         const totalInstitutions = data.reduce((sum, category) => sum + category.institution_count, 0);
