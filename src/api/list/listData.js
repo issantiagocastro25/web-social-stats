@@ -1,14 +1,13 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://186.30.107.85:8000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const fetchSocialStats = async (options = {}) => {
   const {
     category = 'todos',
     date = '2021-06-01',
-  } = options;
-
-  let fullUrl = `${API_BASE_URL}/api/social-metrics/`;
+  } = options; 
+  let fullUrl = `${API_URL}/api/social-metrics/`;
 
   const queryParams = new URLSearchParams();
   queryParams.append('type', category);
@@ -55,7 +54,7 @@ export const fetchTemporalData = async (institutions, dates) => {
 
 export const fetchSummaryCardsData = async (institutionId, date) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/api/social-metrics/stats`, {
+    const response = await axios.get(`${API_URL}/api/social-metrics/stats`, {
       params: {
         type_institution_id: institutionId,
         stats_date: date
@@ -67,9 +66,10 @@ export const fetchSummaryCardsData = async (institutionId, date) => {
     throw error;
   }
 };
+
 export const fetchCategories = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/api/social-metrics/institutions/categories`);
+    const response = await axios.get(`${API_URL}/api/social-metrics/institutions/categories`);
     return response.data;
   } catch (error) {
     console.error('Error fetching categories:', error);

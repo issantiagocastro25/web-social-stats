@@ -1,22 +1,17 @@
-version: "3"
-
 services:
   next-app:
     build:
       context: .
       dockerfile: Dockerfile
-
     # Set environment variables directly in the docker-compose file
-    environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-
-    # Set environment variables based on the .env file
+    restart: always
     env_file:
       - .env
+    environment:
+      - NEXT_PUBLIC_API_URL=${API_URL}
     volumes:
       - ./:/app/
       - ./public:/app/public
-    restart: always
     ports:
       - 3000:3000
     networks:

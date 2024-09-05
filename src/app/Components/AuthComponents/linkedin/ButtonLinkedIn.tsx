@@ -6,7 +6,7 @@ import React from 'react';
 const LinkedInLoginButton: React.FC = () => {
   const handleLinkedInLogin = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/linkedin/login/`);
+      const response = await fetch(`${process.env.API_URL}/auth/linkedin/login/`);
       const data = await response.json();
       window.location.href = data.login_url;
     } catch (error) {
