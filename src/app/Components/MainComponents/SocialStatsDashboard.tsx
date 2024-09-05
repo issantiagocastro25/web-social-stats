@@ -189,7 +189,9 @@ const SocialStatsDashboard: React.FC = () => {
           <SummaryCards data={summaryCardsData} />
         )}
 
-        <GroupSummaryTable summaryCardsData={summaryCardsData} />
+        {activeCategory === 'Todos' && summaryCardsData && (
+          <GroupSummaryTable summaryCardsData={summaryCardsData} />
+        )}
 
         <div className="mb-6 flex space-x-4 items-center">
           <TextInput

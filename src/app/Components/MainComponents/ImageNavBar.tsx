@@ -82,7 +82,7 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
         setIsLoading(false);
       }
     };
-
+ 
     fetchData();
   }, []);
 

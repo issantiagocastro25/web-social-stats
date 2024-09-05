@@ -11,7 +11,7 @@ interface SummaryCardData {
     total_publications: number;
     total_reactions: number;
     average_views: number;
-  }>;
+  }>; 
 }
 
 interface GroupSummaryTableProps {
