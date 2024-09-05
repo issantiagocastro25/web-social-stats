@@ -9,21 +9,18 @@ services:
       - .env
     environment:
       - NEXT_PUBLIC_API_URL=${API_URL}
-      - VIRTUAL_HOST=colombiaredessociales.com
-      - LETSENCRYPT_HOST=colombiaredessociales.com
-      - LETSENCRYPT_EMAIL=info@windowschannel.com
     volumes:
       - ./:/app/
       - ./public:/app/public
     ports:
       - 3000:3000
     networks:
-      - social-stats-network
+      - app-network
 
   # Add more containers below (nginx, postgres, etc.)
 
 # Define a network, which allows containers to communicate
 # with each other, by using their container name as a hostname
 networks:
-  social-stats-network:
+  app-network:
     external: true

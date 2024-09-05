@@ -4,6 +4,8 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 interface Category {
   id: number;
   name: string;
@@ -46,12 +48,12 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+1
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const responseStats = await fetch('http://186.30.107.85:8000/api/social-metrics/stats?stats_date=2021-06-01');
-        const response = await fetch('http://186.30.107.85:8000/api/social-metrics/institutions/categories');
+        const responseStats = await fetch(`${API_URL}/api/social-metrics/stats?stats_date=2021-06-01`);
+        const response = await fetch(`${API_URL}/api/social-metrics/institutions/categories`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }

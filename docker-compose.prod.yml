@@ -5,16 +5,21 @@ services:
       # dockerfile: prod.Dockerfile
       dockerfile: Dockerfile
     restart: always
-    ports:
-      - 3000:3000
+    env_file:
+      - .env
     environment:
-      - API_URL=${API_URL}
-      - VIRTUAL_HOST=colombiaredessociales.com
-      - LETSENCRYPT_HOST=colombiaredessociales.com
+      - NEXT_PUBLIC_API_URL=${API_URL}
+      - VIRTUAL_HOST=stats.colombiaredessociales.com
+      - LETSENCRYPT_HOST=stats.colombiaredessociales.com
       - LETSENCRYPT_EMAIL=info@windowschannel.com
+    volumes:
+      - ./:/app/
+      - ./public:/app/public
+    expose:
+      - "3000"
     networks:
-      - social-stats-network
+      - app-network
 
 networks:
-  social-stats-network:
+  app-network:
     external: true
