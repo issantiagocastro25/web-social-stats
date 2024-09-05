@@ -29,9 +29,9 @@ interface Category {
 
 const SocialStatsDashboard: React.FC = () => {
   const [data, setData] = useState<any[]>([]);
-  const [filteredData, setFilteredData] = useState<any[]>([]); // Se indica array vació para evitar fallos
-  const [activeCategory, setActiveCategory] = useState<string>('otros');
-  const [activeCategoryId, setActiveCategoryId] = useState<number>(97);
+  const [filteredData, setFilteredData] = useState<any[]>([]);
+  const [activeCategory, setActiveCategory] = useState<string>('Todos');
+  const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -44,15 +44,19 @@ const SocialStatsDashboard: React.FC = () => {
   const [summaryCardsData, setSummaryCardsData] = useState<any>(null);
   const [categories, setCategories] = useState<Category[]>([]);
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
   const loadCategories = useCallback(async () => {
     try {
       const fetchedCategories = await fetchCategories();
-      setCategories(fetchedCategories);
-      const todosCategory = fetchedCategories.find(cat => cat.name === "otros");
-      if (todosCategory) {
-        setActiveCategory(todosCategory.name);
-        setActiveCategoryId(todosCategory.id);
-      }
+      const allCategory: Category = {
+        id: 0,
+        name: 'Todos',
+        institution_count: fetchedCategories.reduce((sum, cat) => sum + (cat.institution_count || 0), 0),
+        url: '/path/to/all-category-image.jpg', // Replace with an appropriate image URL
+        ordering: -1
+      };
+      setCategories([allCategory, ...fetchedCategories]);
     } catch (err: any) {
       setError(err.message || 'Error al cargar las categorías');
     }
@@ -66,13 +70,27 @@ const SocialStatsDashboard: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const [socialStatsResponse, summaryCardsResponse] = await Promise.all([
-        fetchSocialStats({ category: activeCategory, date: selectedDate }),
-        fetchSummaryCardsData(activeCategoryId, selectedDate)
-      ]);
+      let socialStatsResponse;
+      let summaryCardsResponse;
 
-      setData(socialStatsResponse.metrics);
-      setFilteredData(socialStatsResponse.metrics);
+      if (activeCategory === 'Todos') {
+        // Fetch general stats for 'Todos'
+        socialStatsResponse = await fetch(`${API_URL}/api/social-metrics/stats?stats_date=${selectedDate}`);
+        summaryCardsResponse = await socialStatsResponse.json();
+      } else {
+        // Fetch category-specific data
+        socialStatsResponse = await fetchSocialStats({ category: activeCategory, date: selectedDate });
+        summaryCardsResponse = await fetchSummaryCardsData(activeCategoryId, selectedDate);
+      }
+
+      if (activeCategory === 'Todos') {
+        setData(summaryCardsResponse);
+        setFilteredData(summaryCardsResponse);
+      } else {
+        setData(socialStatsResponse.metrics);
+        setFilteredData(socialStatsResponse.metrics);
+      }
+      
       setSummaryCardsData(summaryCardsResponse);
     } catch (err: any) {
       setError(err.message || 'An error occurred while fetching data');
@@ -80,6 +98,12 @@ const SocialStatsDashboard: React.FC = () => {
       setIsLoading(false);
     }
   }, [activeCategory, activeCategoryId, selectedDate]);
+
+  useEffect(() => {
+    if (categories.length > 0) {
+      loadData();
+    }
+  }, [loadData, categories]);
 
   useEffect(() => {
     if (categories.length > 0) {
@@ -158,7 +182,6 @@ const SocialStatsDashboard: React.FC = () => {
             onCategorySelect={handleCategorySelect} 
             activeCategory={activeCategory} 
             categories={categories} 
-
           />
         )}
 

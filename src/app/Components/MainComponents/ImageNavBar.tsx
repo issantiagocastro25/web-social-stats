@@ -14,7 +14,7 @@ interface Category {
 }
 
 interface ImageNavbarProps {
-  onCategorySelect: (category: string) => void;
+  onCategorySelect: (category: string, isAllCategory: boolean) => void;
   activeCategory: string;
 }
 
@@ -48,40 +48,48 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalStats, setTotalStats] = useState<any>(null);
 1
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchData = async () => {
       try {
-        const responseStats = await fetch(`${API_URL}/api/social-metrics/stats?stats_date=2021-06-01`);
-        const response = await fetch(`${API_URL}/api/social-metrics/institutions/categories`);
-        if (!response.ok) {
+        const [categoriesResponse, statsResponse] = await Promise.all([
+          fetch(`${API_URL}/api/social-metrics/institutions/categories`),
+          fetch(`${API_URL}/api/social-metrics/stats?stats_date=2021-06-01`)
+        ]);
+
+        if (!categoriesResponse.ok || !statsResponse.ok) {
           throw new Error('Network response was not ok');
         }
-        const data: Category[] = await response.json();
 
-        const otros: Category[] = await responseStats.json() ;
+        const categoriesData: Category[] = await categoriesResponse.json();
+        const statsData = await statsResponse.json();
 
-        console.log(otros);
+        const totalInstitutions = categoriesData.reduce((sum, category) => sum + category.institution_count, 0);
         
-        // Calcular el total de instituciones
-        const totalInstitutions = data.reduce((sum, category) => sum + category.institution_count, 0);
-        
-        // Añadir la categoría "todos" al principio del array
-        const allCategories = [
-          
-          ...data
-        ];
-        
-        setCategories(allCategories);
+        const allCategory: Category = {
+          id: 0,
+          name: 'Todos',
+          institution_count: totalInstitutions,
+          url: '/path/to/all-category-image.jpg' // Replace with an appropriate image URL
+        };
+
+        setCategories([allCategory, ...categoriesData]);
+        setTotalStats(statsData);
         setIsLoading(false);
       } catch (error) {
-        setError('Error fetching categories');
+        setError('Error fetching data');
         setIsLoading(false);
       }
     };
 
-    fetchCategories();
+    fetchData();
   }, []);
+
+  const handleCategorySelect = (categoryName: string) => {
+    const isAllCategory = categoryName === 'Todos';
+    onCategorySelect(categoryName, isAllCategory);
+  };
 
   const settings = {
     dots: false,
@@ -135,7 +143,7 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
                   ? 'bg-blue-200 shadow-md'
                   : 'hover:bg-gray-200'
               }`}
-              onClick={() => onCategorySelect(category.name)}
+              onClick={() => handleCategorySelect(category.name)}
             >
               <img
                 src={category.url}
