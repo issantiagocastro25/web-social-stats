@@ -2,12 +2,16 @@ services:
   next-app:
     build:
       context: .
-      dockerfile: prod.Dockerfile
+      # dockerfile: prod.Dockerfile
+      dockerfile: Dockerfile
     restart: always
     ports:
       - 3000:3000
     environment:
-      API_URL: ${API_URL}
+      - API_URL=${API_URL}
+      - VIRTUAL_HOST=colombiaredessociales.com
+      - LETSENCRYPT_HOST=colombiaredessociales.com
+      - LETSENCRYPT_EMAIL=info@windowschannel.com
     networks:
       - social-stats-network
 

@@ -9,6 +9,9 @@ services:
       - .env
     environment:
       - NEXT_PUBLIC_API_URL=${API_URL}
+      - VIRTUAL_HOST=colombiaredessociales.com
+      - LETSENCRYPT_HOST=colombiaredessociales.com
+      - LETSENCRYPT_EMAIL=info@windowschannel.com
     volumes:
       - ./:/app/
       - ./public:/app/public
