@@ -176,7 +176,11 @@ const SocialStatsDashboard: React.FC = () => {
         <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
           Dashboard de Estadísticas Sociales
         </h1>
-
+        <Select className='pb-5 w-56' value={selectedDate} onChange={handleDateChange}>
+            {AVAILABLE_DATES.map(date => (
+              <option key={date} value={date}>{date}</option>
+            ))}
+          </Select>
         {categories.length > 0 && (
           <ImageNavbar 
             onCategorySelect={handleCategorySelect} 
@@ -185,9 +189,10 @@ const SocialStatsDashboard: React.FC = () => {
           />
         )}
 
-        {!isLoading && summaryCardsData && (
-          <SummaryCards data={summaryCardsData} />
-        )}
+      <SummaryCards 
+        data={summaryCardsData} 
+        isAllCategory={activeCategory === 'Todos'} 
+      />
 
         {activeCategory === 'Todos' && summaryCardsData && (
           <GroupSummaryTable summaryCardsData={summaryCardsData} />
@@ -201,11 +206,7 @@ const SocialStatsDashboard: React.FC = () => {
             onChange={handleSearch}
             icon={FaSearch}
           />
-          <Select value={selectedDate} onChange={handleDateChange}>
-            {AVAILABLE_DATES.map(date => (
-              <option key={date} value={date}>{date}</option>
-            ))}
-          </Select>
+          
           <Button 
             color="success" 
             onClick={handleTemporalAnalysis}
