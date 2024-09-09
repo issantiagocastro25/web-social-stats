@@ -6,12 +6,14 @@ export const fetchSocialStats = async (options = {}) => {
   const {
     category = 'todos',
     date = '2021-06-01',
+    page = 1,
   } = options; 
   let fullUrl = `${API_URL}/api/social-metrics/`;
 
   const queryParams = new URLSearchParams();
   queryParams.append('type', category);
   queryParams.append('date', date);
+  queryParams.append('page', page);
 
   const queryString = queryParams.toString();
   fullUrl += `?${queryString}`;
@@ -28,10 +30,6 @@ export const fetchSocialStats = async (options = {}) => {
 
     console.log('Response received:', response.data);
     
-    // if (!response.data || !Array.isArray(response.data.metrics)) {
-    //   throw new Error('Unexpected data structure received from the server');
-    // }
-
     return response.data;
   } catch (error) {
     console.error('Error fetching social stats:', error);

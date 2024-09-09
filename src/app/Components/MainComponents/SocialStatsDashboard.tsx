@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Spinner, TextInput, Card, Select, Button, Progress } from 'flowbite-react';
+import { Spinner, TextInput, Card, Select, Button, Progress, Pagination  } from 'flowbite-react';
 import { FaSearch } from 'react-icons/fa';
 import { Grid } from '@tremor/react';
 import { fetchSocialStats, fetchTemporalData, fetchSummaryCardsData, fetchCategories } from '@/api/list/listData';
@@ -28,21 +28,23 @@ interface Category {
 }
 
 const SocialStatsDashboard: React.FC = () => {
-  const [data, setData] = useState<any[]>([]);
-  const [filteredData, setFilteredData] = useState<any[]>([]);
-  const [activeCategory, setActiveCategory] = useState<string>('Todos');
-  const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [selectedInstitution, setSelectedInstitution] = useState<any | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string>('2021-06-01');
-  const [selectedInstitutions, setSelectedInstitutions] = useState<any[]>([]);
-  const [showTemporalAnalysis, setShowTemporalAnalysis] = useState<boolean>(false);
-  const [temporalData, setTemporalData] = useState<any[]>([]);
-  const [isLoadingTemporal, setIsLoadingTemporal] = useState<boolean>(false);
-  const [summaryCardsData, setSummaryCardsData] = useState<any>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [activeCategory, setActiveCategory] = useState('Todos');
+  const [activeCategoryId, setActiveCategoryId] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedInstitution, setSelectedInstitution] = useState(null);
+  const [selectedDate, setSelectedDate] = useState('2021-06-01');
+  const [selectedInstitutions, setSelectedInstitutions] = useState([]);
+  const [showTemporalAnalysis, setShowTemporalAnalysis] = useState(false);
+  const [temporalData, setTemporalData] = useState([]);
+  const [isLoadingTemporal, setIsLoadingTemporal] = useState(false);
+  const [summaryCardsData, setSummaryCardsData] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -70,46 +72,34 @@ const SocialStatsDashboard: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      let socialStatsResponse;
-      let summaryCardsResponse;
-
+      let response;
       if (activeCategory === 'Todos') {
-        // Fetch general stats for 'Todos'
-        socialStatsResponse = await fetch(`${API_URL}/api/social-metrics/stats?stats_date=${selectedDate}`);
-        summaryCardsResponse = await socialStatsResponse.json();
+        response = await fetchSocialStats({ date: selectedDate, page: currentPage });
       } else {
-        // Fetch category-specific data
-        socialStatsResponse = await fetchSocialStats({ category: activeCategory, date: selectedDate });
-        summaryCardsResponse = await fetchSummaryCardsData(activeCategoryId, selectedDate);
+        response = await fetchSocialStats({ category: activeCategory, date: selectedDate, page: currentPage });
       }
-
-      if (activeCategory === 'Todos') {
-        setData(summaryCardsResponse);
-        setFilteredData(summaryCardsResponse);
-      } else {
-        setData(socialStatsResponse.metrics);
-        setFilteredData(socialStatsResponse.metrics);
-      }
+      setData(response.data.metrics);
+      setFilteredData(response.data.metrics);
+      setTotalPages(response.total_pages);
       
+      const summaryCardsResponse = await fetchSummaryCardsData(activeCategoryId, selectedDate);
       setSummaryCardsData(summaryCardsResponse);
-    } catch (err: any) {
+    } catch (err) {
       setError(err.message || 'An error occurred while fetching data');
     } finally {
       setIsLoading(false);
     }
-  }, [activeCategory, activeCategoryId, selectedDate]);
+  }, [activeCategory, activeCategoryId, selectedDate, currentPage]);
 
   useEffect(() => {
     if (categories.length > 0) {
       loadData();
     }
-  }, [loadData, categories]);
+  }, [loadData, categories, currentPage]);
 
-  useEffect(() => {
-    if (categories.length > 0) {
-      loadData();
-    }
-  }, [loadData, categories]);
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
 
   const handleCategorySelect = (categoryName: string) => {
     const category = categories.find(cat => cat.name === categoryName);
@@ -243,6 +233,14 @@ const SocialStatsDashboard: React.FC = () => {
                 selectedInstitution={selectedInstitution}
               />
             </Card>
+            <div className="flex justify-center mt-4">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                showIcons={true}
+              />
+            </div>
 
             {selectedInstitution && (
               <InstitutionStats institution={selectedInstitution} />
