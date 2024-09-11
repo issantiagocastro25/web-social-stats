@@ -48,7 +48,7 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
     id: 0,
     name: 'Todos',
     institution_count: categories.reduce((sum, cat) => sum + cat.institution_count, 0),
-    url: '/path/to/all-category-image.jpg' // Reemplaza esto con una URL de imagen adecuada
+    url: 'https://cdn-icons-png.flaticon.com/512/4320/4320350.png' // Reemplaza esto con una URL de imagen adecuada
   };
 
   const allCategories = [allCategory, ...categories];
