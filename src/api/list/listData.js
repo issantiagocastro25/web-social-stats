@@ -12,16 +12,9 @@ export const fetchSocialStats = async (options = {}) => {
   let fullUrl = `${API_URL}/api/social-metrics/`;
 
   const queryParams = new URLSearchParams();
-
-  if (category === 'todos') {
-    // Use the specific URL for "Todos"
-    fullUrl = `${API_URL}/api/social-metrics/stats`;
-    queryParams.append('stats_date', date);
-  } else {
-    queryParams.append('type', category);
-    queryParams.append('date', date);
-    queryParams.append('page', page.toString());
-  }
+  queryParams.append('type', category);
+  queryParams.append('date', date);
+  queryParams.append('page', page.toString());
 
   const queryString = queryParams.toString();
   fullUrl += `?${queryString}`;
@@ -37,16 +30,6 @@ export const fetchSocialStats = async (options = {}) => {
     });
 
     console.log('Response received:', response.data);
-    
-    if (category === 'todos') {
-      // For "Todos", we need to format the response to match the expected structure
-      return {
-        data: {
-          metrics: response.data
-        },
-        total_pages: 1 // Assuming all data is returned in one page for "Todos"
-      };
-    }
     
     return response.data;
   } catch (error) {
