@@ -42,7 +42,7 @@ export const fetchTemporalData = async (institutions, dates) => {
   try {
     const results = await Promise.all(dates.map(async (date) => {
       const response = await fetchSocialStats({ date, institutions });
-      return response.data.map(item => ({ ...item, date }));
+      return response.data.metrics.map(item => ({ ...item, date }));
     }));
     return results.flat();
   } catch (error) {
