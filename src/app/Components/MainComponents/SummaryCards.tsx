@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Card, Text, Flex, Grid } from "@tremor/react";
+import { Card, Text, Flex, Grid, Metric } from "@tremor/react";
 import { FaFacebook, FaInstagram, FaTwitter, FaYoutube, FaTiktok } from 'react-icons/fa';
 
 interface GroupSummaryData {
@@ -17,9 +17,10 @@ interface GroupSummaryData {
 interface SummaryCardsProps {
   data: GroupSummaryData | null;
   isAllCategory: boolean;
+  selectedInstitutions: any[];
 }
 
-const SummaryCards: React.FC<SummaryCardsProps> = ({ data, isAllCategory }) => {
+const SummaryCards: React.FC<SummaryCardsProps> = ({ data, isAllCategory, selectedInstitutions }) => {
   const getIcon = (network: string) => {
     switch (network.toLowerCase()) {
       case 'facebook': return <FaFacebook className="text-blue-600 text-2xl" />;
@@ -38,10 +39,6 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data, isAllCategory }) => {
   const summaryData = useMemo(() => {
     if (!data || !data.stats) {
       return [];
-    }
-
-    if (!isAllCategory) {
-      return data.stats;
     }
 
     const totals: Record<string, {
@@ -77,21 +74,53 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data, isAllCategory }) => {
       targetObj[stat.social_network].average_views += stat.average_views;
     });
 
-    // Restar los datos de "Los 15 mejores hospitales de latinoamérica"
-    Object.keys(totals).forEach(network => {
-      if (hospitalesLatam[network]) {
-        totals[network].total_followers -= hospitalesLatam[network].total_followers;
-        totals[network].total_publications -= hospitalesLatam[network].total_publications;
-        totals[network].total_reactions -= hospitalesLatam[network].total_reactions;
-        totals[network].average_views -= hospitalesLatam[network].average_views;
-      }
-    });
+    if (isAllCategory) {
+      // Restar los datos de "Los 15 mejores hospitales de latinoamérica"
+      Object.keys(totals).forEach(network => {
+        if (hospitalesLatam[network]) {
+          totals[network].total_followers -= hospitalesLatam[network].total_followers;
+          totals[network].total_publications -= hospitalesLatam[network].total_publications;
+          totals[network].total_reactions -= hospitalesLatam[network].total_reactions;
+          totals[network].average_views -= hospitalesLatam[network].average_views;
+        }
+      });
+    }
 
     return Object.entries(totals).map(([social_network, stats]) => ({
       social_network,
       ...stats,
     }));
   }, [data, isAllCategory]);
+
+  const selectedData = useMemo(() => {
+    if (selectedInstitutions.length === 0) return null;
+
+    const totals: Record<string, {
+      total_followers: number;
+      total_publications: number;
+      total_reactions: number;
+      average_views: number;
+    }> = {};
+
+    selectedInstitutions.forEach(institution => {
+      Object.entries(institution.social_networks).forEach(([network, data]: [string, any]) => {
+        if (!totals[network]) {
+          totals[network] = {
+            total_followers: 0,
+            total_publications: 0,
+            total_reactions: 0,
+            average_views: 0,
+          };
+        }
+        totals[network].total_followers += data.followers;
+        totals[network].total_publications += data.publications;
+        totals[network].total_reactions += data.reactions;
+        totals[network].average_views += data.Average_views;
+      });
+    });
+
+    return totals;
+  }, [selectedInstitutions]);
 
   if (!data || !data.stats) {
     return <div>No hay datos disponibles</div>;
@@ -109,20 +138,40 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data, isAllCategory }) => {
             <Grid numCols={1} className="gap-4">
               <div>
                 <Text className="text-sm text-gray-500">Seguidores</Text>
-                <Text className="text-xl font-bold">{formatNumber(stat.total_followers)}</Text>
+                <Metric>{formatNumber(stat.total_followers)}</Metric>
+                {selectedData && (
+                  <Text className="text-xs text-gray-500">
+                    {((selectedData[stat.social_network]?.total_followers / stat.total_followers) * 100).toFixed(2)}% del total
+                  </Text>
+                )}
               </div>
               <div>
                 <Text className="text-sm text-gray-500">Publicaciones</Text>
-                <Text className="text-xl font-bold">{formatNumber(stat.total_publications)}</Text>
+                <Metric>{formatNumber(stat.total_publications)}</Metric>
+                {selectedData && (
+                  <Text className="text-xs text-gray-500">
+                    {((selectedData[stat.social_network]?.total_publications / stat.total_publications) * 100).toFixed(2)}% del total
+                  </Text>
+                )}
               </div>
               <div>
                 <Text className="text-sm text-gray-500">Reacciones</Text>
-                <Text className="text-xl font-bold">{formatNumber(stat.total_reactions)}</Text>
+                <Metric>{formatNumber(stat.total_reactions)}</Metric>
+                {selectedData && (
+                  <Text className="text-xs text-gray-500">
+                    {((selectedData[stat.social_network]?.total_reactions / stat.total_reactions) * 100).toFixed(2)}% del total
+                  </Text>
+                )}
               </div>
               {stat.average_views > 0 && (
                 <div>
                   <Text className="text-sm text-gray-500">Vistas promedio</Text>
-                  <Text className="text-xl font-bold">{formatNumber(stat.average_views)}</Text>
+                  <Metric>{formatNumber(stat.average_views)}</Metric>
+                  {selectedData && (
+                    <Text className="text-xs text-gray-500">
+                      {((selectedData[stat.social_network]?.average_views / stat.average_views) * 100).toFixed(2)}% del total
+                    </Text>
+                  )}
                 </div>
               )}
             </Grid>

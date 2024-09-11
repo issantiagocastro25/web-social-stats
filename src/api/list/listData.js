@@ -9,27 +9,14 @@ export const fetchSocialStats = async (options = {}) => {
     page = 1,
   } = options; 
 
-  let fullUrl = `${API_URL}/api/social-metrics/`;
-
-  const queryParams = new URLSearchParams();
-  queryParams.append('type', category);
-  queryParams.append('date', date);
-  queryParams.append('page', page.toString());
-
-  const queryString = queryParams.toString();
-  fullUrl += `?${queryString}`;
-
-  console.log('Fetching data from:', fullUrl);
-
   try {
-    const response = await axios.get(fullUrl, {
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
+    const response = await axios.get(`${API_URL}/api/social-metrics/`, {
+      params: {
+        type: category,
+        date,
+        page,
+      }
     });
-
-    console.log('Response received:', response.data);
     
     return response.data;
   } catch (error) {
@@ -41,8 +28,8 @@ export const fetchSocialStats = async (options = {}) => {
 export const fetchTemporalData = async (institutions, dates) => {
   try {
     const results = await Promise.all(dates.map(async (date) => {
-      const response = await fetchSocialStats({ date, institutions });
-      return response.data.metrics.map(item => ({ ...item, date }));
+      const response = await fetchSocialStats({ date, category: 'todos' });
+      return response.data.metrics.filter(item => institutions.includes(item.Institucion)).map(item => ({ ...item, date }));
     }));
     return results.flat();
   } catch (error) {
@@ -74,4 +61,4 @@ export const fetchCategories = async () => {
     console.error('Error fetching categories:', error);
     throw error;
   }
-};  
+};

@@ -66,7 +66,7 @@ const GroupSummaryTable: React.FC<GroupSummaryTableProps> = ({ summaryCardsData 
     return groupsArray;
   }, [groups, sortConfig]);
 
-  const toggleView = () => {
+  const togglePercentages = () => {
     setShowPercentages(!showPercentages);
   };
 
@@ -106,7 +106,7 @@ const GroupSummaryTable: React.FC<GroupSummaryTableProps> = ({ summaryCardsData 
     <Card>
       <div className="flex justify-between items-center mb-4">
         <Title>Resumen por Grupos ({summaryCardsData.stats_date})</Title>
-        <Button onClick={toggleView}>
+        <Button onClick={togglePercentages}>
           {showPercentages ? 'Mostrar Números' : 'Mostrar Porcentajes'}
         </Button>
       </div>

@@ -29,7 +29,7 @@ interface Category {
 const SocialStatsDashboard: React.FC = () => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
-  const [activeCategory, setActiveCategory] = useState('Todos');
+  const [activeCategory, setActiveCategory] = useState('todos');
   const [activeCategoryId, setActiveCategoryId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -45,18 +45,12 @@ const SocialStatsDashboard: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showGroupTemporalAnalysis, setShowGroupTemporalAnalysis] = useState(false);
+  const [showGroupSummaryTable, setShowGroupSummaryTable] = useState(true);
 
   const loadCategories = useCallback(async () => {
     try {
       const fetchedCategories = await fetchCategories();
-      const allCategory: Category = {
-        id: 0,
-        name: 'Todos',
-        institution_count: fetchedCategories.reduce((sum, cat) => sum + (cat.institution_count || 0), 0),
-        url: '/path/to/all-category-image.jpg',
-        ordering: -1
-      };
-      setCategories([allCategory, ...fetchedCategories]);
+      setCategories(fetchedCategories);
     } catch (err: any) {
       setError(err.message || 'Error al cargar las categorías');
     }
@@ -70,26 +64,22 @@ const SocialStatsDashboard: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      console.log('Fetching data for category:', activeCategory);
       const response = await fetchSocialStats({ 
-        category: activeCategory.toLowerCase(), 
+        category: activeCategory, 
         date: selectedDate, 
         page: currentPage 
       });
       
-      console.log('API response:', response);
-
       if (response && response.data && Array.isArray(response.data.metrics)) {
         setData(response.data.metrics);
         setFilteredData(response.data.metrics);
         setTotalPages(response.total_pages || 1);
-        console.log('Data loaded successfully:', response.data.metrics);
       } else {
         throw new Error('Formato de respuesta inesperado');
       }
       
       const summaryCardsResponse = await fetchSummaryCardsData(
-        activeCategory === 'Todos' ? null : activeCategoryId, 
+        activeCategory === 'todos' ? null : activeCategoryId, 
         selectedDate
       );
       setSummaryCardsData(summaryCardsResponse);
@@ -111,17 +101,13 @@ const SocialStatsDashboard: React.FC = () => {
     setCurrentPage(page);
   };
 
-  const handleCategorySelect = (categoryName: string) => {
-    console.log('Category selected:', categoryName);
-    const category = categories.find(cat => cat.name === categoryName);
-    if (category) {
-      setActiveCategory(category.name);
-      setActiveCategoryId(category.id);
-      setSelectedInstitution(null);
-      setSelectedInstitutions([]);
-      setCurrentPage(1);
-      loadData();
-    }
+  const handleCategorySelect = (categoryName: string, isAllCategory: boolean) => {
+    setActiveCategory(categoryName.toLowerCase());
+    setActiveCategoryId(isAllCategory ? null : categories.find(cat => cat.name === categoryName)?.id || null);
+    setSelectedInstitution(null);
+    setSelectedInstitutions([]);
+    setCurrentPage(1);
+    setShowGroupSummaryTable(isAllCategory);
   };
 
   const handleDateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -149,13 +135,15 @@ const SocialStatsDashboard: React.FC = () => {
     setFilteredData(filtered);
   };
 
-  const handleTemporalAnalysis = async () => {
+  const handleTemporalAnalysis = async (institutions: any[] = []) => {
     setIsLoadingTemporal(true);
     setShowTemporalAnalysis(true);
     try {
-      const institutionsToAnalyze = selectedInstitutions.length > 0 
-        ? selectedInstitutions 
-        : selectedInstitution ? [selectedInstitution] : [];
+      const institutionsToAnalyze = institutions.length > 0 
+        ? institutions 
+        : selectedInstitutions.length > 0 
+          ? selectedInstitutions 
+          : selectedInstitution ? [selectedInstitution] : [];
 
       if (institutionsToAnalyze.length === 0) {
         throw new Error('Por favor, seleccione al menos una institución para el análisis temporal.');
@@ -175,7 +163,13 @@ const SocialStatsDashboard: React.FC = () => {
     setIsLoadingTemporal(true);
     setShowGroupTemporalAnalysis(true);
     try {
-      const temporalDataResult = await fetchTemporalData(['Todos'], AVAILABLE_DATES);
+      const allCategories = ['todos', ...categories.map(cat => cat.name.toLowerCase())];
+      const temporalDataResult = await Promise.all(
+        allCategories.map(async (category) => {
+          const categoryData = await fetchTemporalData([category], AVAILABLE_DATES);
+          return { category, data: categoryData };
+        })
+      );
       setTemporalData(temporalDataResult);
     } catch (err: any) {
       setError(err.message || 'Error al obtener datos temporales de grupo');
@@ -183,6 +177,7 @@ const SocialStatsDashboard: React.FC = () => {
       setIsLoadingTemporal(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -205,14 +200,15 @@ const SocialStatsDashboard: React.FC = () => {
 
         <SummaryCards 
           data={summaryCardsData} 
-          isAllCategory={activeCategory === 'Todos'} 
+          isAllCategory={activeCategory === 'todos'}
+          selectedInstitutions={selectedInstitutions}
         />
 
-        {activeCategory === 'Todos' && summaryCardsData && (
+        {activeCategory === 'todos' && summaryCardsData && (
           <Card className="mb-6">
             <GroupSummaryTable 
               summaryCardsData={summaryCardsData} 
-              onTemporalAnalysis={handleGroupTemporalAnalysis}
+              // Removemos la prop onTemporalAnalysis
             />
           </Card>
         )}
@@ -233,7 +229,7 @@ const SocialStatsDashboard: React.FC = () => {
           
           <Button 
             color="success" 
-            onClick={handleTemporalAnalysis}
+            onClick={() => handleTemporalAnalysis()}
             disabled={isLoadingTemporal || (selectedInstitutions.length === 0 && !selectedInstitution)}
           >
             {isLoadingTemporal ? 'Cargando...' : 'Análisis Temporal'}
@@ -266,6 +262,7 @@ const SocialStatsDashboard: React.FC = () => {
                 selectedDate={selectedDate}
                 onInstitutionsSelect={handleInstitutionsSelect}
                 selectedInstitution={selectedInstitution}
+                onTemporalAnalysis={handleTemporalAnalysis}
               />
             </Card>
             <div className="flex justify-center mt-4">

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Card, Title, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Text, Button } from '@tremor/react';
 
 interface Institution {
@@ -31,13 +31,15 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
   const processedData = useMemo(() => {
     const data: { [key: string]: any } = {};
     selectedInstitutions.forEach(institution => {
-      data[institution.Institucion] = {};
-      availableDates.forEach(date => {
-        const institutionData = temporalData.find(
-          item => item.Institucion === institution.Institucion && item.date === date
-        );
-        data[institution.Institucion][date] = institutionData?.social_networks || {};
-      });
+      if (institution && institution.Institucion) {
+        data[institution.Institucion] = {};
+        availableDates.forEach(date => {
+          const institutionData = temporalData.find(
+            item => item.Institucion === institution.Institucion && item.date === date
+          );
+          data[institution.Institucion][date] = institutionData?.social_networks || {};
+        });
+      }
     });
     return data;
   }, [selectedInstitutions, temporalData, availableDates]);
@@ -60,6 +62,11 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
     setShowPercentages(!showPercentages);
   };
 
+  useEffect(() => {
+    // Resetear el estado cuando cambian las instituciones seleccionadas
+    setShowPercentages(false);
+  }, [selectedInstitutions]);
+
   if (selectedInstitutions.length === 0 || temporalData.length === 0) {
     return (
       <Card>
@@ -77,9 +84,9 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
           {showPercentages ? 'Mostrar Valores Reales' : 'Mostrar Porcentajes'}
         </Button>
       </div>
-      {selectedInstitutions.map(institution => (
-        <div key={institution.Institucion} className="mt-6">
-          <Title className="text-lg">{institution.Institucion}</Title>
+      {Object.entries(processedData).map(([institutionName, institutionData]) => (
+        <div key={institutionName} className="mt-6">
+          <Title className="text-lg">{institutionName}</Title>
           <Table className="mt-4">
             <TableHead>
               <TableRow>
@@ -99,9 +106,9 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
                   <TableCell>{date}</TableCell>
                   {networks.flatMap(network => 
                     metrics.map(metric => {
-                      const currentValue = processedData[institution.Institucion]?.[date]?.[network]?.[metric];
+                      const currentValue = institutionData[date]?.[network]?.[metric];
                       const previousValue = index > 0 
-                        ? processedData[institution.Institucion]?.[availableDates[index - 1]]?.[network]?.[metric]
+                        ? institutionData[availableDates[index - 1]]?.[network]?.[metric]
                         : undefined;
                       return (
                         <TableCell key={`${network}-${metric}`}>
