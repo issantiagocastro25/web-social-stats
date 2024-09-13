@@ -25,10 +25,8 @@ const NextArrow = (props: any) => {
   return (
     <div
       className={`${className} z-15`}
-      style={{ ...style, display: "block", right: "0px" }}
-      onClick={onClick}
     >
-      <FaChevronRight className="text-blue-500 text-2xl" />
+      <FaChevronRight className="text-blue-500 text-2xl" onClick={onClick}/>
     </div>
   );
 };
@@ -38,10 +36,8 @@ const PrevArrow = (props: any) => {
   return (
     <div
       className={`${className} z-10`}
-      style={{ ...style, display: "block", left: "0px" }}
-      onClick={onClick}
     >
-      <FaChevronLeft className="text-blue-500 text-2xl" />
+      <FaChevronLeft className="text-blue-500 text-2xl" onClick={onClick} />
     </div>
   );
 };

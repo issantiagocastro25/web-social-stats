@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Spinner, Card, Select, Button, Pagination } from 'flowbite-react';
+import { Spinner, Card, Select, Button } from 'flowbite-react';
 import { FaSearch } from 'react-icons/fa';
 import { Grid } from '@tremor/react';
 import { fetchSocialStats, fetchTemporalData, fetchSummaryCardsData, fetchCategories } from '@/api/list/listData';
@@ -34,6 +34,8 @@ const SocialStatsDashboard: React.FC = () => {
   const [activeCategoryId, setActiveCategoryId] = useState(null);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [isLoadingSummaryCards, setIsLoadingSummaryCards] = useState(true);
+  const [summaryCardsData, setSummaryCardsData] = useState(null);
+  const [isLoadingGroupSummary, setIsLoadingGroupSummary] = useState(true);
   const [isLoadingDataTable, setIsLoadingDataTable] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,11 +46,10 @@ const SocialStatsDashboard: React.FC = () => {
   const [temporalData, setTemporalData] = useState([]);
   const [isLoadingTemporal, setIsLoadingTemporal] = useState(false);
   const [temporalProgress, setTemporalProgress] = useState(0);
-  const [summaryCardsData, setSummaryCardsData] = useState(null);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [showGroupTemporalAnalysis, setShowGroupTemporalAnalysis] = useState(false);
+
+
 
   const loadCategories = useCallback(async () => {
     setIsLoadingCategories(true);
@@ -75,14 +76,12 @@ const SocialStatsDashboard: React.FC = () => {
 
   const loadData = useCallback(async () => {
     setIsLoadingDataTable(true);
-    setIsLoadingSummaryCards(true);
     setError(null);
     try {
       console.log('Fetching data for category:', activeCategory);
       const response = await fetchSocialStats({ 
         category: activeCategory.toLowerCase(), 
-        date: selectedDate, 
-        page: currentPage 
+        date: selectedDate
       });
       
       console.log('API response:', response);
@@ -90,35 +89,40 @@ const SocialStatsDashboard: React.FC = () => {
       if (response && response.data && Array.isArray(response.data.metrics)) {
         setData(response.data.metrics);
         setFilteredData(response.data.metrics);
-        setTotalPages(response.total_pages || 1);
         console.log('Data loaded successfully:', response.data.metrics);
       } else {
         throw new Error('Formato de respuesta inesperado');
       }
-      
+    } catch (err: any) {
+      console.error('Error loading data:', err);
+      setError(err.message || 'Ocurrió un error al cargar los datos');
+    } finally {
+      setIsLoadingDataTable(false);
+    }
+  }, [activeCategory, selectedDate]);
+
+  const loadGroupSummary = useCallback(async () => {
+    setIsLoadingGroupSummary(true);
+    try {
       const summaryCardsResponse = await fetchSummaryCardsData(
         activeCategory === 'Todos' ? null : activeCategoryId, 
         selectedDate
       );
       setSummaryCardsData(summaryCardsResponse);
     } catch (err: any) {
-      console.error('Error loading data:', err);
-      setError(err.message || 'Ocurrió un error al cargar los datos');
+      console.error('Error loading group summary:', err);
+      setError(err.message || 'Ocurrió un error al cargar el resumen de grupo');
     } finally {
-      setIsLoadingDataTable(false);
-      setIsLoadingSummaryCards(false);
+      setIsLoadingGroupSummary(false);
     }
-  }, [activeCategory, activeCategoryId, selectedDate, currentPage]);
+  }, [activeCategory, activeCategoryId, selectedDate]);
 
   useEffect(() => {
     if (categories.length > 0) {
       loadData();
+      loadGroupSummary();
     }
-  }, [loadData, categories, activeCategory]);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
+  }, [loadData, loadGroupSummary, categories, activeCategory]);
 
   const handleCategorySelect = (categoryName: string) => {
     console.log('Category selected:', categoryName);
@@ -128,8 +132,6 @@ const SocialStatsDashboard: React.FC = () => {
       setActiveCategoryId(category.id);
       setSelectedInstitution(null);
       setSelectedInstitutions([]);
-      setCurrentPage(1);
-      loadData();
     }
   };
 
@@ -213,6 +215,29 @@ const SocialStatsDashboard: React.FC = () => {
     }
   };
 
+  const loadSummaryCardsData = useCallback(async () => {
+    setIsLoadingSummaryCards(true);
+    try {
+      const summaryCardsResponse = await fetchSummaryCardsData(
+        activeCategory === 'Todos' ? null : activeCategoryId, 
+        selectedDate
+      );
+      setSummaryCardsData(summaryCardsResponse);
+    } catch (err: any) {
+      console.error('Error loading summary cards data:', err);
+      setError(err.message || 'Ocurrió un error al cargar los datos de resumen');
+    } finally {
+      setIsLoadingSummaryCards(false);
+    }
+  }, [activeCategory, activeCategoryId, selectedDate]);
+
+  useEffect(() => {
+    if (categories.length > 0) {
+      loadData();
+      loadSummaryCardsData();
+    }
+  }, [loadData, loadSummaryCardsData, categories, activeCategory, selectedDate]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
@@ -243,18 +268,18 @@ const SocialStatsDashboard: React.FC = () => {
           )
         )}
 
-        <SummaryCards 
-          data={summaryCardsData} 
-          isAllCategory={activeCategory === 'Todos'} 
-          isLoading={isLoadingSummaryCards}
-        />
+<SummaryCards 
+        data={summaryCardsData} 
+        isAllCategory={activeCategory === 'Todos'} 
+        isLoading={isLoadingSummaryCards}
+      />
 
-        {activeCategory === 'Todos' && summaryCardsData && (
+        {activeCategory === 'Todos' && (
           <Card className="mb-6">
             <GroupSummaryTable 
               summaryCardsData={summaryCardsData} 
               onTemporalAnalysis={handleGroupTemporalAnalysis}
-              isLoading={isLoadingSummaryCards}
+              isLoading={isLoadingGroupSummary}
             />
           </Card>
         )}
@@ -299,59 +324,48 @@ const SocialStatsDashboard: React.FC = () => {
             </div>
           </div>
         ) : filteredData && filteredData.length > 0 ? (
-          <>
-            <Card>
-              <h2 className="text-xl font-bold mb-4">Datos para la categoría: {activeCategory}</h2>
-              <InteractiveDataTable 
-                data={filteredData}
-                onInstitutionSelect={handleInstitutionSelect}
-                selectedType={activeCategory}
-                selectedDate={selectedDate}
-                onInstitutionsSelect={handleInstitutionsSelect}
-                selectedInstitution={selectedInstitution}
-                isLoading={isLoadingDataTable}
-              />
-            </Card>
-            <div className="flex justify-center mt-4">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-                showIcons={true}
-              />
-            </div>
-
-            {selectedInstitution && (
-              <InstitutionStats institution={selectedInstitution} />
-            )}
-
-            {selectedInstitutions.length > 1 && (
-              <Grid numColsLg={2} className="gap-6 mt-6">
-                <ComparisonCharts selectedInstitutions={selectedInstitutions} />
-                <ComparisonTable selectedInstitutions={selectedInstitutions} />
-              </Grid>
-            )}
-
-            {showTemporalAnalysis && (
-              <TemporalAnalysisTable 
-                selectedInstitutions={selectedInstitutions.length > 0 ? selectedInstitutions : [selectedInstitution]}
-                temporalData={temporalData}
-                availableDates={AVAILABLE_DATES}
-              />
-            )}
-
-            {showGroupTemporalAnalysis && (
-              <GroupTemporalAnalysisTable 
-                temporalData={temporalData}
-                availableDates={AVAILABLE_DATES}
-                onClose={() => setShowGroupTemporalAnalysis(false)}
-              />
-            )}
-          </>
+          <Card>
+            <h2 className="text-xl font-bold mb-4">Datos para la categoría: {activeCategory}</h2>
+            <InteractiveDataTable 
+              data={filteredData}
+              onInstitutionSelect={handleInstitutionSelect}
+              selectedType={activeCategory}
+              selectedDate={selectedDate}
+              onInstitutionsSelect={handleInstitutionsSelect}
+              selectedInstitution={selectedInstitution}
+            />
+          </Card>
         ) : (
           <Card>
             <p className="text-center">No se encontraron datos para la categoría: {activeCategory}</p>
           </Card>
+        )}
+
+        {selectedInstitution && (
+          <InstitutionStats institution={selectedInstitution} />
+        )}
+
+        {selectedInstitutions.length > 1 && (
+          <Grid numColsLg={2} className="gap-6 mt-6">
+            <ComparisonCharts selectedInstitutions={selectedInstitutions} />
+            <ComparisonTable selectedInstitutions={selectedInstitutions} />
+          </Grid>
+        )}
+
+        {showTemporalAnalysis && (
+          <TemporalAnalysisTable 
+            selectedInstitutions={selectedInstitutions.length > 0 ? selectedInstitutions : [selectedInstitution]}
+            temporalData={temporalData}
+            availableDates={AVAILABLE_DATES}
+          />
+        )}
+
+        {showGroupTemporalAnalysis && (
+          <GroupTemporalAnalysisTable 
+            temporalData={temporalData}
+            availableDates={AVAILABLE_DATES}
+            onClose={() => setShowGroupTemporalAnalysis(false)}
+          />
         )}
       </div>
     </div>

@@ -4,17 +4,25 @@ import { FaFacebook, FaInstagram, FaYoutube, FaSort, FaSortUp, FaSortDown } from
 import { SiTiktok } from 'react-icons/si';
 import XIcon from './XIcon';
 
-const InteractiveDataTable = ({ 
+interface InteractiveDataTableProps {
+  data: any[];
+  onInstitutionSelect: (institution: any) => void;
+  selectedType: string;
+  selectedDate: string;
+  onInstitutionsSelect: (institutions: any[]) => void;
+  selectedInstitution: any;
+}
+
+const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({ 
   data, 
   onInstitutionSelect, 
   selectedType, 
-  selectedYear, 
+  selectedDate, 
   onInstitutionsSelect, 
-  selectedInstitution,
-  isLoading
+  selectedInstitution
 }) => {
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
-  const [selectedRows, setSelectedRows] = useState([]);
+  const [sortConfig, setSortConfig] = useState<{ key: string | null, direction: 'ascending' | 'descending' }>({ key: null, direction: 'ascending' });
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
   const [visibleNetworks, setVisibleNetworks] = useState({
     basic: true,
     Facebook: true,
@@ -56,7 +64,7 @@ const InteractiveDataTable = ({
     let sortableItems = [...data];
     if (sortConfig.key !== null) {
       sortableItems.sort((a, b) => {
-        const getValue = (obj, path) => {
+        const getValue = (obj: any, path: string) => {
           const value = path.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : null), obj);
           return value !== null ? value : '';
         };
@@ -78,15 +86,15 @@ const InteractiveDataTable = ({
     return sortableItems;
   }, [data, sortConfig]);
 
-  const handleSort = (key) => {
-    let direction = 'ascending';
+  const handleSort = (key: string) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
     if (sortConfig.key === key && sortConfig.direction === 'ascending') {
       direction = 'descending';
     }
     setSortConfig({ key, direction });
   };
 
-  const handleRowSelect = (institution) => {
+  const handleRowSelect = (institution: any) => {
     setSelectedRows(prev => {
       const newSelection = prev.includes(institution)
         ? prev.filter(i => i !== institution)
@@ -102,36 +110,23 @@ const InteractiveDataTable = ({
     onInstitutionsSelect(newSelection);
   };
 
-  const toggleNetwork = (network) => {
+  const toggleNetwork = (network: keyof typeof visibleNetworks) => {
     setVisibleNetworks(prev => ({ ...prev, [network]: !prev[network] }));
   };
 
-  const SortIcon = ({ column }) => {
+  const SortIcon: React.FC<{ column: string }> = ({ column }) => {
     if (sortConfig.key !== column) {
       return <FaSort className="ml-1 text-gray-400" />;
     }
     return sortConfig.direction === 'ascending' ? <FaSortUp className="ml-1 text-blue-500" /> : <FaSortDown className="ml-1 text-blue-500" />;
   };
 
-  const formatValue = (value) => {
+  const formatValue = (value: any) => {
     if (typeof value === 'number') {
       return value.toLocaleString('es-ES', { maximumFractionDigits: 2 });
     }
     return value || 'N/A';
   };
-
-  if (isLoading) {
-    return (
-      <div className="animate-pulse">
-        <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
-        <div className="space-y-2">
-          {[...Array(10)].map((_, index) => (
-            <div key={index} className="h-6 bg-gray-200 rounded"></div>
-          ))}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div>

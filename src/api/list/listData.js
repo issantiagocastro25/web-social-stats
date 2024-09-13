@@ -6,7 +6,6 @@ export const fetchSocialStats = async (options = {}) => {
   const {
     category = 'todos',
     date = '2021-06-01',
-    page = 1,
   } = options; 
 
   try {
@@ -14,7 +13,6 @@ export const fetchSocialStats = async (options = {}) => {
       params: {
         type: category,
         date,
-        page,
       }
     });
     
