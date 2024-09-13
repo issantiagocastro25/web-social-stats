@@ -10,7 +10,8 @@ const InteractiveDataTable = ({
   selectedType, 
   selectedYear, 
   onInstitutionsSelect, 
-  selectedInstitution
+  selectedInstitution,
+  isLoading
 }) => {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
   const [selectedRows, setSelectedRows] = useState([]);
@@ -118,6 +119,19 @@ const InteractiveDataTable = ({
     }
     return value || 'N/A';
   };
+
+  if (isLoading) {
+    return (
+      <div className="animate-pulse">
+        <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
+        <div className="space-y-2">
+          {[...Array(10)].map((_, index) => (
+            <div key={index} className="h-6 bg-gray-200 rounded"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

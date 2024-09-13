@@ -1,14 +1,17 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 interface Category {
   id: number;
   name: string;
-  institution_count: number;
+  institution_count: number | null;
   url: string;
+  ordering: number;
 }
 
 interface ImageNavbarProps {
@@ -44,14 +47,30 @@ const PrevArrow = (props: any) => {
 };
 
 const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCategory, categories }) => {
-  const allCategory: Category = {
-    id: 0,
-    name: 'Todos',
-    institution_count: categories.reduce((sum, cat) => sum + cat.institution_count, 0),
-    url: 'https://cdn-icons-png.flaticon.com/512/4320/4320350.png' // Reemplaza esto con una URL de imagen adecuada
-  };
+  const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
 
-  const allCategories = [allCategory, ...categories];
+  useEffect(() => {
+    // Filtrar las categorías no deseadas
+    const excludedCategories = ['Todos']; // Añade aquí los nombres de las categorías que quieres excluir
+    const filtered = categories.filter(cat => !excludedCategories.includes(cat.name));
+
+    // Crear la categoría personalizada "Todos"
+    const allCategory: Category = {
+      id: 0,
+      name: 'Todos',
+      institution_count: filtered.reduce((sum, cat) => sum + (cat.institution_count || 0), 0),
+      url: 'https://cdn-icons-png.flaticon.com/512/4320/4320350.png', // Reemplaza esto con una URL de imagen adecuada
+      ordering: -1
+    };
+
+    // Combinar la categoría personalizada con las categorías filtradas
+    setFilteredCategories([allCategory, ...filtered]);
+  }, [categories]);
+
+  const handleCategorySelect = (categoryName: string) => {
+    const isAllCategory = categoryName === 'Todos';
+    onCategorySelect(categoryName, isAllCategory);
+  };
 
   const settings = {
     dots: false,
@@ -86,19 +105,14 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
     ]
   };
 
-  const handleCategorySelect = (categoryName: string) => {
-    const isAllCategory = categoryName.toLowerCase() === 'todos';
-    onCategorySelect(categoryName, isAllCategory);
-  };
-
   return (
     <div className="mb-8 relative">
       <Slider {...settings}>
-        {allCategories.map((category) => (
+        {filteredCategories.map((category) => (
           <div key={category.id} className="px-2">
             <div
               className={`flex flex-col items-center p-4 rounded-lg cursor-pointer transition-all duration-300 ${
-                category.name.toLowerCase() === activeCategory.toLowerCase()
+                category.name === activeCategory
                   ? 'bg-blue-200 shadow-md'
                   : 'hover:bg-gray-200'
               }`}

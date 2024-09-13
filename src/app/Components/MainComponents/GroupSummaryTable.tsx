@@ -16,9 +16,10 @@ interface SummaryCardData {
 
 interface GroupSummaryTableProps {
   summaryCardsData: SummaryCardData | null | undefined;
+  isLoading: boolean;
 }
 
-const GroupSummaryTable: React.FC<GroupSummaryTableProps> = ({ summaryCardsData }) => {
+const GroupSummaryTable: React.FC<GroupSummaryTableProps> = ({ summaryCardsData, isLoading }) => {
   const [showPercentages, setShowPercentages] = useState(false);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'ascending' | 'descending' }>({ key: 'total', direction: 'descending' });
 
@@ -66,14 +67,14 @@ const GroupSummaryTable: React.FC<GroupSummaryTableProps> = ({ summaryCardsData 
     return groupsArray;
   }, [groups, sortConfig]);
 
-  const togglePercentages = () => {
+  const toggleView = () => {
     setShowPercentages(!showPercentages);
   };
 
   const formatValue = (value: number, total: number) => {
     if (showPercentages) {
       const percentage = (value / total) * 100;
-      return `${percentage.toFixed(2)}%`;
+      return percentage === 0 ? '0%' : `${percentage.toFixed(2)}%`;
     }
     return value.toLocaleString();
   };
@@ -93,6 +94,21 @@ const GroupSummaryTable: React.FC<GroupSummaryTableProps> = ({ summaryCardsData 
     return sortConfig.direction === 'ascending' ? <FaSortUp className="ml-1" /> : <FaSortDown className="ml-1" />;
   };
 
+  if (isLoading) {
+    return (
+      <Card>
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/2 mb-4"></div>
+          <div className="space-y-2">
+            {[...Array(5)].map((_, index) => (
+              <div key={index} className="h-6 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
   if (!summaryCardsData || !Array.isArray(summaryCardsData.stats) || summaryCardsData.stats.length === 0) {
     return (
       <Card>
@@ -106,7 +122,7 @@ const GroupSummaryTable: React.FC<GroupSummaryTableProps> = ({ summaryCardsData 
     <Card>
       <div className="flex justify-between items-center mb-4">
         <Title>Resumen por Grupos ({summaryCardsData.stats_date})</Title>
-        <Button onClick={togglePercentages}>
+        <Button onClick={toggleView}>
           {showPercentages ? 'Mostrar Números' : 'Mostrar Porcentajes'}
         </Button>
       </div>
