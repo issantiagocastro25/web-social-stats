@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Spinner, Card, Select, Button } from 'flowbite-react';
+import { Navbar, Footer, Spinner, Card, Select, Button, TextInput } from 'flowbite-react';
 import { FaSearch } from 'react-icons/fa';
 import { Grid } from '@tremor/react';
 import { fetchSocialStats, fetchTemporalData, fetchSummaryCardsData, fetchCategories } from '@/api/list/listData';
@@ -48,7 +48,6 @@ const SocialStatsDashboard: React.FC = () => {
   const [temporalProgress, setTemporalProgress] = useState(0);
   const [categories, setCategories] = useState<Category[]>([]);
   const [showGroupTemporalAnalysis, setShowGroupTemporalAnalysis] = useState(false);
-
 
 
   const loadCategories = useCallback(async () => {
@@ -238,25 +237,34 @@ const SocialStatsDashboard: React.FC = () => {
     }
   }, [loadData, loadSummaryCardsData, categories, activeCategory, selectedDate]);
 
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+
+      {/* Contenido Principal */}
+      <div className="container mx-auto px-4 py-8 flex-grow">
+        <h1 className="text-4xl font-extrabold text-center mb-8 text-gray-900">
           Dashboard de Estadísticas Sociales
         </h1>
-        <Select 
-          className='pb-5 w-56' 
-          value={selectedDate} 
-          onChange={handleDateChange}
-          disabled={isLoadingDataTable || isLoadingSummaryCards}
-        >
-          {AVAILABLE_DATES.map(date => (
-            <option key={date} value={date}>{date}</option>
-          ))}
-        </Select>
+
+        {/* Selector de Fecha */}
+        <div className="flex justify-center mb-6">
+          <Select 
+            className='w-64' 
+            value={selectedDate} 
+            onChange={handleDateChange}
+            disabled={isLoadingDataTable || isLoadingSummaryCards}
+          >
+            {AVAILABLE_DATES.map(date => (
+              <option key={date} value={date}>{date}</option>
+            ))}
+          </Select>
+        </div>
+
+        {/* Barra de Categorías */}
         {isLoadingCategories ? (
-          <div className="animate-pulse">
-            <div className="h-40 bg-gray-200 rounded-lg mb-4"></div>
+          <div className="flex justify-center mb-6">
+            <Spinner size="xl" aria-label="Cargando categorías" />
           </div>
         ) : (
           categories.length > 0 && (
@@ -268,12 +276,14 @@ const SocialStatsDashboard: React.FC = () => {
           )
         )}
 
-<SummaryCards 
-        data={summaryCardsData} 
-        isAllCategory={activeCategory === 'Todos'} 
-        isLoading={isLoadingSummaryCards}
-      />
+        {/* Tarjetas Resumen */}
+        <SummaryCards 
+          data={summaryCardsData} 
+          isAllCategory={activeCategory === 'Todos'} 
+          isLoading={isLoadingSummaryCards}
+        />
 
+        {/* Tabla de Resumen de Grupo */}
         {activeCategory === 'Todos' && (
           <Card className="mb-6">
             <GroupSummaryTable 
@@ -284,29 +294,19 @@ const SocialStatsDashboard: React.FC = () => {
           </Card>
         )}
 
-        <div className="mb-6 flex space-x-4 items-center">
-          <div className="relative flex-grow">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <FaSearch className="w-5 h-5 text-gray-500" />
-            </div>
-            <input
-              type="text"
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder="Buscar por institución, ciudad o tipo..."
-              value={searchTerm}
-              onChange={handleSearch}
-            />
-          </div>
-          
-          <Button 
-            color="success" 
-            onClick={handleTemporalAnalysis}
-            disabled={isLoadingTemporal || (selectedInstitutions.length === 0 && !selectedInstitution)}
-          >
-            {isLoadingTemporal ? 'Analizando...' : 'Análisis Temporal'}
-          </Button>
+        {/* Búsqueda y Acciones */}
+        <div className="mb-6 flex flex-col md:flex-row md:space-x-4 items-center">
+          <TextInput
+            icon={FaSearch}
+            type="text"
+            placeholder="Buscar por institución, ciudad o tipo..."
+            value={searchTerm}
+            onChange={handleSearch}
+            className="flex-grow mb-4 md:mb-0"
+          />
         </div>
 
+        {/* Cargando Análisis Temporal */}
         {isLoadingTemporal && (
           <Card>
             <h2 className="text-xl font-bold mb-4">Analizando datos temporales...</h2>
@@ -314,18 +314,14 @@ const SocialStatsDashboard: React.FC = () => {
           </Card>
         )}
 
+        {/* Tabla de Datos */}
         {isLoadingDataTable ? (
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
-            <div className="space-y-2">
-              {[...Array(10)].map((_, index) => (
-                <div key={index} className="h-6 bg-gray-200 rounded"></div>
-              ))}
-            </div>
+          <div className="flex justify-center">
+            <Spinner size="xl" aria-label="Cargando datos" />
           </div>
         ) : filteredData && filteredData.length > 0 ? (
-          <Card>
-            <h2 className="text-xl font-bold mb-4">Datos para la categoría: {activeCategory}</h2>
+          <Card className="mb-6">
+            <h2 className="text-2xl font-bold mb-4">Datos para la categoría: {activeCategory}</h2>
             <InteractiveDataTable 
               data={filteredData}
               onInstitutionSelect={handleInstitutionSelect}
@@ -334,17 +330,28 @@ const SocialStatsDashboard: React.FC = () => {
               onInstitutionsSelect={handleInstitutionsSelect}
               selectedInstitution={selectedInstitution}
             />
+            <Button 
+            className=' w-60'
+            color="success" 
+            onClick={handleTemporalAnalysis}
+            disabled={isLoadingTemporal || (selectedInstitutions.length === 0 && !selectedInstitution)}
+          >
+            {isLoadingTemporal ? 'Analizando...' : 'Análisis Temporal'}
+          </Button>
           </Card>
+          
         ) : (
           <Card>
-            <p className="text-center">No se encontraron datos para la categoría: {activeCategory}</p>
+            <p className="text-center text-gray-600">No se encontraron datos para la categoría: {activeCategory}</p>
           </Card>
         )}
 
+        {/* Estadísticas de la Institución */}
         {selectedInstitution && (
           <InstitutionStats institution={selectedInstitution} />
         )}
 
+        {/* Gráficas y Tabla Comparativas */}
         {selectedInstitutions.length > 1 && (
           <Grid numColsLg={2} className="gap-6 mt-6">
             <ComparisonCharts selectedInstitutions={selectedInstitutions} />
@@ -352,6 +359,7 @@ const SocialStatsDashboard: React.FC = () => {
           </Grid>
         )}
 
+        {/* Tabla de Análisis Temporal */}
         {showTemporalAnalysis && (
           <TemporalAnalysisTable 
             selectedInstitutions={selectedInstitutions.length > 0 ? selectedInstitutions : [selectedInstitution]}
@@ -360,6 +368,7 @@ const SocialStatsDashboard: React.FC = () => {
           />
         )}
 
+        {/* Tabla de Análisis Temporal de Grupo */}
         {showGroupTemporalAnalysis && (
           <GroupTemporalAnalysisTable 
             temporalData={temporalData}
@@ -368,6 +377,18 @@ const SocialStatsDashboard: React.FC = () => {
           />
         )}
       </div>
+
+      {/* Footer */}
+      <Footer container={true} className="bg-white">
+        <div className="w-full text-center">
+          <Footer.Divider />
+          <Footer.Copyright
+            href="#"
+            by="SocialStats™"
+            year={new Date().getFullYear()}
+          />
+        </div>
+      </Footer>
     </div>
   );
 };

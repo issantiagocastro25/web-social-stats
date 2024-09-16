@@ -149,11 +149,11 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
             <SiTiktok className="mr-2" />TikTok
           </Button>
         </div>
-        <div className="flex space-x-2">
+        {/* <div className="flex space-x-2">
           <Button size="sm" onClick={handleSelectAll}>
             {selectedRows.length === sortedData.length ? 'Deseleccionar Todos' : 'Seleccionar Todos'}
           </Button>
-        </div>
+        </div> */}
       </div>
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
         <div style={{ maxHeight: '500px', overflowY: 'auto' }}>

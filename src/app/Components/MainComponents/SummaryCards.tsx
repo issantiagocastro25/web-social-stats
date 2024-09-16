@@ -40,44 +40,84 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data, isAllCategory, isLoad
     if (!data || !data.stats) {
       return [];
     }
-
+  
     if (!isAllCategory) {
       return data.stats;
     }
-
+  
     const totals: Record<string, {
       total_followers: number;
       total_publications: number;
       total_reactions: number;
       average_views: number;
     }> = {};
-
+  
+    // Objects to store statistics for specific categories
     const hospitalesLatam: Record<string, {
       total_followers: number;
       total_publications: number;
       total_reactions: number;
       average_views: number;
     }> = {};
-
+  
+    const cajasCompensacion: Record<string, {
+      total_followers: number;
+      total_publications: number;
+      total_reactions: number;
+      average_views: number;
+    }> = {};
+  
+    // Process the stats data
     data.stats.forEach(stat => {
-      const targetObj = stat.type_institution === "Los 15 mejores Hospitales de Latinoamérica" 
-        ? hospitalesLatam 
-        : totals;
-
-      if (!targetObj[stat.social_network]) {
-        targetObj[stat.social_network] = {
+      // Initialize totals for the social network if not already done
+      if (!totals[stat.social_network]) {
+        totals[stat.social_network] = {
           total_followers: 0,
           total_publications: 0,
           total_reactions: 0,
           average_views: 0,
         };
       }
-      targetObj[stat.social_network].total_followers += stat.total_followers;
-      targetObj[stat.social_network].total_publications += stat.total_publications;
-      targetObj[stat.social_network].total_reactions += stat.total_reactions;
-      targetObj[stat.social_network].average_views += stat.average_views;
+  
+      // Accumulate stats into totals
+      totals[stat.social_network].total_followers += stat.total_followers;
+      totals[stat.social_network].total_publications += stat.total_publications;
+      totals[stat.social_network].total_reactions += stat.total_reactions;
+      totals[stat.social_network].average_views += stat.average_views;
+  
+      // Accumulate stats into specific categories if applicable
+      if (stat.type_institution === "Los 15 mejores Hospitales de Latinoamérica") {
+        if (!hospitalesLatam[stat.social_network]) {
+          hospitalesLatam[stat.social_network] = {
+            total_followers: 0,
+            total_publications: 0,
+            total_reactions: 0,
+            average_views: 0,
+          };
+        }
+        hospitalesLatam[stat.social_network].total_followers += stat.total_followers;
+        hospitalesLatam[stat.social_network].total_publications += stat.total_publications;
+        hospitalesLatam[stat.social_network].total_reactions += stat.total_reactions;
+        hospitalesLatam[stat.social_network].average_views += stat.average_views;
+      }
+  
+      if (stat.type_institution === "Caj. compensación") {
+        if (!cajasCompensacion[stat.social_network]) {
+          cajasCompensacion[stat.social_network] = {
+            total_followers: 0,
+            total_publications: 0,
+            total_reactions: 0,
+            average_views: 0,
+          };
+        }
+        cajasCompensacion[stat.social_network].total_followers += stat.total_followers;
+        cajasCompensacion[stat.social_network].total_publications += stat.total_publications;
+        cajasCompensacion[stat.social_network].total_reactions += stat.total_reactions;
+        cajasCompensacion[stat.social_network].average_views += stat.average_views;
+      }
     });
-
+  
+    // Subtract specific categories from totals
     Object.keys(totals).forEach(network => {
       if (hospitalesLatam[network]) {
         totals[network].total_followers -= hospitalesLatam[network].total_followers;
@@ -85,13 +125,21 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data, isAllCategory, isLoad
         totals[network].total_reactions -= hospitalesLatam[network].total_reactions;
         totals[network].average_views -= hospitalesLatam[network].average_views;
       }
+      if (cajasCompensacion[network]) {
+        totals[network].total_followers -= cajasCompensacion[network].total_followers;
+        totals[network].total_publications -= cajasCompensacion[network].total_publications;
+        totals[network].total_reactions -= cajasCompensacion[network].total_reactions;
+        totals[network].average_views -= cajasCompensacion[network].average_views;
+      }
     });
-
+  
+    // Return the updated totals
     return Object.entries(totals).map(([social_network, stats]) => ({
       social_network,
       ...stats,
     }));
   }, [data, isAllCategory]);
+  
 
   if (isLoading) {
     return (

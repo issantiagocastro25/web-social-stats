@@ -1,0 +1,27 @@
+{
+    "institucion": "",
+    "ciudad": "",
+    "tipo": "",
+    "facebook": {
+      "seguidores": null,
+      "videos": null,
+      "visitas": null,
+      "visitasPorVideo": null
+    },
+    "youtube": {
+      "suscriptores": null,
+      "videos": null,
+      "visitas": null,
+      "visitasPorVideo": null
+    },
+    "twitter": {
+      "seguidores": null
+    },
+    "instagram": {
+      "seguidores": null
+    },
+    "tiktok": {
+      "seguidores": null,
+      "likes": null
+    }
+  }

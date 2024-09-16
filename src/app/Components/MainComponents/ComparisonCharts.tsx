@@ -36,14 +36,13 @@ const ComparisonCharts = ({ selectedInstitutions }) => {
 
       <Card>
         <Title>Comparación de Publicaciones por Red Social</Title>
-        <LineChart
+        <BarChart
           className="mt-4 h-80"
           data={publicationsData}
           index="name"
           categories={["Facebook", "X", "Instagram", "YouTube", "TikTok"]}
           colors={["blue", "cyan", "pink", "red", "black"]}
           yAxisWidth={48}
-          connectNulls={true}
         />
       </Card>
 
