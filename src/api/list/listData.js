@@ -40,6 +40,7 @@ export const fetchSummaryCardsData = async (institutionId, date) => {
   try {
     const response = await axios.get(`${API_URL}/api/social-metrics/stats`, {
       params: {
+        category: 'salud',
         type_institution_id: institutionId,
         stats_date: date
       }
@@ -53,7 +54,7 @@ export const fetchSummaryCardsData = async (institutionId, date) => {
 
 export const fetchCategories = async () => {
   try {
-    const response = await axios.get(`${API_URL}/api/social-metrics/institutions/categories/health`);
+    const response = await axios.get(`${API_URL}/api/social-metrics/institutions/categories?category=salud`);
     return response.data;
   } catch (error) {
     console.error('Error fetching categories:', error);
