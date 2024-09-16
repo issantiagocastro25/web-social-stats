@@ -42,7 +42,7 @@ const LoginRegisterCard: React.FC = () => {
             if (isLoginView) {
                 const response = await login(email, password1);
                 console.log('Login exitoso:', response);
-                router.push('/stats');
+                router.push('/salud');
             } else {
                 if (password1 !== password2) {
                     setError('Las contraseñas no coinciden');
