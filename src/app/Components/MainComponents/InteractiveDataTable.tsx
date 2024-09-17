@@ -1,37 +1,27 @@
-import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { Table, Button, Card } from 'flowbite-react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { Table, Checkbox, Button } from 'flowbite-react';
 import { FaFacebook, FaInstagram, FaYoutube, FaSort, FaSortUp, FaSortDown, FaTimes } from 'react-icons/fa';
 import { SiTiktok } from 'react-icons/si';
 import XIcon from './XIcon';
-import InstitutionStats from './InstitutionStats';
-import ComparisonCharts from './ComparisonCharts';
-import TemporalAnalysisTable from './TemporalAnalysisTable';
 
 interface InteractiveDataTableProps {
   data: any[];
-  onInstitutionSelect: (institution: any) => void;
-  onMultipleInstitutionsSelect: (institutions: any[]) => void;
+  onInstitutionSelect: (institutions: any[]) => void;
   selectedType: string;
   selectedDate: string;
-  selectedInstitution: any;
-  previousData?: any[];
-  availableDates: string[];
-  fetchTemporalData: (institutions: string[], dates: string[]) => Promise<any>;
+  selectedInstitutions: any[];
+  isLoading: boolean;
 }
 
 const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({ 
   data, 
   onInstitutionSelect, 
-  onMultipleInstitutionsSelect,
   selectedType, 
   selectedDate, 
-  selectedInstitution,
-  previousData = [],
-  availableDates,
-  fetchTemporalData
+  selectedInstitutions,
+  isLoading
 }) => {
   const [sortConfig, setSortConfig] = useState<{ key: string | null, direction: 'ascending' | 'descending' }>({ key: null, direction: 'ascending' });
-  const [selectedRows, setSelectedRows] = useState<any[]>([]);
   const [visibleNetworks, setVisibleNetworks] = useState({
     basic: true,
     Facebook: true,
@@ -40,11 +30,6 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
     YouTube: true,
     TikTok: true
   });
-  const [temporalData, setTemporalData] = useState<any[]>([]);
-  const [isLoadingTemporal, setIsLoadingTemporal] = useState(false);
-  const [showTemporalAnalysis, setShowTemporalAnalysis] = useState(false);
-
-  const selectedRowsRef = useRef(selectedRows);
 
   const columns = [
     { key: 'Institucion', label: 'Institución', network: 'basic' },
@@ -72,7 +57,7 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
     { key: 'social_networks.Tiktok.Average_views', label: 'TikTok Vistas Medias', network: 'TikTok' },
   ];
 
-   const visibleColumns = columns.filter(column => visibleNetworks[column.network]);
+  const visibleColumns = columns.filter(column => visibleNetworks[column.network]);
 
   const sortedData = useMemo(() => {
     let sortableItems = [...data];
@@ -109,62 +94,21 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
     });
   }, []);
 
+  const handleRowSelect = useCallback((institution: any) => {
+    onInstitutionSelect(
+      selectedInstitutions.some(i => i.Institucion === institution.Institucion)
+        ? selectedInstitutions.filter(i => i.Institucion !== institution.Institucion)
+        : [...selectedInstitutions, institution]
+    );
+  }, [selectedInstitutions, onInstitutionSelect]);
 
-const handleRowSelect = useCallback((institution: any) => {
-    setSelectedRows(prev => {
-      const isAlreadySelected = prev.some(item => item.Institucion === institution.Institucion);
-      if (isAlreadySelected) {
-        return prev.filter(item => item.Institucion !== institution.Institucion);
-      } else {
-        return [...prev, institution];
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    selectedRowsRef.current = selectedRows;
-  }, [selectedRows]);
-
-  useEffect(() => {
-    const notifyParent = () => {
-      if (selectedRowsRef.current.length === 1) {
-        onInstitutionSelect(selectedRowsRef.current[0]);
-      } else if (selectedRowsRef.current.length > 1) {
-        onMultipleInstitutionsSelect(selectedRowsRef.current);
-      } else {
-        onInstitutionSelect(null);
-      }
-    };
-
-    const timeoutId = setTimeout(notifyParent, 0);
-    return () => clearTimeout(timeoutId);
-  }, [selectedRows, onInstitutionSelect, onMultipleInstitutionsSelect]);
-
-  const handleDeselect = useCallback((institution: any, event: React.MouseEvent) => {
-    event.stopPropagation();
-    setSelectedRows(prev => prev.filter(item => item.Institucion !== institution.Institucion));
-  }, []);
+  const isRowSelected = useCallback((institution: any) => {
+    return selectedInstitutions.some(i => i.Institucion === institution.Institucion);
+  }, [selectedInstitutions]);
 
   const toggleNetwork = useCallback((network: keyof typeof visibleNetworks) => {
     setVisibleNetworks(prev => ({ ...prev, [network]: !prev[network] }));
   }, []);
-
-  const handleTemporalAnalysis = useCallback(async () => {
-    if (selectedRows.length === 0) return;
-
-    setIsLoadingTemporal(true);
-    setShowTemporalAnalysis(true);
-    try {
-      const institutionNames = selectedRows.map(inst => inst.Institucion);
-      const temporalDataResult = await fetchTemporalData(institutionNames, availableDates);
-      setTemporalData(temporalDataResult);
-    } catch (error) {
-      console.error('Error fetching temporal data:', error);
-      // Manejar el error aquí (por ejemplo, mostrar un mensaje al usuario)
-    } finally {
-      setIsLoadingTemporal(false);
-    }
-  }, [selectedRows, fetchTemporalData, availableDates]);
 
   const SortIcon: React.FC<{ column: string }> = ({ column }) => {
     if (sortConfig.key !== column) {
@@ -191,6 +135,18 @@ const handleRowSelect = useCallback((institution: any) => {
     return currentValue?.toLocaleString('es-ES', { maximumFractionDigits: 2 }) || 'N/A';
   }, []);
 
+  const renderSkeleton = () => (
+    <div className="animate-pulse">
+      {[...Array(5)].map((_, index) => (
+        <div key={index} className="h-16 bg-gray-200 rounded mb-2"></div>
+      ))}
+    </div>
+  );
+
+  if (isLoading) {
+    return renderSkeleton();
+  }
+
   return (
     <div>
       <div className="mb-4 flex flex-wrap justify-between items-center">
@@ -198,33 +154,35 @@ const handleRowSelect = useCallback((institution: any) => {
         <div className="flex flex-wrap gap-2 mb-2">
           {Object.entries(visibleNetworks).map(([network, isVisible]) => (
             network !== 'basic' && (
-              <button
+              <Button
                 key={network}
                 onClick={() => toggleNetwork(network as keyof typeof visibleNetworks)}
-                className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  isVisible ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'
-                }`}
+                size="xs"
+                color={isVisible ? "blue" : "gray"}
               >
-                {network === 'Facebook' && <FaFacebook className="inline mr-1" />}
-                {network === 'X' && <XIcon className="inline mr-1" />}
-                {network === 'Instagram' && <FaInstagram className="inline mr-1" />}
-                {network === 'YouTube' && <FaYoutube className="inline mr-1" />}
-                {network === 'TikTok' && <SiTiktok className="inline mr-1" />}
+                {network === 'Facebook' && <FaFacebook className="mr-2" />}
+                {network === 'X' && <XIcon className="mr-2" />}
+                {network === 'Instagram' && <FaInstagram className="mr-2" />}
+                {network === 'YouTube' && <FaYoutube className="mr-2" />}
+                {network === 'TikTok' && <SiTiktok className="mr-2" />}
                 {network}
-              </button>
+              </Button>
             )
           ))}
         </div>
       </div>
-       {selectedRows.length > 0 && (
+      {selectedInstitutions.length > 0 && (
         <div className="mb-4 p-4 bg-blue-100 rounded-lg">
           <h3 className="text-lg font-semibold mb-2">Instituciones Seleccionadas:</h3>
           <div className="flex flex-wrap gap-2">
-            {selectedRows.map(institution => (
+            {selectedInstitutions.map(institution => (
               <div key={institution.Institucion} className="flex items-center bg-white px-3 py-1 rounded-full">
                 <span>{institution.Institucion}</span>
                 <button
-                  onClick={(e) => handleDeselect(institution, e)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRowSelect(institution);
+                  }}
                   className="ml-2 text-red-500 hover:text-red-700"
                 >
                   <FaTimes />
@@ -238,6 +196,12 @@ const handleRowSelect = useCallback((institution: any) => {
         <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
           <Table hoverable className="w-full">
             <Table.Head className="sticky top-0 bg-white dark:bg-gray-800 z-10">
+              <Table.HeadCell className="w-4 sticky left-0 bg-white dark:bg-gray-800 z-20">
+                <Checkbox 
+                  checked={selectedInstitutions.length === sortedData.length}
+                  onChange={() => onInstitutionSelect(selectedInstitutions.length === sortedData.length ? [] : sortedData)}
+                />
+              </Table.HeadCell>
               {visibleColumns.map((column) => (
                 <Table.HeadCell 
                   key={column.key} 
@@ -252,55 +216,33 @@ const handleRowSelect = useCallback((institution: any) => {
               ))}
             </Table.Head>
             <Table.Body className="divide-y">
-              {sortedData.map((item) => {
-                const previousItem = previousData.find(prevItem => prevItem?.Institucion === item.Institucion);
-                const isSelected = selectedRows.includes(item);
-                return (
-                  <Table.Row 
-                    key={item.Institucion} 
-                    className={`cursor-pointer ${isSelected ? 'bg-blue-100 dark:bg-blue-900' : 'bg-white dark:bg-gray-800'} hover:bg-gray-50 dark:hover:bg-gray-700`}
-                    onClick={() => handleRowSelect(item)}
-                  >
-                    {visibleColumns.map(column => (
-                      <Table.Cell key={column.key} className="max-w-xs break-words font-medium text-gray-900 dark:text-white">
-                        {column.key === 'Institucion' && isSelected && (
-                          <span className="mr-2 text-blue-600">[Seleccionado]</span>
-                        )}
-                        {formatValue(
-                          column.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : 'N/A'), item),
-                          previousItem ? column.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : 'N/A'), previousItem) : null
-                        )}
-                      </Table.Cell>
-                    ))}
-                  </Table.Row>
-                );
-              })}
+              {sortedData.map((item) => (
+                <Table.Row 
+                  key={item.Institucion} 
+                  className={`cursor-pointer ${isRowSelected(item) ? 'bg-blue-100 dark:bg-blue-900' : 'bg-white dark:bg-gray-800'} hover:bg-gray-50 dark:hover:bg-gray-700`}
+                  onClick={() => handleRowSelect(item)}
+                >
+                  <Table.Cell className="w-4 sticky left-0 bg-white dark:bg-gray-800 z-10">
+                    <Checkbox 
+                      checked={isRowSelected(item)}
+                      onChange={() => handleRowSelect(item)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </Table.Cell>
+                  {visibleColumns.map(column => (
+                    <Table.Cell key={column.key} className="max-w-xs break-words font-medium text-gray-900 dark:text-white">
+                      {formatValue(
+                        column.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : 'N/A'), item),
+                        null // We don't have previous data in this context
+                      )}
+                    </Table.Cell>
+                  ))}
+                </Table.Row>
+              ))}
             </Table.Body>
           </Table>
         </div>
       </div>
-
-      {selectedRows.length === 1 && (
-        <Card className="mt-6">
-          <InstitutionStats institution={selectedRows[0]} />
-        </Card>
-      )}
-
-      {selectedRows.length > 1 && (
-        <Card className="mt-6">
-          <ComparisonCharts selectedInstitutions={selectedRows} />
-        </Card>
-      )}
-
-      {showTemporalAnalysis && temporalData.length > 0 && (
-        <Card className="mt-6">
-          <TemporalAnalysisTable 
-            selectedInstitutions={selectedRows}
-            temporalData={temporalData}
-            availableDates={availableDates}
-          />
-        </Card>
-      )}
     </div>
   );
 };
