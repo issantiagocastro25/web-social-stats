@@ -49,7 +49,8 @@ const LoginRegisterCard: React.FC = () => {
                     return;
                 }
                 await signup(email, password1, password2, firstName, lastName, identification);
-                setIsLoginView(true);
+                // setIsLoginView(true);
+                router.push('/pricing');
             }
         } catch (err) {
             console.error('Error:', err);
