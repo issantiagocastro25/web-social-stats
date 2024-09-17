@@ -190,8 +190,8 @@ const LoginRegisterCard: React.FC = () => {
                                 {isLoginView ? 'Iniciar Sesión' : 'Registrarse'}
                             </Button>
                             <div className="bg-slate-600 w-full h-0.5 rounded-lg opacity-20"></div>
-                            <ButtonGoogle/>
-                            <ButtonLinkedIn/>
+                            <ButtonGoogle buttonText={isLoginView ? 'Continuar con Google' : 'Registrarse con Google'} />
+                            <ButtonLinkedIn buttonText={isLoginView ? 'Continuar con LinkedIn' : 'Registrarse con LinkedIn'} />
                         </form>
                         {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
                     </div>

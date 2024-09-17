@@ -68,6 +68,8 @@ export const signup = async (email, password, password2, firstName, lastName, id
       last_name: lastName,
       identification: identification,
       phone
+    }, {
+      withCredentials: true  // Importante para manejar cookies de sesión
     });
     return response.data;
   } catch (error) {
