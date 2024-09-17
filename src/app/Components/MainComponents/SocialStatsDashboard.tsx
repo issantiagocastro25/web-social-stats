@@ -105,15 +105,23 @@ const SocialStatsDashboard: React.FC = () => {
       setActiveCategory(category.name);
       setActiveCategoryId(category.id);
       setSelectedInstitutions([]);
+      setShowTemporalAnalysis(false);
+      setTemporalData([]);
+      setShowGroupTemporalAnalysis(false);
     }
   };
 
   const handleDateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedDate(e.target.value);
+    setShowTemporalAnalysis(false);
+    setTemporalData([]);
+    setShowGroupTemporalAnalysis(false);
   };
 
   const handleInstitutionSelect = useCallback((institutions: any[]) => {
     setSelectedInstitutions(institutions);
+    setShowTemporalAnalysis(false);
+    setTemporalData([]);
   }, []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -162,8 +170,6 @@ const SocialStatsDashboard: React.FC = () => {
       const totalSteps = AVAILABLE_DATES.length;
       const temporalDataResult = await Promise.all(
         AVAILABLE_DATES.map(async (date, index) => {
-          console.log('llamanado', date);
-          
           const result = await fetchTemporalData(['Todos'], [date]);
           setTemporalProgress(((index + 1) / totalSteps) * 100);
           return result;
@@ -287,23 +293,24 @@ const SocialStatsDashboard: React.FC = () => {
               </Grid>
             )}
 
-            {showTemporalAnalysis && temporalData.length > 0 && (
-              <TemporalAnalysisTable 
-                selectedInstitutions={selectedInstitutions}
-                temporalData={temporalData}
-                availableDates={AVAILABLE_DATES}
-                isLoading={isLoadingTemporal}
-              />
-            )}
+{showTemporalAnalysis && temporalData.length > 0 && (
+        <TemporalAnalysisTable 
+          selectedInstitutions={selectedInstitutions}
+          temporalData={temporalData}
+          availableDates={AVAILABLE_DATES}
+          isLoading={isLoadingTemporal}
+        />
+      )}
 
-            {showGroupTemporalAnalysis && (
-              <GroupTemporalAnalysisTable 
-                temporalData={temporalData}
-                availableDates={AVAILABLE_DATES}
-                onClose={() => setShowGroupTemporalAnalysis(false)}
-                isLoading={isLoadingTemporal}
-              />
-            )}
+      {showGroupTemporalAnalysis && (
+        <GroupTemporalAnalysisTable 
+          temporalData={temporalData}
+          availableDates={AVAILABLE_DATES}
+          onClose={() => setShowGroupTemporalAnalysis(false)}
+          isLoading={isLoadingTemporal}
+        />
+      )}
+
           </>
         )}
 
