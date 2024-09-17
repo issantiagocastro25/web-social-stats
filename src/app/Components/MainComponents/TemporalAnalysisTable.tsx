@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Card, Title, Text, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Badge, Button } from '@tremor/react';
-// import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/solid';
+import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/solid';
 import { AreaChart } from '@tremor/react';
 import { Select } from 'flowbite-react'; // Cambiamos a usar Select de flowbite-react
 
@@ -73,10 +73,9 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
                 <TableCell key={network}>
                   <div className="flex items-center space-x-2">
                     <Text>{currentValue.toLocaleString()}</Text>
-                    {/* <Badge color={color} icon={growth > 0 ? 'green' : 'red'}>
+                     <Badge color={color} icon={growth > 0 ? 'green' : 'red'}>
                       {Math.abs(growth).toFixed(2)}%
-                    </Badge> */}
-                    {Math.abs(growth).toFixed(2)}%
+                    </Badge>
 
                   </div>
                 </TableCell>
@@ -128,7 +127,7 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
             onChange={(e) => setSelectedInstitutionIndex(Number(e.target.value))}
           >
             {
-            .map((inst, index) => (
+            selectedInstitutions.map((inst, index) => (
               <option key={inst.Institucion} value={index.toString()}>
                 {inst.Institucion}
               </option>
