@@ -127,7 +127,8 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
             value={selectedInstitutionIndex.toString()}
             onChange={(e) => setSelectedInstitutionIndex(Number(e.target.value))}
           >
-            {selectedInstitutions.map((inst, index) => (
+            {
+            .map((inst, index) => (
               <option key={inst.Institucion} value={index.toString()}>
                 {inst.Institucion}
               </option>
