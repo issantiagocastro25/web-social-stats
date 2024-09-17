@@ -10,15 +10,16 @@ export const fetchSocialStats = async (options = {}) => {
 
   try {
     const response = await axios.get(`${API_URL}/api/social-metrics/`, {
-      // params: {
-      //   type: category,
-      //   date,
-      // }
       params: {
-        type: 'todos',
+        type: category,
         category:'salud',
-        date: '2021-06-01',
+        date,
       }
+      // params: {
+      //   type: 'todos',
+      //   category:'salud',
+      //   date: '2021-06-01',
+      // }
     });
     
     return response.data;

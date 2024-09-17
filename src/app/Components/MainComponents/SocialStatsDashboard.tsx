@@ -162,6 +162,8 @@ const SocialStatsDashboard: React.FC = () => {
       const totalSteps = AVAILABLE_DATES.length;
       const temporalDataResult = await Promise.all(
         AVAILABLE_DATES.map(async (date, index) => {
+          console.log('llamanado', date);
+          
           const result = await fetchTemporalData(['Todos'], [date]);
           setTemporalProgress(((index + 1) / totalSteps) * 100);
           return result;
