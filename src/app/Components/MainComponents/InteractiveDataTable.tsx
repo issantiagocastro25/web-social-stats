@@ -1,25 +1,34 @@
-import React, { useState, useMemo } from 'react';
-import { Table, Checkbox, Button } from 'flowbite-react';
-import { FaFacebook, FaInstagram, FaYoutube, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { Table, Button, Card } from 'flowbite-react';
+import { FaFacebook, FaInstagram, FaYoutube, FaSort, FaSortUp, FaSortDown, FaTimes } from 'react-icons/fa';
 import { SiTiktok } from 'react-icons/si';
 import XIcon from './XIcon';
+import InstitutionStats from './InstitutionStats';
+import ComparisonCharts from './ComparisonCharts';
+import TemporalAnalysisTable from './TemporalAnalysisTable';
 
 interface InteractiveDataTableProps {
   data: any[];
   onInstitutionSelect: (institution: any) => void;
+  onMultipleInstitutionsSelect: (institutions: any[]) => void;
   selectedType: string;
   selectedDate: string;
-  onInstitutionsSelect: (institutions: any[]) => void;
   selectedInstitution: any;
+  previousData?: any[];
+  availableDates: string[];
+  fetchTemporalData: (institutions: string[], dates: string[]) => Promise<any>;
 }
 
 const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({ 
   data, 
   onInstitutionSelect, 
+  onMultipleInstitutionsSelect,
   selectedType, 
   selectedDate, 
-  onInstitutionsSelect, 
-  selectedInstitution
+  selectedInstitution,
+  previousData = [],
+  availableDates,
+  fetchTemporalData
 }) => {
   const [sortConfig, setSortConfig] = useState<{ key: string | null, direction: 'ascending' | 'descending' }>({ key: null, direction: 'ascending' });
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
@@ -31,6 +40,11 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
     YouTube: true,
     TikTok: true
   });
+  const [temporalData, setTemporalData] = useState<any[]>([]);
+  const [isLoadingTemporal, setIsLoadingTemporal] = useState(false);
+  const [showTemporalAnalysis, setShowTemporalAnalysis] = useState(false);
+
+  const selectedRowsRef = useRef(selectedRows);
 
   const columns = [
     { key: 'Institucion', label: 'Institución', network: 'basic' },
@@ -58,7 +72,7 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
     { key: 'social_networks.Tiktok.Average_views', label: 'TikTok Vistas Medias', network: 'TikTok' },
   ];
 
-  const visibleColumns = columns.filter(column => visibleNetworks[column.network]);
+   const visibleColumns = columns.filter(column => visibleNetworks[column.network]);
 
   const sortedData = useMemo(() => {
     let sortableItems = [...data];
@@ -86,33 +100,71 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
     return sortableItems;
   }, [data, sortConfig]);
 
-  const handleSort = (key: string) => {
-    let direction: 'ascending' | 'descending' = 'ascending';
-    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
-      direction = 'descending';
-    }
-    setSortConfig({ key, direction });
-  };
-
-  const handleRowSelect = (institution: any) => {
-    setSelectedRows(prev => {
-      const newSelection = prev.includes(institution)
-        ? prev.filter(i => i !== institution)
-        : [...prev, institution];
-      onInstitutionsSelect(newSelection);
-      return newSelection;
+  const handleSort = useCallback((key: string) => {
+    setSortConfig(prevConfig => {
+      if (prevConfig.key === key) {
+        return { key, direction: prevConfig.direction === 'ascending' ? 'descending' : 'ascending' };
+      }
+      return { key, direction: 'ascending' };
     });
-  };
+  }, []);
 
-  const handleSelectAll = () => {
-    const newSelection = selectedRows.length === sortedData.length ? [] : sortedData;
-    setSelectedRows(newSelection);
-    onInstitutionsSelect(newSelection);
-  };
 
-  const toggleNetwork = (network: keyof typeof visibleNetworks) => {
+const handleRowSelect = useCallback((institution: any) => {
+    setSelectedRows(prev => {
+      const isAlreadySelected = prev.some(item => item.Institucion === institution.Institucion);
+      if (isAlreadySelected) {
+        return prev.filter(item => item.Institucion !== institution.Institucion);
+      } else {
+        return [...prev, institution];
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    selectedRowsRef.current = selectedRows;
+  }, [selectedRows]);
+
+  useEffect(() => {
+    const notifyParent = () => {
+      if (selectedRowsRef.current.length === 1) {
+        onInstitutionSelect(selectedRowsRef.current[0]);
+      } else if (selectedRowsRef.current.length > 1) {
+        onMultipleInstitutionsSelect(selectedRowsRef.current);
+      } else {
+        onInstitutionSelect(null);
+      }
+    };
+
+    const timeoutId = setTimeout(notifyParent, 0);
+    return () => clearTimeout(timeoutId);
+  }, [selectedRows, onInstitutionSelect, onMultipleInstitutionsSelect]);
+
+  const handleDeselect = useCallback((institution: any, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setSelectedRows(prev => prev.filter(item => item.Institucion !== institution.Institucion));
+  }, []);
+
+  const toggleNetwork = useCallback((network: keyof typeof visibleNetworks) => {
     setVisibleNetworks(prev => ({ ...prev, [network]: !prev[network] }));
-  };
+  }, []);
+
+  const handleTemporalAnalysis = useCallback(async () => {
+    if (selectedRows.length === 0) return;
+
+    setIsLoadingTemporal(true);
+    setShowTemporalAnalysis(true);
+    try {
+      const institutionNames = selectedRows.map(inst => inst.Institucion);
+      const temporalDataResult = await fetchTemporalData(institutionNames, availableDates);
+      setTemporalData(temporalDataResult);
+    } catch (error) {
+      console.error('Error fetching temporal data:', error);
+      // Manejar el error aquí (por ejemplo, mostrar un mensaje al usuario)
+    } finally {
+      setIsLoadingTemporal(false);
+    }
+  }, [selectedRows, fetchTemporalData, availableDates]);
 
   const SortIcon: React.FC<{ column: string }> = ({ column }) => {
     if (sortConfig.key !== column) {
@@ -121,50 +173,71 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
     return sortConfig.direction === 'ascending' ? <FaSortUp className="ml-1 text-blue-500" /> : <FaSortDown className="ml-1 text-blue-500" />;
   };
 
-  const formatValue = (value: any) => {
-    if (typeof value === 'number') {
-      return value.toLocaleString('es-ES', { maximumFractionDigits: 2 });
+  const formatValue = useCallback((currentValue: any, previousValue: any) => {
+    if (typeof currentValue === 'number' && typeof previousValue === 'number' && previousValue !== 0) {
+      const percentageChange = ((currentValue - previousValue) / previousValue) * 100;
+      const formattedValue = currentValue.toLocaleString('es-ES', { maximumFractionDigits: 2 });
+      const formattedPercentage = percentageChange.toFixed(2);
+      const color = percentageChange > 0 ? 'text-green-500' : percentageChange < 0 ? 'text-red-500' : 'text-gray-500';
+      return (
+        <div>
+          <span>{formattedValue}</span>
+          <span className={`ml-2 ${color}`}>
+            ({formattedPercentage}%)
+          </span>
+        </div>
+      );
     }
-    return value || 'N/A';
-  };
+    return currentValue?.toLocaleString('es-ES', { maximumFractionDigits: 2 }) || 'N/A';
+  }, []);
 
   return (
     <div>
       <div className="mb-4 flex flex-wrap justify-between items-center">
         <h2 className="text-xl font-bold mb-2">Datos de Instituciones</h2>
         <div className="flex flex-wrap gap-2 mb-2">
-          <Button size="sm" color={visibleNetworks.Facebook ? "blue" : "gray"} onClick={() => toggleNetwork('Facebook')}>
-            <FaFacebook className="mr-2" />Facebook
-          </Button>
-          <Button size="xs" color={visibleNetworks.X ? "blue" : "gray"} onClick={() => toggleNetwork('X')}>
-            <XIcon className="mr-2" />
-          </Button>
-          <Button size="sm" color={visibleNetworks.Instagram ? "blue" : "gray"} onClick={() => toggleNetwork('Instagram')}>
-            <FaInstagram className="mr-2" />Instagram
-          </Button>
-          <Button size="sm" color={visibleNetworks.YouTube ? "blue" : "gray"} onClick={() => toggleNetwork('YouTube')}>
-            <FaYoutube className="mr-2" />YouTube
-          </Button>
-          <Button size="sm" color={visibleNetworks.TikTok ? "blue" : "gray"} onClick={() => toggleNetwork('TikTok')}>
-            <SiTiktok className="mr-2" />TikTok
-          </Button>
+          {Object.entries(visibleNetworks).map(([network, isVisible]) => (
+            network !== 'basic' && (
+              <button
+                key={network}
+                onClick={() => toggleNetwork(network as keyof typeof visibleNetworks)}
+                className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  isVisible ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'
+                }`}
+              >
+                {network === 'Facebook' && <FaFacebook className="inline mr-1" />}
+                {network === 'X' && <XIcon className="inline mr-1" />}
+                {network === 'Instagram' && <FaInstagram className="inline mr-1" />}
+                {network === 'YouTube' && <FaYoutube className="inline mr-1" />}
+                {network === 'TikTok' && <SiTiktok className="inline mr-1" />}
+                {network}
+              </button>
+            )
+          ))}
         </div>
-        {/* <div className="flex space-x-2">
-          <Button size="sm" onClick={handleSelectAll}>
-            {selectedRows.length === sortedData.length ? 'Deseleccionar Todos' : 'Seleccionar Todos'}
-          </Button>
-        </div> */}
       </div>
+       {selectedRows.length > 0 && (
+        <div className="mb-4 p-4 bg-blue-100 rounded-lg">
+          <h3 className="text-lg font-semibold mb-2">Instituciones Seleccionadas:</h3>
+          <div className="flex flex-wrap gap-2">
+            {selectedRows.map(institution => (
+              <div key={institution.Institucion} className="flex items-center bg-white px-3 py-1 rounded-full">
+                <span>{institution.Institucion}</span>
+                <button
+                  onClick={(e) => handleDeselect(institution, e)}
+                  className="ml-2 text-red-500 hover:text-red-700"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
         <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
           <Table hoverable className="w-full">
             <Table.Head className="sticky top-0 bg-white dark:bg-gray-800 z-10">
-              <Table.HeadCell className="w-4 sticky left-0 bg-white dark:bg-gray-800 z-20">
-                <Checkbox 
-                  checked={selectedRows.length === sortedData.length}
-                  onChange={handleSelectAll}
-                />
-              </Table.HeadCell>
               {visibleColumns.map((column) => (
                 <Table.HeadCell 
                   key={column.key} 
@@ -179,30 +252,55 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
               ))}
             </Table.Head>
             <Table.Body className="divide-y">
-              {sortedData.map((item) => (
-                <Table.Row 
-                  key={item.Institucion} 
-                  className={`bg-white dark:border-gray-700 dark:bg-gray-800 ${selectedInstitution === item ? 'shadow-lg bg-blue-200' : ''}`}
-                  onClick={() => onInstitutionSelect(item)}
-                >
-                  <Table.Cell className="w-4 sticky left-0 bg-white dark:bg-gray-800 z-10">
-                    <Checkbox 
-                      checked={selectedRows.includes(item)}
-                      onChange={() => handleRowSelect(item)}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </Table.Cell>
-                  {visibleColumns.map(column => (
-                    <Table.Cell key={column.key} className="max-w-xs break-words font-medium text-gray-900 dark:text-white">
-                      {formatValue(column.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : 'N/A'), item))}
-                    </Table.Cell>
-                  ))}
-                </Table.Row>
-              ))}
+              {sortedData.map((item) => {
+                const previousItem = previousData.find(prevItem => prevItem?.Institucion === item.Institucion);
+                const isSelected = selectedRows.includes(item);
+                return (
+                  <Table.Row 
+                    key={item.Institucion} 
+                    className={`cursor-pointer ${isSelected ? 'bg-blue-100 dark:bg-blue-900' : 'bg-white dark:bg-gray-800'} hover:bg-gray-50 dark:hover:bg-gray-700`}
+                    onClick={() => handleRowSelect(item)}
+                  >
+                    {visibleColumns.map(column => (
+                      <Table.Cell key={column.key} className="max-w-xs break-words font-medium text-gray-900 dark:text-white">
+                        {column.key === 'Institucion' && isSelected && (
+                          <span className="mr-2 text-blue-600">[Seleccionado]</span>
+                        )}
+                        {formatValue(
+                          column.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : 'N/A'), item),
+                          previousItem ? column.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : 'N/A'), previousItem) : null
+                        )}
+                      </Table.Cell>
+                    ))}
+                  </Table.Row>
+                );
+              })}
             </Table.Body>
           </Table>
         </div>
       </div>
+
+      {selectedRows.length === 1 && (
+        <Card className="mt-6">
+          <InstitutionStats institution={selectedRows[0]} />
+        </Card>
+      )}
+
+      {selectedRows.length > 1 && (
+        <Card className="mt-6">
+          <ComparisonCharts selectedInstitutions={selectedRows} />
+        </Card>
+      )}
+
+      {showTemporalAnalysis && temporalData.length > 0 && (
+        <Card className="mt-6">
+          <TemporalAnalysisTable 
+            selectedInstitutions={selectedRows}
+            temporalData={temporalData}
+            availableDates={availableDates}
+          />
+        </Card>
+      )}
     </div>
   );
 };

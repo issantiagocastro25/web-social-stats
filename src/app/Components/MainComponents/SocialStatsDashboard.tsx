@@ -240,8 +240,6 @@ const SocialStatsDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-
-      {/* Contenido Principal */}
       <div className="container mx-auto px-4 py-8 flex-grow">
         <h1 className="text-4xl font-extrabold text-center mb-8 text-gray-900">
           Dashboard de Estadísticas Sociales
@@ -304,6 +302,13 @@ const SocialStatsDashboard: React.FC = () => {
             onChange={handleSearch}
             className="flex-grow mb-4 md:mb-0"
           />
+          <Button 
+            color="success" 
+            onClick={handleTemporalAnalysis}
+            disabled={isLoadingTemporal || (selectedInstitutions.length === 0 && !selectedInstitution)}
+          >
+            {isLoadingTemporal ? 'Analizando...' : 'Análisis Temporal'}
+          </Button>
         </div>
 
         {/* Cargando Análisis Temporal */}
@@ -330,51 +335,52 @@ const SocialStatsDashboard: React.FC = () => {
               onInstitutionsSelect={handleInstitutionsSelect}
               selectedInstitution={selectedInstitution}
             />
-            <Button 
-            className=' w-60'
-            color="success" 
-            onClick={handleTemporalAnalysis}
-            disabled={isLoadingTemporal || (selectedInstitutions.length === 0 && !selectedInstitution)}
-          >
-            {isLoadingTemporal ? 'Analizando...' : 'Análisis Temporal'}
-          </Button>
           </Card>
-          
         ) : (
           <Card>
             <p className="text-center text-gray-600">No se encontraron datos para la categoría: {activeCategory}</p>
           </Card>
         )}
 
-        {/* Estadísticas de la Institución */}
+        {/* Estadísticas de la Institución 
         {selectedInstitution && (
-          <InstitutionStats institution={selectedInstitution} />
+          <Card className="mt-6">
+            <InstitutionStats institution={selectedInstitution} />
+          </Card>
         )}
 
-        {/* Gráficas y Tabla Comparativas */}
+        {/* Gráficas y Tabla Comparativas 
         {selectedInstitutions.length > 1 && (
           <Grid numColsLg={2} className="gap-6 mt-6">
-            <ComparisonCharts selectedInstitutions={selectedInstitutions} />
-            <ComparisonTable selectedInstitutions={selectedInstitutions} />
+            <Card>
+              <ComparisonCharts selectedInstitutions={selectedInstitutions} />
+            </Card>
+            <Card>
+              <ComparisonTable selectedInstitutions={selectedInstitutions} />
+            </Card>
           </Grid>
         )}
 
         {/* Tabla de Análisis Temporal */}
         {showTemporalAnalysis && (
-          <TemporalAnalysisTable 
-            selectedInstitutions={selectedInstitutions.length > 0 ? selectedInstitutions : [selectedInstitution]}
-            temporalData={temporalData}
-            availableDates={AVAILABLE_DATES}
-          />
+          <Card className="mt-6">
+            <TemporalAnalysisTable 
+              selectedInstitutions={selectedInstitutions.length > 0 ? selectedInstitutions : [selectedInstitution]}
+              temporalData={temporalData}
+              availableDates={AVAILABLE_DATES}
+            />
+          </Card>
         )}
 
         {/* Tabla de Análisis Temporal de Grupo */}
         {showGroupTemporalAnalysis && (
-          <GroupTemporalAnalysisTable 
-            temporalData={temporalData}
-            availableDates={AVAILABLE_DATES}
-            onClose={() => setShowGroupTemporalAnalysis(false)}
-          />
+          <Card className="mt-6">
+            <GroupTemporalAnalysisTable 
+              temporalData={temporalData}
+              availableDates={AVAILABLE_DATES}
+              onClose={() => setShowGroupTemporalAnalysis(false)}
+            />
+          </Card>
         )}
       </div>
 

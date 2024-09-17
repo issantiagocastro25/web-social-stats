@@ -1,5 +1,7 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { Card, Title, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Text, Button } from '@tremor/react';
+import React, { useState, useMemo } from 'react';
+import { Card, Title, Text, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Badge, Button } from '@tremor/react';
+import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/solid';
+import { AreaChart } from '@tremor/react';
 
 interface Institution {
   Institucion: string;
@@ -8,7 +10,7 @@ interface Institution {
       followers: number;
       publications: number;
       reactions: number;
-      engagement: number;
+      Average_views: number;
     };
   };
 }
@@ -24,107 +26,108 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
   temporalData,
   availableDates,
 }) => {
-  const [showPercentages, setShowPercentages] = useState(false);
+  const [showCharts, setShowCharts] = useState(false);
+
   const networks = ['Facebook', 'X', 'Instagram', 'YouTube', 'TikTok'];
-  const metrics = ['followers', 'publications', 'reactions', 'engagement'];
 
   const processedData = useMemo(() => {
-    const data: { [key: string]: any } = {};
-    selectedInstitutions.forEach(institution => {
-      if (institution && institution.Institucion) {
-        data[institution.Institucion] = {};
-        availableDates.forEach(date => {
-          const institutionData = temporalData.find(
-            item => item.Institucion === institution.Institucion && item.date === date
-          );
-          data[institution.Institucion][date] = institutionData?.social_networks || {};
-        });
-      }
+    return selectedInstitutions.map(institution => {
+      const institutionData = availableDates.map(date => {
+        const dataForDate = temporalData.find(
+          item => item.Institucion === institution.Institucion && item.date === date
+        );
+        return {
+          date,
+          ...networks.reduce((acc, network) => ({
+            ...acc,
+            [network]: dataForDate?.social_networks?.[network]?.followers || 0
+          }), {})
+        };
+      });
+
+      return {
+        institution: institution.Institucion,
+        data: institutionData
+      };
     });
-    return data;
-  }, [selectedInstitutions, temporalData, availableDates]);
+  }, [selectedInstitutions, temporalData, availableDates, networks]);
 
-  const calculatePercentageChange = (currentValue: number, previousValue: number) => {
-    if (previousValue === 0) return currentValue > 0 ? 100 : 0;
-    return ((currentValue - previousValue) / previousValue) * 100;
+  const calculateGrowth = (current: number, previous: number) => {
+    if (previous === 0) return current > 0 ? -100 : 0; // Invertimos el signo aquí
+    return ((previous - current) / previous) * 100; // Cambiamos el orden de la resta
   };
 
-  const formatValue = (value: number | null | undefined, previousValue: number | null | undefined) => {
-    if (value === null || value === undefined) return 'N/A';
-    if (showPercentages && previousValue !== null && previousValue !== undefined) {
-      const percentageChange = calculatePercentageChange(value, previousValue);
-      return `${percentageChange.toFixed(2)}%`;
-    }
-    return value.toLocaleString();
-  };
+  const renderTable = () => (
+    <Table className="mt-6">
+      <TableHead>
+        <TableRow>
+          <TableHeaderCell>Fecha</TableHeaderCell>
+          {networks.map(network => (
+            <TableHeaderCell key={network}>{network}</TableHeaderCell>
+          ))}
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {processedData[0].data.map((row, index) => (
+          <TableRow key={row.date}>
+            <TableCell>{row.date}</TableCell>
+            {networks.map(network => {
+              const currentValue = row[network];
+              const previousValue = index > 0 ? processedData[0].data[index - 1][network] : currentValue;
+              const growth = calculateGrowth(currentValue, previousValue);
+              // Invertimos la lógica de color aquí
+              const color = growth < 0 ? 'green' : growth > 0 ? 'red' : 'gray';
 
-  const togglePercentages = () => {
-    setShowPercentages(!showPercentages);
-  };
+              return (
+                <TableCell key={network}>
+                  <div className="flex items-center space-x-2">
+                    <Text>{currentValue.toLocaleString()}</Text>
+                    <Badge color={color} icon={growth < 0 ? ArrowUpIcon : ArrowDownIcon}>
+                      {Math.abs(growth).toFixed(2)}%
+                    </Badge>
+                  </div>
+                </TableCell>
+              );
+            })}
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
 
-  useEffect(() => {
-    // Resetear el estado cuando cambian las instituciones seleccionadas
-    setShowPercentages(false);
-  }, [selectedInstitutions]);
-
-  if (selectedInstitutions.length === 0 || temporalData.length === 0) {
-    return (
-      <Card>
-        <Title>Análisis Temporal de Instituciones Seleccionadas</Title>
-        <Text>No hay datos disponibles para mostrar.</Text>
-      </Card>
-    );
-  }
+  const renderCharts = () => (
+    <div className="mt-6 space-y-6">
+      {networks.map(network => (
+        <Card key={network}>
+          <Title>{network} Followers Over Time</Title>
+          <AreaChart
+            className="h-72 mt-4"
+            data={processedData[0].data.slice().reverse()} // Invertimos el orden de los datos para la gráfica
+            index="date"
+            categories={[network]}
+            colors={["blue"]}
+            valueFormatter={(number: number) => Intl.NumberFormat("us").format(number).toString()}
+            yAxisWidth={60}
+          />
+        </Card>
+      ))}
+    </div>
+  );
 
   return (
     <Card>
-      <div className="flex justify-between items-center mb-4">
-        <Title>Análisis Temporal de Instituciones Seleccionadas</Title>
-        <Button onClick={togglePercentages}>
-          {showPercentages ? 'Mostrar Valores Reales' : 'Mostrar Porcentajes'}
+      <div className="flex justify-between items-center mb-6">
+        <Title>Análisis Temporal de {processedData[0].institution}</Title>
+        <Button
+          size="xs"
+          variant="secondary"
+          onClick={() => setShowCharts(!showCharts)}
+        >
+          {showCharts ? 'Ver Tabla' : 'Ver Gráficas'}
         </Button>
       </div>
-      {Object.entries(processedData).map(([institutionName, institutionData]) => (
-        <div key={institutionName} className="mt-6">
-          <Title className="text-lg">{institutionName}</Title>
-          <Table className="mt-4">
-            <TableHead>
-              <TableRow>
-                <TableHeaderCell>Fecha</TableHeaderCell>
-                {networks.flatMap(network => 
-                  metrics.map(metric => (
-                    <TableHeaderCell key={`${network}-${metric}`}>
-                      {`${network} ${metric}`}
-                    </TableHeaderCell>
-                  ))
-                )}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {availableDates.map((date, index) => (
-                <TableRow key={date}>
-                  <TableCell>{date}</TableCell>
-                  {networks.flatMap(network => 
-                    metrics.map(metric => {
-                      const currentValue = institutionData[date]?.[network]?.[metric];
-                      const previousValue = index > 0 
-                        ? institutionData[availableDates[index - 1]]?.[network]?.[metric]
-                        : undefined;
-                      return (
-                        <TableCell key={`${network}-${metric}`}>
-                          <Text>
-                            {formatValue(currentValue, previousValue)}
-                          </Text>
-                        </TableCell>
-                      );
-                    })
-                  )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      ))}
+
+      {showCharts ? renderCharts() : renderTable()}
     </Card>
   );
 };
