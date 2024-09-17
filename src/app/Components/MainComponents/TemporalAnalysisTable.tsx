@@ -1,8 +1,6 @@
-import React, { useState, useMemo } from 'react';
-import { Card, Title, Text, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Badge, Button } from '@tremor/react';
-import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/solid';
-import { AreaChart } from '@tremor/react';
-import { Select } from 'flowbite-react'; // Cambiamos a usar Select de flowbite-react
+import React, { useState, useMemo, useEffect } from 'react';
+import { Card, Title, Text, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Badge, Button , AreaChart} from '@tremor/react';
+import { Select } from 'flowbite-react';
 
 interface TemporalAnalysisTableProps {
   selectedInstitutions: any[];
@@ -22,9 +20,12 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
 
   const networks = ['Facebook', 'X', 'Instagram', 'YouTube', 'TikTok'];
 
+  // Ordenar availableDates de más antigua a más reciente
+  const sortedDates = useMemo(() => [...availableDates].sort((a, b) => new Date(a).getTime() - new Date(b).getTime()), [availableDates]);
+
   const processedData = useMemo(() => {
     return selectedInstitutions.map(institution => {
-      const institutionData = availableDates.map(date => {
+      const institutionData = sortedDates.map(date => {
         const dataForDate = temporalData.find(
           item => item.Institucion === institution.Institucion && item.date === date
         );
@@ -42,50 +43,62 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
         data: institutionData
       };
     });
-  }, [selectedInstitutions, temporalData, availableDates, networks]);
+  }, [selectedInstitutions, temporalData, sortedDates, networks]);
+
+  // Asegurarse de que selectedInstitutionIndex sea válido
+  useEffect(() => {
+    if (selectedInstitutionIndex >= selectedInstitutions.length) {
+      setSelectedInstitutionIndex(0);
+    }
+  }, [selectedInstitutions, selectedInstitutionIndex]);
 
   const calculateGrowth = (current: number, previous: number) => {
     if (previous === 0) return current > 0 ? 100 : 0;
     return ((current - previous) / previous) * 100;
   };
 
-  const renderTable = () => (
-    <Table className="mt-6">
-      <TableHead>
-        <TableRow>
-          <TableHeaderCell>Fecha</TableHeaderCell>
-          {networks.map(network => (
-            <TableHeaderCell key={network}>{network}</TableHeaderCell>
-          ))}
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {processedData[selectedInstitutionIndex].data.map((row, index) => (
-          <TableRow key={row.date}>
-            <TableCell>{row.date}</TableCell>
-            {networks.map(network => {
-              const currentValue = row[network];
-              const previousValue = index > 0 ? processedData[selectedInstitutionIndex].data[index - 1][network] : currentValue;
-              const growth = calculateGrowth(currentValue, previousValue);
-              const color = growth > 0 ? 'green' : growth < 0 ? 'red' : 'gray';
+  const renderTable = () => {
+    if (!processedData[selectedInstitutionIndex]) {
+      return <Text>No hay datos disponibles para la institución seleccionada.</Text>;
+    }
 
-              return (
-                <TableCell key={network}>
-                  <div className="flex items-center space-x-2">
-                    <Text>{currentValue.toLocaleString()}</Text>
-                     <Badge color={color} icon={growth > 0 ? 'green' : 'red'}>
-                      {Math.abs(growth).toFixed(2)}%
-                    </Badge>
-
-                  </div>
-                </TableCell>
-              );
-            })}
+    return (
+      <Table className="mt-6">
+        <TableHead>
+          <TableRow>
+            <TableHeaderCell>Fecha</TableHeaderCell>
+            {networks.map(network => (
+              <TableHeaderCell key={network}>{network}</TableHeaderCell>
+            ))}
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
+        </TableHead>
+        <TableBody>
+          {processedData[selectedInstitutionIndex].data.map((row, index) => (
+            <TableRow key={row.date}>
+              <TableCell>{row.date}</TableCell>
+              {networks.map(network => {
+                const currentValue = row[network];
+                const previousValue = index > 0 ? processedData[selectedInstitutionIndex].data[index - 1][network] : currentValue;
+                const growth = calculateGrowth(currentValue, previousValue);
+                const color = growth > 0 ? 'green' : growth < 0 ? 'red' : 'gray';
+
+                return (
+                  <TableCell key={network}>
+                    <div className="flex items-center space-x-2">
+                      <Text>{currentValue.toLocaleString()}</Text>
+                      <Badge color={color}>
+                        {growth > 0 ? '▲' : '▼'} {Math.abs(growth).toFixed(2)}%
+                      </Badge>
+                    </div>
+                  </TableCell>
+                );
+              })}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    );
+  };
 
   const renderCharts = () => (
     <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -94,7 +107,7 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
           <Title>{network} Followers Over Time</Title>
           <AreaChart
             className="h-72 mt-4"
-            data={processedData[selectedInstitutionIndex].data}
+            data={processedData[selectedInstitutionIndex]?.data || []}
             index="date"
             categories={[network]}
             colors={["blue"]}
@@ -126,8 +139,7 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
             value={selectedInstitutionIndex.toString()}
             onChange={(e) => setSelectedInstitutionIndex(Number(e.target.value))}
           >
-            {
-            selectedInstitutions.map((inst, index) => (
+            {selectedInstitutions.map((inst, index) => (
               <option key={inst.Institucion} value={index.toString()}>
                 {inst.Institucion}
               </option>
