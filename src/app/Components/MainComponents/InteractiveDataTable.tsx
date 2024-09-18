@@ -193,7 +193,7 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
         </div>
       )}
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
-        <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+        <div style={{ maxHeight: '500px', overflowY: 'auto', overflowX: 'auto' }}>
           <Table hoverable className="w-full">
             <Table.Head className="sticky top-0 bg-white dark:bg-gray-800 z-10">
               <Table.HeadCell className="w-4 sticky left-0 bg-white dark:bg-gray-800 z-20">
@@ -202,11 +202,11 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
                   onChange={() => onInstitutionSelect(selectedInstitutions.length === sortedData.length ? [] : sortedData)}
                 />
               </Table.HeadCell>
-              {visibleColumns.map((column) => (
+              {visibleColumns.map((column, index) => (
                 <Table.HeadCell 
                   key={column.key} 
                   onClick={() => handleSort(column.key)} 
-                  className="cursor-pointer"
+                  className={`cursor-pointer ${index === 0 ? 'sticky left-[40px] bg-white dark:bg-gray-800 z-10' : ''}`}
                 >
                   <div className="flex items-center">
                     {column.label}
@@ -222,15 +222,20 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
                   className={`cursor-pointer ${isRowSelected(item) ? 'bg-blue-100 dark:bg-blue-900' : 'bg-white dark:bg-gray-800'} hover:bg-gray-50 dark:hover:bg-gray-700`}
                   onClick={() => handleRowSelect(item)}
                 >
-                  <Table.Cell className="w-4 sticky left-0 bg-white dark:bg-gray-800 z-10">
+                  <Table.Cell className="w-4 sticky left-0 bg-inherit z-10">
                     <Checkbox 
                       checked={isRowSelected(item)}
                       onChange={() => handleRowSelect(item)}
                       onClick={(e) => e.stopPropagation()}
                     />
                   </Table.Cell>
-                  {visibleColumns.map(column => (
-                    <Table.Cell key={column.key} className="max-w-xs break-words font-medium text-gray-900 dark:text-white">
+                  {visibleColumns.map((column, index) => (
+                    <Table.Cell 
+                      key={column.key} 
+                      className={`max-w-xs break-words font-medium text-gray-900 dark:text-white ${
+                        index === 0 ? 'sticky left-[40px] bg-inherit z-10' : ''
+                      }`}
+                    >
                       {formatValue(
                         column.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : 'N/A'), item),
                         null // We don't have previous data in this context
