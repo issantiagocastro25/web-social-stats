@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
 import { Card, Text, Flex, Grid } from "@tremor/react";
 import { FaFacebook, FaInstagram, FaTwitter, FaYoutube, FaTiktok } from 'react-icons/fa';
+import XIcon from './XIcon';
+
 
 interface GroupSummaryData {
   stats_date: string;
@@ -25,7 +27,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data, isAllCategory, isLoad
     switch (network.toLowerCase()) {
       case 'facebook': return <FaFacebook className="text-blue-600 text-2xl" />;
       case 'instagram': return <FaInstagram className="text-pink-600 text-2xl" />;
-      case 'x': return <FaTwitter className="text-blue-400 text-2xl" />;
+      case 'x': return <XIcon className=" text-2xl" />;
       case 'youtube': return <FaYoutube className="text-red-600 text-2xl" />;
       case 'tiktok': return <FaTiktok className="text-black text-2xl" />;
       default: return null;

@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { Table, Checkbox, Button } from 'flowbite-react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { Checkbox, Button } from 'flowbite-react';
 import { FaFacebook, FaInstagram, FaYoutube, FaSort, FaSortUp, FaSortDown, FaTimes } from 'react-icons/fa';
 import { SiTiktok } from 'react-icons/si';
 import XIcon from './XIcon';
@@ -30,6 +30,7 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
     YouTube: true,
     TikTok: true
   });
+  const [columnWidths, setColumnWidths] = useState<{[key: string]: number}>({});
 
   const columns = [
     { key: 'Institucion', label: 'Institución', network: 'basic' },
@@ -58,6 +59,21 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
   ];
 
   const visibleColumns = columns.filter(column => visibleNetworks[column.network]);
+
+  useEffect(() => {
+    const widths = {};
+    visibleColumns.forEach(column => {
+      const maxLength = Math.max(
+        column.label.length,
+        ...data.map(item => {
+          const value = column.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : ''), item);
+          return String(value).length;
+        })
+      );
+      widths[column.key] = Math.min(Math.max(maxLength * 8, 100), 300); // 8px per character, min 100px, max 300px
+    });
+    setColumnWidths(widths);
+  }, [data, visibleColumns]);
 
   const sortedData = useMemo(() => {
     let sortableItems = [...data];
@@ -179,10 +195,7 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
               <div key={institution.Institucion} className="flex items-center bg-white px-3 py-1 rounded-full">
                 <span>{institution.Institucion}</span>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRowSelect(institution);
-                  }}
+                  onClick={() => handleRowSelect(institution)}
                   className="ml-2 text-red-500 hover:text-red-700"
                 >
                   <FaTimes />
@@ -192,60 +205,69 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
           </div>
         </div>
       )}
-      <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
-        <div style={{ maxHeight: '500px', overflowY: 'auto', overflowX: 'auto' }}>
-          <Table hoverable className="w-full">
-            <Table.Head className="sticky top-0 bg-white dark:bg-gray-800 z-10">
-              <Table.HeadCell className="w-4 sticky left-0 bg-white dark:bg-gray-800 z-20">
-                <Checkbox 
-                  checked={selectedInstitutions.length === sortedData.length}
-                  onChange={() => onInstitutionSelect(selectedInstitutions.length === sortedData.length ? [] : sortedData)}
-                />
-              </Table.HeadCell>
-              {visibleColumns.map((column, index) => (
-                <Table.HeadCell 
-                  key={column.key} 
-                  onClick={() => handleSort(column.key)} 
-                  className={`cursor-pointer ${index === 0 ? 'sticky left-[40px] bg-white dark:bg-gray-800 z-10' : ''}`}
-                >
-                  <div className="flex items-center">
-                    {column.label}
-                    <SortIcon column={column.key} />
-                  </div>
-                </Table.HeadCell>
-              ))}
-            </Table.Head>
-            <Table.Body className="divide-y">
+      <div className="relative overflow-hidden shadow-md sm:rounded-lg" style={{ height: '500px' }}>
+        <div className="overflow-auto" style={{ height: '100%', width: '100%' }}>
+          <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0 z-20">
+              <tr>
+                <th scope="col" className="p-4 sticky left-0 z-30 bg-gray-50 dark:bg-gray-700">
+                  <Checkbox 
+                    checked={selectedInstitutions.length === sortedData.length}
+                    onChange={() => onInstitutionSelect(selectedInstitutions.length === sortedData.length ? [] : sortedData)}
+                  />
+                </th>
+                {visibleColumns.map((column, index) => (
+                  <th
+                    key={column.key}
+                    scope="col"
+                    className={`px-6 py-3 cursor-pointer ${
+                      index === 0 ? 'sticky left-12 z-20 bg-gray-50 dark:bg-gray-700' : ''
+                    }`}
+                    onClick={() => handleSort(column.key)}
+                    style={{ width: `${columnWidths[column.key]}px` }}
+                  >
+                    <div className="flex items-center">
+                      {column.label}
+                      <SortIcon column={column.key} />
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
               {sortedData.map((item) => (
-                <Table.Row 
-                  key={item.Institucion} 
-                  className={`cursor-pointer ${isRowSelected(item) ? 'bg-blue-100 dark:bg-blue-900' : 'bg-white dark:bg-gray-800'} hover:bg-gray-50 dark:hover:bg-gray-700`}
+                <tr
+                  key={item.Institucion}
+                  className={`cursor-pointer ${
+                    isRowSelected(item) ? 'bg-blue-100 dark:bg-blue-900' : 'bg-white dark:bg-gray-800'
+                  } hover:bg-gray-50 dark:hover:bg-gray-700`}
                   onClick={() => handleRowSelect(item)}
                 >
-                  <Table.Cell className="w-4 sticky left-0 bg-inherit z-10">
-                    <Checkbox 
+                  <td className="w-4 p-4 sticky left-0 z-10 bg-inherit">
+                    <Checkbox
                       checked={isRowSelected(item)}
                       onChange={() => handleRowSelect(item)}
                       onClick={(e) => e.stopPropagation()}
                     />
-                  </Table.Cell>
+                  </td>
                   {visibleColumns.map((column, index) => (
-                    <Table.Cell 
-                      key={column.key} 
-                      className={`max-w-xs break-words font-medium text-gray-900 dark:text-white ${
-                        index === 0 ? 'sticky left-[40px] bg-inherit z-10' : ''
+                    <td
+                      key={column.key}
+                      className={`px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap ${
+                        index === 0 ? 'sticky left-12 z-10 bg-inherit' : ''
                       }`}
+                      style={{ width: `${columnWidths[column.key]}px` }}
                     >
                       {formatValue(
                         column.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : 'N/A'), item),
                         null // We don't have previous data in this context
                       )}
-                    </Table.Cell>
+                    </td>
                   ))}
-                </Table.Row>
+                </tr>
               ))}
-            </Table.Body>
-          </Table>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
