@@ -118,13 +118,7 @@ const SocialStatsDashboard: React.FC = () => {
     setShowGroupTemporalAnalysis(false);
   };
 
-  const handleInstitutionSelect = useCallback((institutions: any[]) => {
-    setSelectedInstitutions(institutions);
-    setShowTemporalAnalysis(false);
-    setTemporalData([]);
-  }, []);
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value.toLowerCase();
     setSearchTerm(term);
     const filtered = data.filter((item: any) =>
@@ -133,7 +127,22 @@ const SocialStatsDashboard: React.FC = () => {
       (item.Tipo && item.Tipo.toLowerCase().includes(term))
     );
     setFilteredData(filtered);
-  };
+  }, [data]);
+
+  const handleInstitutionSelect = useCallback((institutions: any[]) => {
+    setSelectedInstitutions(institutions);
+    setShowTemporalAnalysis(false);
+    setTemporalData([]);
+    setShowGroupTemporalAnalysis(false);
+  }, []);
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedInstitutions([]);
+    setShowTemporalAnalysis(false);
+    setTemporalData([]);
+    setShowGroupTemporalAnalysis(false);
+  }, []);
+
 
   const handleTemporalAnalysis = async () => {
     if (selectedInstitutions.length === 0) return;
@@ -196,13 +205,13 @@ const SocialStatsDashboard: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <div className="container mx-auto px-4 py-8 flex-grow">
         <h1 className="text-4xl font-extrabold text-center mb-8 text-gray-900">
-          Dashboard de Estadísticas Sociales
+          Salud Colombia
         </h1>
 
         <Select 
           className='w-64 mb-6' 
           value={selectedDate} 
-          onChange={handleDateChange}
+          onChange={handleDateChange} 
         >
           {AVAILABLE_DATES.map(date => (
             <option key={date} value={date}>{date}</option>
@@ -259,17 +268,18 @@ const SocialStatsDashboard: React.FC = () => {
               </Card>
             )}
 
-            <Card>
-              <h2 className="text-2xl font-bold mb-4">Datos para la categoría: {activeCategory}</h2>
-              <InteractiveDataTable 
-                data={filteredData}
-                onInstitutionSelect={handleInstitutionSelect}
-                selectedType={activeCategory}
-                selectedDate={selectedDate}
-                selectedInstitutions={selectedInstitutions}
-                isLoading={isLoading}
-              />
-            </Card>
+        <Card>
+          <h2 className="text-2xl font-bold mb-4">Datos para la categoría: {activeCategory}</h2>
+          <InteractiveDataTable 
+            data={filteredData}
+            onInstitutionSelect={handleInstitutionSelect}
+            onClearSelection={handleClearSelection}
+            selectedType={activeCategory}
+            selectedDate={selectedDate}
+            selectedInstitutions={selectedInstitutions}
+            isLoading={isLoading}
+          />
+        </Card>
 
             {selectedInstitutions.length === 1 && (
               <Card className="mt-6">
@@ -293,24 +303,23 @@ const SocialStatsDashboard: React.FC = () => {
               </Grid>
             )}
 
-{showTemporalAnalysis && temporalData.length > 0 && (
-        <TemporalAnalysisTable 
-          selectedInstitutions={selectedInstitutions}
-          temporalData={temporalData}
-          availableDates={AVAILABLE_DATES}
-          isLoading={isLoadingTemporal}
-        />
-      )}
+            {showTemporalAnalysis && temporalData.length > 0 && (
+              <TemporalAnalysisTable 
+                selectedInstitutions={selectedInstitutions}
+                temporalData={temporalData}
+                availableDates={AVAILABLE_DATES}
+                isLoading={isLoadingTemporal}
+              />
+            )}
 
-      {showGroupTemporalAnalysis && (
-        <GroupTemporalAnalysisTable 
-          temporalData={temporalData}
-          availableDates={AVAILABLE_DATES}
-          onClose={() => setShowGroupTemporalAnalysis(false)}
-          isLoading={isLoadingTemporal}
-        />
-      )}
-
+            {showGroupTemporalAnalysis && (
+              <GroupTemporalAnalysisTable 
+                temporalData={temporalData}
+                availableDates={AVAILABLE_DATES}
+                onClose={() => setShowGroupTemporalAnalysis(false)}
+                isLoading={isLoadingTemporal}
+              />
+            )}
           </>
         )}
 

@@ -53,6 +53,7 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
   }, [selectedInstitutions, selectedInstitutionIndex]);
 
   const calculateGrowth = (current: number, previous: number) => {
+    if (current === 0) return 0;
     if (previous === 0) return current > 0 ? 100 : 0;
     return ((current - previous) / previous) * 100;
   };
@@ -87,7 +88,7 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
                     <div className="flex items-center space-x-2">
                       <Text>{currentValue.toLocaleString()}</Text>
                       <Badge color={color}>
-                        {growth > 0 ? '▲' : '▼'} {Math.abs(growth).toFixed(2)}%
+                        {growth > 0 ? '▲' : growth < 0 ? '▼' : '−'} {Math.abs(growth).toFixed(2)}%
                       </Badge>
                     </div>
                   </TableCell>

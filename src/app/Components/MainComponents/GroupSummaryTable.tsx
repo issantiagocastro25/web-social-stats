@@ -21,17 +21,22 @@ interface GroupSummaryTableProps {
 
 const GroupSummaryTable: React.FC<GroupSummaryTableProps> = ({ summaryCardsData, isLoading }) => {
   const [showPercentages, setShowPercentages] = useState(false);
-  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'ascending' | 'descending' }>({ key: 'total', direction: 'descending' });
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'ascending' | 'descending' }>({ key: 'Facebook', direction: 'descending' });
 
   const groupSummary = useMemo(() => {
     const groups: Record<string, Record<string, number>> = {};
-    let totalFollowers = 0;
+    const totals: Record<string, number> = {
+      Facebook: 0,
+      X: 0,
+      Instagram: 0,
+      YouTube: 0,
+      TikTok: 0,
+    };
 
     if (summaryCardsData && Array.isArray(summaryCardsData.stats)) {
       summaryCardsData.stats.forEach(item => {
         if (!groups[item.type_institution]) {
           groups[item.type_institution] = {
-            total: 0,
             Facebook: 0,
             X: 0,
             Instagram: 0,
@@ -41,15 +46,14 @@ const GroupSummaryTable: React.FC<GroupSummaryTableProps> = ({ summaryCardsData,
         }
 
         groups[item.type_institution][item.social_network] = item.total_followers;
-        groups[item.type_institution].total += item.total_followers;
-        totalFollowers += item.total_followers;
+        totals[item.social_network] += item.total_followers;
       });
     }
 
-    return { groups, totalFollowers };
+    return { groups, totals };
   }, [summaryCardsData]);
 
-  const { groups, totalFollowers } = groupSummary;
+  const { groups, totals } = groupSummary;
 
   const sortedGroups = useMemo(() => {
     const groupsArray = Object.entries(groups);
@@ -73,8 +77,9 @@ const GroupSummaryTable: React.FC<GroupSummaryTableProps> = ({ summaryCardsData,
 
   const formatValue = (value: number, total: number) => {
     if (showPercentages) {
+      if (total === 0) return '0%';
       const percentage = (value / total) * 100;
-      return percentage === 0 ? '0%' : `${percentage.toFixed(2)}%`;
+      return isNaN(percentage) ? '0%' : `${percentage.toFixed(2)}%`;
     }
     return value.toLocaleString();
   };
@@ -92,6 +97,29 @@ const GroupSummaryTable: React.FC<GroupSummaryTableProps> = ({ summaryCardsData,
       return <FaSort className="ml-1" />;
     }
     return sortConfig.direction === 'ascending' ? <FaSortUp className="ml-1" /> : <FaSortDown className="ml-1" />;
+  };
+
+  const calculateTotalPercentage = () => {
+    if (!showPercentages) return null;
+
+    const percentageSums = Object.keys(totals).reduce((sums, network) => {
+      sums[network] = sortedGroups.reduce((sum, [, data]) => {
+        const percentage = (data[network] / totals[network]) * 100;
+        return sum + (isNaN(percentage) ? 0 : percentage);
+      }, 0);
+      return sums;
+    }, {} as Record<string, number>);
+
+    return (
+      <TableRow>
+        <TableCell>Total</TableCell>
+        {Object.entries(percentageSums).map(([network, sum]) => (
+          <TableCell key={network}>
+            {`${sum.toFixed(2)}%`}
+          </TableCell>
+        ))}
+      </TableRow>
+    );
   };
 
   if (isLoading) {
@@ -129,12 +157,7 @@ const GroupSummaryTable: React.FC<GroupSummaryTableProps> = ({ summaryCardsData,
       <Table>
         <TableHead>
           <TableRow>
-            <TableHeaderCell onClick={() => requestSort('Tipo')} className="cursor-pointer">
-              Grupo <SortIcon columnKey="Tipo" />
-            </TableHeaderCell>
-            <TableHeaderCell onClick={() => requestSort('total')} className="cursor-pointer">
-              Total Seguidores <SortIcon columnKey="total" />
-            </TableHeaderCell>
+            <TableHeaderCell>Grupo</TableHeaderCell>
             <TableHeaderCell onClick={() => requestSort('Facebook')} className="cursor-pointer">
               Facebook <SortIcon columnKey="Facebook" />
             </TableHeaderCell>
@@ -156,16 +179,14 @@ const GroupSummaryTable: React.FC<GroupSummaryTableProps> = ({ summaryCardsData,
           {sortedGroups.map(([groupName, data]) => (
             <TableRow key={groupName}>
               <TableCell>{groupName}</TableCell>
-              <TableCell>
-                <Text>{formatValue(data.total, totalFollowers)}</Text>
-              </TableCell>
-              <TableCell>{formatValue(data.Facebook, data.total)}</TableCell>
-              <TableCell>{formatValue(data.X, data.total)}</TableCell>
-              <TableCell>{formatValue(data.Instagram, data.total)}</TableCell>
-              <TableCell>{formatValue(data.YouTube, data.total)}</TableCell>
-              <TableCell>{formatValue(data.TikTok, data.total)}</TableCell>
+              <TableCell>{formatValue(data.Facebook, totals.Facebook)}</TableCell>
+              <TableCell>{formatValue(data.X, totals.X)}</TableCell>
+              <TableCell>{formatValue(data.Instagram, totals.Instagram)}</TableCell>
+              <TableCell>{formatValue(data.YouTube, totals.YouTube)}</TableCell>
+              <TableCell>{formatValue(data.TikTok, totals.TikTok)}</TableCell>
             </TableRow>
           ))}
+          {calculateTotalPercentage()}
         </TableBody>
       </Table>
     </Card>

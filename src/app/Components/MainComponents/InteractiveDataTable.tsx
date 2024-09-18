@@ -1,12 +1,13 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Checkbox, Button } from 'flowbite-react';
-import { FaFacebook, FaInstagram, FaYoutube, FaSort, FaSortUp, FaSortDown, FaTimes } from 'react-icons/fa';
+import { FaFacebook, FaInstagram, FaYoutube, FaSort, FaSortUp, FaSortDown, FaTimes, FaTrash } from 'react-icons/fa';
 import { SiTiktok } from 'react-icons/si';
 import XIcon from './XIcon';
 
 interface InteractiveDataTableProps {
   data: any[];
   onInstitutionSelect: (institutions: any[]) => void;
+  onClearSelection: () => void;
   selectedType: string;
   selectedDate: string;
   selectedInstitutions: any[];
@@ -16,6 +17,7 @@ interface InteractiveDataTableProps {
 const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({ 
   data, 
   onInstitutionSelect, 
+  onClearSelection,
   selectedType, 
   selectedDate, 
   selectedInstitutions,
@@ -189,8 +191,18 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
       </div>
       {selectedInstitutions.length > 0 && (
         <div className="mb-4 p-4 bg-blue-100 rounded-lg">
-          <h3 className="text-lg font-semibold mb-2">Instituciones Seleccionadas:</h3>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold">Instituciones Seleccionadas: {selectedInstitutions.length}</h3>
+            <Button
+              color="failure"
+              size="xs"
+              onClick={onClearSelection}
+            >
+              <FaTrash className="mr-2" />
+              Limpiar selección
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-2 mt-2">
             {selectedInstitutions.map(institution => (
               <div key={institution.Institucion} className="flex items-center bg-white px-3 py-1 rounded-full">
                 <span>{institution.Institucion}</span>
