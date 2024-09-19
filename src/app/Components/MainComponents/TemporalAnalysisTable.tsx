@@ -105,7 +105,7 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
     <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
       {networks.map(network => (
         <Card key={network}>
-          <Title>{network} Followers Over Time</Title>
+          <Title> Seguidores en {network} a lo largo del tiempo </Title>
           <AreaChart
             className="h-72 mt-4"
             data={processedData[selectedInstitutionIndex]?.data || []}

@@ -70,3 +70,28 @@ export const fetchCategories = async (category) => {
     throw error;
   }
 };
+export const fetchPopulationData = async (options = {}) => {
+  const {
+    category,
+    date,
+  } = options;
+
+  if (!category || !date) {
+    throw new Error('Category and date are required for fetching population data');
+  }
+
+  try {
+    const response = await axios.get(`${API_URL}/api/social-metrics/population`, {
+      params: {
+        category,
+        date,
+      }
+    });
+    
+    console.log('Population data response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching population data:', error);
+    throw error;
+  }
+};

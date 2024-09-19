@@ -14,6 +14,7 @@ import TemporalAnalysisTable from './TemporalAnalysisTable';
 import GroupSummaryTable from './GroupSummaryTable';
 import GroupTemporalAnalysisTable from './GroupTemporalAnalysisTable';
 import ProgressBar from './ProgressBar';
+import PopulationCard from './PopulationCard';
 
 const AVAILABLE_DATES = [
   '2021-06-01', '2020-12-01', '2019-12-01', '2019-06-01', 
@@ -50,6 +51,41 @@ const SocialStatsDashboard: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [summaryCardsData, setSummaryCardsData] = useState<any>(null);
   const [showGroupTemporalAnalysis, setShowGroupTemporalAnalysis] = useState<boolean>(false);
+
+  const [populationData, setPopulationData] = useState({
+    population: 0,
+    uniqueFollowers: 0,
+    penetrationRate: 0,
+  });
+
+  const fetchPopulationStats = useCallback(async (date: string) => {
+    try {
+      const apiCategory = currentSection === 'hospitales' ? 'latinoamerica' : currentSection;
+      console.log('Fetching population data for category:', apiCategory);
+      const response = await fetchPopulationData({ 
+        category: apiCategory,
+        date: date
+      });
+
+      setPopulationData({
+        population: response.population,
+        uniqueFollowers: response.uniqueFollowers,
+        penetrationRate: response.penetrationRate,
+      });
+    } catch (error) {
+      console.error('Error fetching population data:', error);
+      // Manejar el error apropiadamente, tal vez establecer un estado de error
+      setPopulationData({
+        population: 0,
+        uniqueFollowers: 0,
+        penetrationRate: 0,
+      });
+    }
+  }, [currentSection]);
+
+  useEffect(() => {
+    fetchPopulationStats(selectedDate);
+  }, [selectedDate, fetchPopulationStats, currentSection]);
 
   const determineSection = useCallback((path: string | null): SectionType => {
     console.log('Determining section for path:', path);
@@ -273,14 +309,22 @@ return (
 
       {isLoading ? renderSkeleton() : (
         <>
-           {showCategories && (
-              <ImageNavbar 
-                onCategorySelect={handleCategorySelect} 
-                activeCategory={activeCategory} 
-                categories={categories}
-                currentSection={currentSection}
-              />
-            )}
+            {showCategories && (
+          <ImageNavbar 
+            onCategorySelect={handleCategorySelect} 
+            activeCategory={activeCategory} 
+            categories={categories}
+            currentSection={currentSection}
+          />
+        )}
+
+<PopulationCard 
+        selectedDate={selectedDate}
+        population={populationData.population}
+        uniqueFollowers={populationData.uniqueFollowers}
+        penetrationRate={populationData.penetrationRate}
+      />
+
             <SummaryCards 
                   data={summaryCardsData} 
                   isAllCategory={activeCategory === 'Todos' || currentSection === 'hospitales'} 
