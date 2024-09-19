@@ -9,6 +9,8 @@ export const fetchSocialStats = async (options = {}) => {
     date = '2021-06-01',
   } = options;
 
+  console.log('fetchSocialStats called with options:', options);
+
   try {
     const response = await axios.get(`${API_URL}/api/social-metrics/`, {
       params: {
@@ -18,6 +20,7 @@ export const fetchSocialStats = async (options = {}) => {
       }
     });
     
+    console.log('fetchSocialStats response:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching social stats:', error);

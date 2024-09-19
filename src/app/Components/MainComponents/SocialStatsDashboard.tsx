@@ -33,6 +33,7 @@ type SectionType = 'salud' | 'compensacion' | 'hospitales';
 const SocialStatsDashboard: React.FC = () => {
   const pathname = usePathname();
   const [currentSection, setCurrentSection] = useState<SectionType>('salud');
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [data, setData] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('Todos');
@@ -51,58 +52,42 @@ const SocialStatsDashboard: React.FC = () => {
   const [showGroupTemporalAnalysis, setShowGroupTemporalAnalysis] = useState<boolean>(false);
 
   const determineSection = useCallback((path: string | null): SectionType => {
-    if (path?.includes('/hospitales')) return 'hospitales';
-    if (path?.includes('/compensacion')) return 'compensacion';
+    console.log('Determining section for path:', path);
+    if (!path || path === '/' || path.startsWith('/salud')) return 'salud';
+    if (path.startsWith('/hospitales')) return 'hospitales';
+    if (path.startsWith('/compensacion')) return 'compensacion';
+    console.log('Unrecognized path, defaulting to salud');
     return 'salud';
   }, []);
 
-  useEffect(() => {
-    const newSection = determineSection(pathname);
-    if (newSection !== currentSection) {
-      console.log('URL changed, new section:', newSection);
-      setCurrentSection(newSection);
-      setActiveCategory('Todos');
-      setActiveCategoryId(null);
-      setSelectedInstitutions([]);
-      setShowTemporalAnalysis(false);
-      setTemporalData([]);
-      setShowGroupTemporalAnalysis(false);
-      loadData(newSection);
-      loadCategories(newSection);
-    }
-  }, [pathname, determineSection, currentSection]);
-
   const loadCategories = useCallback(async (section: SectionType) => {
-    if (section !== 'hospitales') {
-      try {
-        const fetchedCategories = await fetchCategories(section);
-        console.log('Fetched categories for section:', section, fetchedCategories);
-        if (section === 'salud') {
-          const allCategory: Category = {
-            id: 0,
-            name: 'Todos',
-            institution_count: fetchedCategories.reduce((sum, cat) => sum + (cat.institution_count || 0), 0),
-            url: 'https://cdn-icons-png.flaticon.com/512/4320/4320350.png',
-            ordering: -1
-          };
-          setCategories([allCategory, ...fetchedCategories]);
-        } else {
-          setCategories(fetchedCategories);
-        }
-      } catch (err: any) {
-        console.error('Error loading categories:', err);
-        setError(err.message || 'Error al cargar las categorías');
+    console.log('Loading categories for section:', section);
+    try {
+      const fetchedCategories = await fetchCategories(section);
+      console.log('Fetched categories:', fetchedCategories);
+      if (section === 'salud' || section === 'compensacion') {
+        const allCategory: Category = {
+          id: 0,
+          name: 'Todos',
+          institution_count: fetchedCategories.reduce((sum, cat) => sum + (cat.institution_count || 0), 0),
+          url: 'https://cdn-icons-png.flaticon.com/512/4320/4320350.png',
+          ordering: -1
+        };
+        setCategories([allCategory, ...fetchedCategories]);
+      } else {
+        setCategories([]);
       }
-    } else {
-      setCategories([]);
+    } catch (err: any) {
+      console.error('Error loading categories:', err);
+      setError(err.message || 'Error al cargar las categorías');
     }
   }, []);
 
   const loadData = useCallback(async (section: SectionType) => {
+    console.log('Loading data for section:', section);
     setIsLoading(true);
     setError(null);
     try {
-      console.log('Loading data for section:', section);
       const apiCategory = section === 'hospitales' ? 'latinoamerica' : section;
       const apiType = section === 'hospitales' ? 'todos' : (activeCategory === 'Todos' ? 'todos' : activeCategory.toLowerCase());
       
@@ -114,6 +99,8 @@ const SocialStatsDashboard: React.FC = () => {
         date: selectedDate
       });
       
+      console.log('API response:', response);
+
       if (response && response.data && Array.isArray(response.data.metrics)) {
         console.log('Data loaded successfully:', response.data.metrics.length, 'items');
         setData(response.data.metrics);
@@ -127,6 +114,7 @@ const SocialStatsDashboard: React.FC = () => {
         selectedDate,
         apiCategory
       );
+      console.log('Summary cards response:', summaryCardsResponse);
       setSummaryCardsData(summaryCardsResponse);
     } catch (err: any) {
       console.error('Error loading data:', err);
@@ -135,6 +123,27 @@ const SocialStatsDashboard: React.FC = () => {
       setIsLoading(false);
     }
   }, [activeCategory, activeCategoryId, selectedDate]);
+
+  useEffect(() => {
+    const newSection = determineSection(pathname);
+    console.log('Effect triggered. New section:', newSection, 'Current section:', currentSection, 'Is initial load:', isInitialLoad);
+    
+    if (newSection !== currentSection || isInitialLoad) {
+      console.log('Loading new data...');
+      setCurrentSection(newSection);
+      setActiveCategory('Todos');
+      setActiveCategoryId(null);
+      setSelectedInstitutions([]);
+      setShowTemporalAnalysis(false);
+      setTemporalData([]);
+      setShowGroupTemporalAnalysis(false);
+      loadData(newSection);
+      loadCategories(newSection);
+      setIsInitialLoad(false);
+    } else {
+      console.log('Section unchanged and not initial load. Skipping data load.');
+    }
+  }, [pathname, determineSection, currentSection, loadData, loadCategories, isInitialLoad]);
 
   const handleDateChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedDate(e.target.value);
@@ -239,7 +248,8 @@ const SocialStatsDashboard: React.FC = () => {
     </div>
   );
 
-  const showCategories = useMemo(() => currentSection !== 'hospitales' && categories.length > 0, [currentSection, categories]);
+  const showCategories = useMemo(() => currentSection === 'salud' && categories.length > 0, [currentSection, categories]);
+
 
   console.log('Rendering dashboard. Current section:', currentSection, 'Show categories:', showCategories);
 
