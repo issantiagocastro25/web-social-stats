@@ -63,20 +63,18 @@ const SocialStatsDashboard: React.FC = () => {
   const loadCategories = useCallback(async (section: SectionType) => {
     console.log('Loading categories for section:', section);
     try {
-      const fetchedCategories = await fetchCategories(section);
+      const apiCategory = section === 'hospitales' ? 'latinoamerica' : section;
+      const fetchedCategories = await fetchCategories(apiCategory);
       console.log('Fetched categories:', fetchedCategories);
-      if (section === 'salud' || section === 'compensacion') {
-        const allCategory: Category = {
-          id: 0,
-          name: 'Todos',
-          institution_count: fetchedCategories.reduce((sum, cat) => sum + (cat.institution_count || 0), 0),
-          url: 'https://cdn-icons-png.flaticon.com/512/4320/4320350.png',
-          ordering: -1
-        };
-        setCategories([allCategory, ...fetchedCategories]);
-      } else {
-        setCategories([]);
-      }
+      
+      const allCategory: Category = {
+        id: 0,
+        name: 'Todos',
+        institution_count: fetchedCategories.reduce((sum, cat) => sum + (cat.institution_count || 0), 0),
+        url: 'https://cdn-icons-png.flaticon.com/512/4320/4320350.png',
+        ordering: -1
+      };
+      setCategories([allCategory, ...fetchedCategories]);
     } catch (err: any) {
       console.error('Error loading categories:', err);
       setError(err.message || 'Error al cargar las categorías');
@@ -89,7 +87,7 @@ const SocialStatsDashboard: React.FC = () => {
     setError(null);
     try {
       const apiCategory = section === 'hospitales' ? 'latinoamerica' : section;
-      const apiType = section === 'hospitales' ? 'todos' : (activeCategory === 'Todos' ? 'todos' : activeCategory.toLowerCase());
+      const apiType = activeCategory === 'Todos' ? 'todos' : activeCategory.toLowerCase();
       
       console.log('API call parameters:', { category: apiCategory, type: apiType, date: selectedDate });
       
@@ -110,7 +108,7 @@ const SocialStatsDashboard: React.FC = () => {
       }
 
       const summaryCardsResponse = await fetchSummaryCardsData(
-        section === 'hospitales' ? null : (activeCategory === 'Todos' ? null : activeCategoryId), 
+        activeCategory === 'Todos' ? null : activeCategoryId, 
         selectedDate,
         apiCategory
       );
@@ -144,7 +142,6 @@ const SocialStatsDashboard: React.FC = () => {
       console.log('Section unchanged and not initial load. Skipping data load.');
     }
   }, [pathname, determineSection, currentSection, loadData, loadCategories, isInitialLoad]);
-
   const handleDateChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedDate(e.target.value);
     loadData(currentSection);
@@ -248,33 +245,35 @@ const SocialStatsDashboard: React.FC = () => {
     </div>
   );
 
-  const showCategories = useMemo(() => currentSection === 'salud' && categories.length > 0, [currentSection, categories]);
+
+  const showCategories = useMemo(() => categories.length > 0, [categories]);
 
 
-  console.log('Rendering dashboard. Current section:', currentSection, 'Show categories:', showCategories);
+console.log('Rendering dashboard. Current section:', currentSection, 'Show categories:', showCategories);
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <div className="container mx-auto px-4 py-8 flex-grow">
-        <h1 className="text-4xl font-extrabold text-center mb-8 text-gray-900">
-          {currentSection === 'salud' ? 'Salud Colombia' : 
-           currentSection === 'compensacion' ? 'Compensación' : 
-           'Hospitales Latinoamérica'}
-        </h1>
 
-        <Select 
-          className='w-64 mb-6' 
-          value={selectedDate} 
-          onChange={handleDateChange} 
-        >
-          {AVAILABLE_DATES.map(date => (
-            <option key={date} value={date}>{date}</option>
-          ))}
-        </Select>
+return (
+  <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="container mx-auto px-4 py-8 flex-grow">
+      <h1 className="text-4xl font-extrabold text-center mb-8 text-gray-900">
+        {currentSection === 'salud' ? 'Salud Colombia' : 
+         currentSection === 'compensacion' ? 'Compensación' : 
+         'Hospitales Latinoamérica'}
+      </h1>
 
-        {isLoading ? renderSkeleton() : (
-          <>
-            {showCategories && (
+      <Select 
+        className='w-64 mb-6' 
+        value={selectedDate} 
+        onChange={handleDateChange} 
+      >
+        {AVAILABLE_DATES.map(date => (
+          <option key={date} value={date}>{date}</option>
+        ))}
+      </Select>
+
+      {isLoading ? renderSkeleton() : (
+        <>
+           {showCategories && (
               <ImageNavbar 
                 onCategorySelect={handleCategorySelect} 
                 activeCategory={activeCategory} 
@@ -282,12 +281,11 @@ const SocialStatsDashboard: React.FC = () => {
                 currentSection={currentSection}
               />
             )}
-
             <SummaryCards 
-              data={summaryCardsData} 
-              isAllCategory={activeCategory === 'Todos' || currentSection === 'hospitales'} 
-              isLoading={isLoading}
-            />
+                  data={summaryCardsData} 
+                  isAllCategory={activeCategory === 'Todos' || currentSection === 'hospitales'} 
+                  isLoading={isLoading}
+                />
 
             {(activeCategory === 'Todos' || currentSection === 'hospitales') && summaryCardsData && (
               <Card className="mb-6">

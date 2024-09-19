@@ -3,7 +3,6 @@ import { Card, Text, Flex, Grid } from "@tremor/react";
 import { FaFacebook, FaInstagram, FaTwitter, FaYoutube, FaTiktok } from 'react-icons/fa';
 import XIcon from './XIcon';
 
-
 interface GroupSummaryData {
   stats_date: string;
   stats: Array<{
@@ -39,11 +38,16 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data, isAllCategory, isLoad
   };
 
   const summaryData = useMemo(() => {
+    console.log('Processing summary data. Raw data:', data);
+    console.log('Is All Category:', isAllCategory);
+
     if (!data || !data.stats) {
+      console.log('No data available');
       return [];
     }
   
     if (!isAllCategory) {
+      console.log('Returning specific category data');
       return data.stats;
     }
   
@@ -54,24 +58,8 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data, isAllCategory, isLoad
       average_views: number;
     }> = {};
   
-    // Objects to store statistics for specific categories
-    const hospitalesLatam: Record<string, {
-      total_followers: number;
-      total_publications: number;
-      total_reactions: number;
-      average_views: number;
-    }> = {};
-  
-    const cajasCompensacion: Record<string, {
-      total_followers: number;
-      total_publications: number;
-      total_reactions: number;
-      average_views: number;
-    }> = {};
-  
     // Process the stats data
     data.stats.forEach(stat => {
-      // Initialize totals for the social network if not already done
       if (!totals[stat.social_network]) {
         totals[stat.social_network] = {
           total_followers: 0,
@@ -81,67 +69,22 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data, isAllCategory, isLoad
         };
       }
   
-      // Accumulate stats into totals
       totals[stat.social_network].total_followers += stat.total_followers;
       totals[stat.social_network].total_publications += stat.total_publications;
       totals[stat.social_network].total_reactions += stat.total_reactions;
       totals[stat.social_network].average_views += stat.average_views;
-  
-      // Accumulate stats into specific categories if applicable
-      if (stat.type_institution === "Los 15 mejores Hospitales de Latinoamérica") {
-        if (!hospitalesLatam[stat.social_network]) {
-          hospitalesLatam[stat.social_network] = {
-            total_followers: 0,
-            total_publications: 0,
-            total_reactions: 0,
-            average_views: 0,
-          };
-        }
-        hospitalesLatam[stat.social_network].total_followers += stat.total_followers;
-        hospitalesLatam[stat.social_network].total_publications += stat.total_publications;
-        hospitalesLatam[stat.social_network].total_reactions += stat.total_reactions;
-        hospitalesLatam[stat.social_network].average_views += stat.average_views;
-      }
-  
-      if (stat.type_institution === "Caj. compensación") {
-        if (!cajasCompensacion[stat.social_network]) {
-          cajasCompensacion[stat.social_network] = {
-            total_followers: 0,
-            total_publications: 0,
-            total_reactions: 0,
-            average_views: 0,
-          };
-        }
-        cajasCompensacion[stat.social_network].total_followers += stat.total_followers;
-        cajasCompensacion[stat.social_network].total_publications += stat.total_publications;
-        cajasCompensacion[stat.social_network].total_reactions += stat.total_reactions;
-        cajasCompensacion[stat.social_network].average_views += stat.average_views;
-      }
     });
   
-    // Subtract specific categories from totals
-    Object.keys(totals).forEach(network => {
-      if (hospitalesLatam[network]) {
-        totals[network].total_followers -= hospitalesLatam[network].total_followers;
-        totals[network].total_publications -= hospitalesLatam[network].total_publications;
-        totals[network].total_reactions -= hospitalesLatam[network].total_reactions;
-        totals[network].average_views -= hospitalesLatam[network].average_views;
-      }
-      if (cajasCompensacion[network]) {
-        totals[network].total_followers -= cajasCompensacion[network].total_followers;
-        totals[network].total_publications -= cajasCompensacion[network].total_publications;
-        totals[network].total_reactions -= cajasCompensacion[network].total_reactions;
-        totals[network].average_views -= cajasCompensacion[network].average_views;
-      }
-    });
-  
-    // Return the updated totals
-    return Object.entries(totals).map(([social_network, stats]) => ({
+    const result = Object.entries(totals).map(([social_network, stats]) => ({
       social_network,
       ...stats,
     }));
+
+    console.log('Processed summary data:', result);
+    return result;
   }, [data, isAllCategory]);
-  
+
+  console.log('Rendering SummaryCards. Summary data:', summaryData);
 
   if (isLoading) {
     return (
@@ -164,7 +107,8 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data, isAllCategory, isLoad
     );
   }
 
-  if (!data || !data.stats) {
+  if (!data || !data.stats || summaryData.length === 0) {
+    console.log('No data available to display');
     return <div>No hay datos disponibles</div>;
   }
 

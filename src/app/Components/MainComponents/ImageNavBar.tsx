@@ -13,7 +13,7 @@ interface Category {
 }
 
 interface ImageNavbarProps {
-  onCategorySelect: (category: string, isAllCategory: boolean) => void;
+  onCategorySelect: (category: string) => void;
   activeCategory: string;
   categories: Category[];
   currentSection: 'salud' | 'compensacion' | 'hospitales';
@@ -39,18 +39,25 @@ const PrevArrow = (props: any) => {
 
 const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCategory, categories, currentSection }) => {
   const handleCategorySelect = (categoryName: string) => {
-    const isAllCategory = categoryName === 'Todos';
-    onCategorySelect(categoryName, isAllCategory);
+    onCategorySelect(categoryName);
   };
+
+  const filteredCategories = useMemo(() => {
+    if (currentSection === 'salud') {
+      return categories;
+    } else {
+      return categories.filter(category => category.name !== 'Todos');
+    }
+  }, [categories, currentSection]);
 
   const slidesToShow = useMemo(() => {
     const maxSlides = 5;
-    return Math.min(categories.length, maxSlides);
-  }, [categories]);
+    return Math.min(filteredCategories.length, maxSlides);
+  }, [filteredCategories]);
 
   const settings = useMemo(() => ({
     dots: false,
-    infinite: categories.length > slidesToShow,
+    infinite: filteredCategories.length > slidesToShow,
     speed: 500,
     slidesToShow: slidesToShow,
     slidesToScroll: 1,
@@ -79,12 +86,12 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
         }
       }
     ]
-  }), [categories, slidesToShow]);
+  }), [filteredCategories, slidesToShow]);
 
   return (
     <div className="mb-8 relative">
       <Slider {...settings}>
-        {categories.map((category) => (
+        {filteredCategories.map((category) => (
           <div key={category.id} className="px-2">
             <div
               className={`flex flex-col items-center p-4 rounded-lg cursor-pointer transition-all duration-300 ${
