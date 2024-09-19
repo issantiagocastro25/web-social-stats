@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, Select, Button, TextInput } from 'flowbite-react';
 import { FaSearch } from 'react-icons/fa';
 import { Grid } from '@tremor/react';
@@ -27,7 +28,11 @@ interface Category {
   ordering: number;
 }
 
+type SectionType = 'salud' | 'compensacion' | 'hospitales';
+
 const SocialStatsDashboard: React.FC = () => {
+  const pathname = usePathname();
+  const [currentSection, setCurrentSection] = useState<SectionType>('salud');
   const [data, setData] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('Todos');
@@ -45,32 +50,72 @@ const SocialStatsDashboard: React.FC = () => {
   const [summaryCardsData, setSummaryCardsData] = useState<any>(null);
   const [showGroupTemporalAnalysis, setShowGroupTemporalAnalysis] = useState<boolean>(false);
 
-  const loadCategories = useCallback(async () => {
-    try {
-      const fetchedCategories = await fetchCategories();
-      const allCategory: Category = {
-        id: 0,
-        name: 'Todos',
-        institution_count: fetchedCategories.reduce((sum, cat) => sum + (cat.institution_count || 0), 0),
-        url: '/path/to/all-category-image.jpg',
-        ordering: -1
-      };
-      setCategories([allCategory, ...fetchedCategories]);
-    } catch (err: any) {
-      setError(err.message || 'Error al cargar las categorías');
+  const determineSection = useCallback((path: string | null): SectionType => {
+    if (path?.includes('/hospitales')) return 'hospitales';
+    if (path?.includes('/compensacion')) return 'compensacion';
+    return 'salud';
+  }, []);
+
+  useEffect(() => {
+    const newSection = determineSection(pathname);
+    if (newSection !== currentSection) {
+      console.log('URL changed, new section:', newSection);
+      setCurrentSection(newSection);
+      setActiveCategory('Todos');
+      setActiveCategoryId(null);
+      setSelectedInstitutions([]);
+      setShowTemporalAnalysis(false);
+      setTemporalData([]);
+      setShowGroupTemporalAnalysis(false);
+      loadData(newSection);
+      loadCategories(newSection);
+    }
+  }, [pathname, determineSection, currentSection]);
+
+  const loadCategories = useCallback(async (section: SectionType) => {
+    if (section !== 'hospitales') {
+      try {
+        const fetchedCategories = await fetchCategories(section);
+        console.log('Fetched categories for section:', section, fetchedCategories);
+        if (section === 'salud') {
+          const allCategory: Category = {
+            id: 0,
+            name: 'Todos',
+            institution_count: fetchedCategories.reduce((sum, cat) => sum + (cat.institution_count || 0), 0),
+            url: 'https://cdn-icons-png.flaticon.com/512/4320/4320350.png',
+            ordering: -1
+          };
+          setCategories([allCategory, ...fetchedCategories]);
+        } else {
+          setCategories(fetchedCategories);
+        }
+      } catch (err: any) {
+        console.error('Error loading categories:', err);
+        setError(err.message || 'Error al cargar las categorías');
+      }
+    } else {
+      setCategories([]);
     }
   }, []);
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (section: SectionType) => {
     setIsLoading(true);
     setError(null);
     try {
+      console.log('Loading data for section:', section);
+      const apiCategory = section === 'hospitales' ? 'latinoamerica' : section;
+      const apiType = section === 'hospitales' ? 'todos' : (activeCategory === 'Todos' ? 'todos' : activeCategory.toLowerCase());
+      
+      console.log('API call parameters:', { category: apiCategory, type: apiType, date: selectedDate });
+      
       const response = await fetchSocialStats({ 
-        category: activeCategory.toLowerCase(), 
+        category: apiCategory,
+        type: apiType,
         date: selectedDate
       });
       
       if (response && response.data && Array.isArray(response.data.metrics)) {
+        console.log('Data loaded successfully:', response.data.metrics.length, 'items');
         setData(response.data.metrics);
         setFilteredData(response.data.metrics);
       } else {
@@ -78,45 +123,39 @@ const SocialStatsDashboard: React.FC = () => {
       }
 
       const summaryCardsResponse = await fetchSummaryCardsData(
-        activeCategory === 'Todos' ? null : activeCategoryId, 
-        selectedDate
+        section === 'hospitales' ? null : (activeCategory === 'Todos' ? null : activeCategoryId), 
+        selectedDate,
+        apiCategory
       );
       setSummaryCardsData(summaryCardsResponse);
     } catch (err: any) {
+      console.error('Error loading data:', err);
       setError(err.message || 'Ocurrió un error al cargar los datos');
     } finally {
       setIsLoading(false);
     }
   }, [activeCategory, activeCategoryId, selectedDate]);
 
-  useEffect(() => {
-    loadCategories();
-  }, [loadCategories]);
-
-  useEffect(() => {
-    if (categories.length > 0) {
-      loadData();
-    }
-  }, [loadData, categories, activeCategory, selectedDate]);
-
-  const handleCategorySelect = (categoryName: string) => {
-    const category = categories.find(cat => cat.name === categoryName);
-    if (category) {
-      setActiveCategory(category.name);
-      setActiveCategoryId(category.id);
-      setSelectedInstitutions([]);
-      setShowTemporalAnalysis(false);
-      setTemporalData([]);
-      setShowGroupTemporalAnalysis(false);
-    }
-  };
-
-  const handleDateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleDateChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedDate(e.target.value);
-    setShowTemporalAnalysis(false);
-    setTemporalData([]);
-    setShowGroupTemporalAnalysis(false);
-  };
+    loadData(currentSection);
+  }, [currentSection, loadData]);
+
+  const handleCategorySelect = useCallback((categoryName: string) => {
+    if (currentSection !== 'hospitales') {
+      console.log('Category selected:', categoryName);
+      const category = categories.find(cat => cat.name === categoryName);
+      if (category) {
+        setActiveCategory(category.name);
+        setActiveCategoryId(category.id);
+        setSelectedInstitutions([]);
+        setShowTemporalAnalysis(false);
+        setTemporalData([]);
+        setShowGroupTemporalAnalysis(false);
+        loadData(currentSection);
+      }
+    }
+  }, [currentSection, categories, loadData]);
 
   const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value.toLowerCase();
@@ -143,7 +182,6 @@ const SocialStatsDashboard: React.FC = () => {
     setShowGroupTemporalAnalysis(false);
   }, []);
 
-
   const handleTemporalAnalysis = async () => {
     if (selectedInstitutions.length === 0) return;
 
@@ -156,7 +194,7 @@ const SocialStatsDashboard: React.FC = () => {
 
       const temporalDataResult = await Promise.all(
         AVAILABLE_DATES.map(async (date, index) => {
-          const result = await fetchTemporalData(institutionNames, [date]);
+          const result = await fetchTemporalData(institutionNames, [date], currentSection === 'hospitales' ? 'latinoamerica' : currentSection);
           setTemporalProgress(((index + 1) / totalSteps) * 100);
           return result;
         })
@@ -179,7 +217,7 @@ const SocialStatsDashboard: React.FC = () => {
       const totalSteps = AVAILABLE_DATES.length;
       const temporalDataResult = await Promise.all(
         AVAILABLE_DATES.map(async (date, index) => {
-          const result = await fetchTemporalData(['Todos'], [date]);
+          const result = await fetchTemporalData(['Todos'], [date], currentSection === 'hospitales' ? 'latinoamerica' : currentSection);
           setTemporalProgress(((index + 1) / totalSteps) * 100);
           return result;
         })
@@ -201,11 +239,17 @@ const SocialStatsDashboard: React.FC = () => {
     </div>
   );
 
+  const showCategories = useMemo(() => currentSection !== 'hospitales' && categories.length > 0, [currentSection, categories]);
+
+  console.log('Rendering dashboard. Current section:', currentSection, 'Show categories:', showCategories);
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <div className="container mx-auto px-4 py-8 flex-grow">
         <h1 className="text-4xl font-extrabold text-center mb-8 text-gray-900">
-          Salud Colombia
+          {currentSection === 'salud' ? 'Salud Colombia' : 
+           currentSection === 'compensacion' ? 'Compensación' : 
+           'Hospitales Latinoamérica'}
         </h1>
 
         <Select 
@@ -220,21 +264,22 @@ const SocialStatsDashboard: React.FC = () => {
 
         {isLoading ? renderSkeleton() : (
           <>
-            {categories.length > 0 && (
+            {showCategories && (
               <ImageNavbar 
                 onCategorySelect={handleCategorySelect} 
                 activeCategory={activeCategory} 
-                categories={categories} 
+                categories={categories}
+                currentSection={currentSection}
               />
             )}
 
             <SummaryCards 
               data={summaryCardsData} 
-              isAllCategory={activeCategory === 'Todos'} 
+              isAllCategory={activeCategory === 'Todos' || currentSection === 'hospitales'} 
               isLoading={isLoading}
             />
 
-            {activeCategory === 'Todos' && summaryCardsData && (
+            {(activeCategory === 'Todos' || currentSection === 'hospitales') && summaryCardsData && (
               <Card className="mb-6">
                 <GroupSummaryTable 
                   summaryCardsData={summaryCardsData} 
@@ -268,18 +313,22 @@ const SocialStatsDashboard: React.FC = () => {
               </Card>
             )}
 
-        <Card>
-          <h2 className="text-2xl font-bold mb-4">Datos para la categoría: {activeCategory}</h2>
-          <InteractiveDataTable 
-            data={filteredData}
-            onInstitutionSelect={handleInstitutionSelect}
-            onClearSelection={handleClearSelection}
-            selectedType={activeCategory}
-            selectedDate={selectedDate}
-            selectedInstitutions={selectedInstitutions}
-            isLoading={isLoading}
-          />
-        </Card>
+            <Card>
+              <h2 className="text-2xl font-bold mb-4">
+                {currentSection === 'hospitales' 
+                  ? 'Hospitales de Latinoamérica' 
+                  : `Datos para la categoría: ${activeCategory}`}
+              </h2>
+              <InteractiveDataTable 
+                data={filteredData}
+                onInstitutionSelect={handleInstitutionSelect}
+                onClearSelection={handleClearSelection}
+                selectedType={currentSection === 'hospitales' ? 'Hospitales' : activeCategory}
+                selectedDate={selectedDate}
+                selectedInstitutions={selectedInstitutions}
+                isLoading={isLoading}
+              />
+            </Card>
 
             {selectedInstitutions.length === 1 && (
               <Card className="mt-6">
@@ -303,7 +352,7 @@ const SocialStatsDashboard: React.FC = () => {
               </Grid>
             )}
 
-            {showTemporalAnalysis && temporalData.length > 0 && (
+{showTemporalAnalysis && temporalData.length > 0 && (
               <TemporalAnalysisTable 
                 selectedInstitutions={selectedInstitutions}
                 temporalData={temporalData}
