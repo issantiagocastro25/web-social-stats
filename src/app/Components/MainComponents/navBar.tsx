@@ -84,7 +84,7 @@ const DashboardNavbar = () => {
               />
             </Link>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <NavLink href="/stats" currentPath={pathname}>
+              <NavLink href="/salud" currentPath={pathname}>
                 Inicio
               </NavLink>
               <div className="relative" ref={adminDropdownRef}>
@@ -140,7 +140,7 @@ const DashboardNavbar = () => {
                     aria-labelledby="user-menu"
                   >
                     <UserMenuItem href="/profile/user-profile">Perfil</UserMenuItem>
-                    <UserMenuItem href="/stats">Dashboard</UserMenuItem>
+                    <UserMenuItem href="/salud">Dashboard</UserMenuItem>
                     <UserMenuItem href="/settings">Configuración</UserMenuItem>
                     <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                       Cerrar Sesión
@@ -174,7 +174,7 @@ const DashboardNavbar = () => {
       {isMenuOpen && (
         <div className="sm:hidden">
           <div className="pt-2 pb-3 space-y-1">
-            <MobileNavLink href="/stats" currentPath={pathname}>Inicio</MobileNavLink>
+            <MobileNavLink href="/salud" currentPath={pathname}>Inicio</MobileNavLink>
             <MobileNavLink href="/administration/users" currentPath={pathname}>Administración - Usuarios</MobileNavLink>
             <MobileNavLink href="/administration/youtube" currentPath={pathname}>Administración - YouTube</MobileNavLink>
           </div>
@@ -195,7 +195,7 @@ const DashboardNavbar = () => {
               </div>
               <div className="mt-3 space-y-1">
                 <MobileUserMenuItem href="/profile/user-profile">Perfil</MobileUserMenuItem>
-                <MobileUserMenuItem href="/stats">Dashboard</MobileUserMenuItem>
+                <MobileUserMenuItem href="/salud">Dashboard</MobileUserMenuItem>
                 <MobileUserMenuItem href="/settings">Configuración</MobileUserMenuItem>
                 <button
                   onClick={handleLogout}

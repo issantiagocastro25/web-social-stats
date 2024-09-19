@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { checkAuthStatus } from '@/api/auth';
 
-export function useAuthCheck(requireAuth: boolean = true, dashboardPath: string = '/stats') {
+export function useAuthCheck(requireAuth: boolean = true, dashboardPath: string = '/salud') {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
@@ -17,7 +17,7 @@ export function useAuthCheck(requireAuth: boolean = true, dashboardPath: string 
                 
                 if (requireAuth && !authStatus.is_authenticated) {
                     // Si se requiere autenticación y el usuario no está autenticado, redirige al login
-                    router.push('/auth/access');
+                    router.push('/');
                 } else if (!requireAuth && authStatus.is_authenticated) {
                     // Si no se requiere autenticación (como en la página de login) y el usuario está autenticado, redirige al dashboard
                     router.push(dashboardPath);
