@@ -1,7 +1,10 @@
+// api/list/listData.js
+
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+// Función para obtener estadísticas sociales generales
 export const fetchSocialStats = async (options = {}) => {
   const {
     category = 'salud',
@@ -28,6 +31,7 @@ export const fetchSocialStats = async (options = {}) => {
   }
 };
 
+// Función para obtener datos temporales
 export const fetchTemporalData = async (institutions, dates, category) => {
   try {
     const results = await Promise.all(dates.map(async (date) => {
@@ -41,6 +45,7 @@ export const fetchTemporalData = async (institutions, dates, category) => {
   }
 };
 
+// Función para obtener datos de las tarjetas de resumen
 export const fetchSummaryCardsData = async (institutionId, date, category) => {
   try {
     const response = await axios.get(`${API_URL}/api/social-metrics/stats`, {
@@ -50,6 +55,7 @@ export const fetchSummaryCardsData = async (institutionId, date, category) => {
         stats_date: date
       }
     });
+    console.log('Summary cards data response:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching summary cards data:', error);
@@ -57,6 +63,7 @@ export const fetchSummaryCardsData = async (institutionId, date, category) => {
   }
 };
 
+// Función para obtener categorías
 export const fetchCategories = async (category) => {
   try {
     const response = await axios.get(`${API_URL}/api/social-metrics/institutions/categories`, {
@@ -70,6 +77,8 @@ export const fetchCategories = async (category) => {
     throw error;
   }
 };
+
+// Función para obtener datos de población
 export const fetchPopulationData = async (options = {}) => {
   const {
     category,
@@ -92,6 +101,33 @@ export const fetchPopulationData = async (options = {}) => {
     return response.data;
   } catch (error) {
     console.error('Error fetching population data:', error);
+    throw error;
+  }
+};
+
+// Función para obtener datos de seguidores únicos
+export const fetchUniqueFollowersData = async (options = {}) => {
+  const {
+    category,
+    date,
+  } = options;
+
+  if (!category || !date) {
+    throw new Error('Category and date are required for fetching unique followers data');
+  }
+
+  try {
+    const response = await axios.get(`${API_URL}/api/social-metrics/stats`, {
+      params: {
+        category,
+        stats_date: date,
+      }
+    });
+    
+    console.log('Unique followers data response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching unique followers data:', error);
     throw error;
   }
 };

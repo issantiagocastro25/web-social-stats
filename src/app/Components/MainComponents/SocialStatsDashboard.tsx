@@ -1,9 +1,9 @@
-import { usePathname } from 'next/navigation';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { usePathname } from 'next/navigation';
 import { Card, Select, Button, TextInput } from 'flowbite-react';
 import { FaSearch } from 'react-icons/fa';
 import { Grid } from '@tremor/react';
-import { fetchSocialStats, fetchTemporalData, fetchSummaryCardsData, fetchCategories } from '@/api/list/listData';
+import { fetchSocialStats, fetchTemporalData, fetchSummaryCardsData, fetchCategories, fetchPopulationData } from '@/api/list/listData';
 import ImageNavbar from './ImageNavBar';
 import SummaryCards from './SummaryCards';
 import InteractiveDataTable from './InteractiveDataTable';
@@ -51,17 +51,17 @@ const SocialStatsDashboard: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [summaryCardsData, setSummaryCardsData] = useState<any>(null);
   const [showGroupTemporalAnalysis, setShowGroupTemporalAnalysis] = useState<boolean>(false);
-
   const [populationData, setPopulationData] = useState({
     population: 0,
     uniqueFollowers: 0,
     penetrationRate: 0,
   });
+  const [isLoadingSummary, setIsLoadingSummary] = useState(true);
+
 
   const fetchPopulationStats = useCallback(async (date: string) => {
     try {
       const apiCategory = currentSection === 'hospitales' ? 'latinoamerica' : currentSection;
-      console.log('Fetching population data for category:', apiCategory);
       const response = await fetchPopulationData({ 
         category: apiCategory,
         date: date
@@ -74,7 +74,6 @@ const SocialStatsDashboard: React.FC = () => {
       });
     } catch (error) {
       console.error('Error fetching population data:', error);
-      // Manejar el error apropiadamente, tal vez establecer un estado de error
       setPopulationData({
         population: 0,
         uniqueFollowers: 0,
@@ -88,20 +87,16 @@ const SocialStatsDashboard: React.FC = () => {
   }, [selectedDate, fetchPopulationStats, currentSection]);
 
   const determineSection = useCallback((path: string | null): SectionType => {
-    console.log('Determining section for path:', path);
     if (!path || path === '/' || path.startsWith('/salud')) return 'salud';
     if (path.startsWith('/hospitales')) return 'hospitales';
     if (path.startsWith('/compensacion')) return 'compensacion';
-    console.log('Unrecognized path, defaulting to salud');
     return 'salud';
   }, []);
 
   const loadCategories = useCallback(async (section: SectionType) => {
-    console.log('Loading categories for section:', section);
     try {
       const apiCategory = section === 'hospitales' ? 'latinoamerica' : section;
       const fetchedCategories = await fetchCategories(apiCategory);
-      console.log('Fetched categories:', fetchedCategories);
       
       const allCategory: Category = {
         id: 0,
@@ -118,14 +113,11 @@ const SocialStatsDashboard: React.FC = () => {
   }, []);
 
   const loadData = useCallback(async (section: SectionType) => {
-    console.log('Loading data for section:', section);
     setIsLoading(true);
     setError(null);
     try {
       const apiCategory = section === 'hospitales' ? 'latinoamerica' : section;
       const apiType = activeCategory === 'Todos' ? 'todos' : activeCategory.toLowerCase();
-      
-      console.log('API call parameters:', { category: apiCategory, type: apiType, date: selectedDate });
       
       const response = await fetchSocialStats({ 
         category: apiCategory,
@@ -133,10 +125,7 @@ const SocialStatsDashboard: React.FC = () => {
         date: selectedDate
       });
       
-      console.log('API response:', response);
-
       if (response && response.data && Array.isArray(response.data.metrics)) {
-        console.log('Data loaded successfully:', response.data.metrics.length, 'items');
         setData(response.data.metrics);
         setFilteredData(response.data.metrics);
       } else {
@@ -148,7 +137,6 @@ const SocialStatsDashboard: React.FC = () => {
         selectedDate,
         apiCategory
       );
-      console.log('Summary cards response:', summaryCardsResponse);
       setSummaryCardsData(summaryCardsResponse);
     } catch (err: any) {
       console.error('Error loading data:', err);
@@ -160,10 +148,8 @@ const SocialStatsDashboard: React.FC = () => {
 
   useEffect(() => {
     const newSection = determineSection(pathname);
-    console.log('Effect triggered. New section:', newSection, 'Current section:', currentSection, 'Is initial load:', isInitialLoad);
     
     if (newSection !== currentSection || isInitialLoad) {
-      console.log('Loading new data...');
       setCurrentSection(newSection);
       setActiveCategory('Todos');
       setActiveCategoryId(null);
@@ -174,10 +160,9 @@ const SocialStatsDashboard: React.FC = () => {
       loadData(newSection);
       loadCategories(newSection);
       setIsInitialLoad(false);
-    } else {
-      console.log('Section unchanged and not initial load. Skipping data load.');
     }
   }, [pathname, determineSection, currentSection, loadData, loadCategories, isInitialLoad]);
+
   const handleDateChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedDate(e.target.value);
     loadData(currentSection);
@@ -185,7 +170,6 @@ const SocialStatsDashboard: React.FC = () => {
 
   const handleCategorySelect = useCallback((categoryName: string) => {
     if (currentSection !== 'hospitales') {
-      console.log('Category selected:', categoryName);
       const category = categories.find(cat => cat.name === categoryName);
       if (category) {
         setActiveCategory(category.name);
@@ -273,6 +257,29 @@ const SocialStatsDashboard: React.FC = () => {
     }
   };
 
+  const loadSummaryData = useCallback(async () => {
+    setIsLoadingSummary(true);
+    try {
+      const apiCategory = currentSection === 'hospitales' ? 'latinoamerica' : currentSection;
+      const response = await fetchSummaryCardsData(
+        activeCategory === 'Todos' ? null : activeCategoryId,
+        selectedDate,
+        apiCategory
+      );
+      console.log('Summary cards data loaded:', response);
+      setSummaryCardsData(response);
+    } catch (error) {
+      console.error('Error loading summary cards data:', error);
+      setError('Error al cargar los datos de resumen');
+    } finally {
+      setIsLoadingSummary(false);
+    }
+  }, [currentSection, activeCategory, activeCategoryId, selectedDate]);
+
+  useEffect(() => {
+    loadSummaryData();
+  }, [loadSummaryData]);
+
   const renderSkeleton = () => (
     <div className="animate-pulse space-y-4">
       <div className="h-8 bg-gray-200 rounded w-64"></div>
@@ -281,55 +288,50 @@ const SocialStatsDashboard: React.FC = () => {
     </div>
   );
 
-
   const showCategories = useMemo(() => categories.length > 0, [categories]);
 
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="container mx-auto px-4 py-8 flex-grow">
+        <h1 className="text-4xl font-extrabold text-center mb-8 text-gray-900">
+          {currentSection === 'salud' ? 'Salud Colombia' : 
+           currentSection === 'compensacion' ? 'Compensación' : 
+           'Hospitales Latinoamérica'}
+        </h1>
 
-console.log('Rendering dashboard. Current section:', currentSection, 'Show categories:', showCategories);
+        <Select 
+          className='w-64 mb-6' 
+          value={selectedDate} 
+          onChange={handleDateChange} 
+        >
+          {AVAILABLE_DATES.map(date => (
+            <option key={date} value={date}>{date}</option>
+          ))}
+        </Select>
 
-
-return (
-  <div className="min-h-screen bg-gray-50 flex flex-col">
-    <div className="container mx-auto px-4 py-8 flex-grow">
-      <h1 className="text-4xl font-extrabold text-center mb-8 text-gray-900">
-        {currentSection === 'salud' ? 'Salud Colombia' : 
-         currentSection === 'compensacion' ? 'Compensación' : 
-         'Hospitales Latinoamérica'}
-      </h1>
-
-      <Select 
-        className='w-64 mb-6' 
-        value={selectedDate} 
-        onChange={handleDateChange} 
-      >
-        {AVAILABLE_DATES.map(date => (
-          <option key={date} value={date}>{date}</option>
-        ))}
-      </Select>
-
-      {isLoading ? renderSkeleton() : (
-        <>
+        {isLoading ? renderSkeleton() : (
+          <>
             {showCategories && (
-          <ImageNavbar 
-            onCategorySelect={handleCategorySelect} 
-            activeCategory={activeCategory} 
-            categories={categories}
-            currentSection={currentSection}
-          />
-        )}
+              <ImageNavbar 
+                onCategorySelect={handleCategorySelect} 
+                activeCategory={activeCategory} 
+                categories={categories}
+                currentSection={currentSection}
+              />
+            )}
 
-<PopulationCard 
-        selectedDate={selectedDate}
-        population={populationData.population}
-        uniqueFollowers={populationData.uniqueFollowers}
-        penetrationRate={populationData.penetrationRate}
-      />
+            <PopulationCard 
+              selectedDate={selectedDate}
+              population={populationData.population}
+              uniqueFollowers={populationData.uniqueFollowers}
+              penetrationRate={populationData.penetrationRate}
+            />
 
-            <SummaryCards 
-                  data={summaryCardsData} 
-                  isAllCategory={activeCategory === 'Todos' || currentSection === 'hospitales'} 
-                  isLoading={isLoading}
-                />
+<SummaryCards 
+          data={summaryCardsData}
+          isAllCategory={activeCategory === 'Todos' || currentSection === 'hospitales'}
+          isLoading={isLoadingSummary}
+        />
 
             {(activeCategory === 'Todos' || currentSection === 'hospitales') && summaryCardsData && (
               <Card className="mb-6">
@@ -404,7 +406,7 @@ return (
               </Grid>
             )}
 
-{showTemporalAnalysis && temporalData.length > 0 && (
+            {showTemporalAnalysis && temporalData.length > 0 && (
               <TemporalAnalysisTable 
                 selectedInstitutions={selectedInstitutions}
                 temporalData={temporalData}
