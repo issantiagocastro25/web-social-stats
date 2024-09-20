@@ -128,7 +128,7 @@ const DashboardNavbar = () => {
                   <span className="sr-only">Open user menu</span>
                   <img
                     className="h-9 w-9 rounded-full"
-                    src={user.profile_picture || "https://flowbite.com/docs/images/people/profile-picture-5.jpg"}
+                    src={user.profile_picture || "/assets/imgs/profile_photo.png"}
                     alt=""
                   />
                 </button>
