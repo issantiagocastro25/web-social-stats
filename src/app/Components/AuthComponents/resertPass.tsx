@@ -58,7 +58,7 @@ export default function ResetPasswordForm({ resetKey }: ResetPasswordFormProps) 
         try {
             const response = await resetPassword(uidb64, token, password1);
             setMessage('Tu contraseña ha sido restablecida exitosamente');
-            setTimeout(() => router.push('/auth/access'), 2500);
+            setTimeout(() => router.push('/'), 2500);
         } catch (error: any) {
             console.error('Error durante el restablecimiento de contraseña:', error);
             setError(error.response?.data?.error || 'Ocurrió un error al restablecer la contraseña. Por favor, intenta de nuevo.');
@@ -113,7 +113,7 @@ export default function ResetPasswordForm({ resetKey }: ResetPasswordFormProps) 
             <div className="mt-4 text-center">
                 <Label className="text-sm font-light">
                     ¿Ya tienes una cuenta?{" "}
-                    <Link href="/auth/access" className="text-cyan-500 hover:underline">
+                    <Link href="/" className="text-cyan-500 hover:underline">
                         Iniciar sesión
                     </Link>
                 </Label>

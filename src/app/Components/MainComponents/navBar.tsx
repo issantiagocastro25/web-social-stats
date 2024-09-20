@@ -55,7 +55,7 @@ const DashboardNavbar = () => {
       if (result.success) {
         setIsAuthenticated(false);
         setUser(null);
-        router.push('/auth/access');
+        router.push('/');
       } else {
         console.error(result.error);
       }

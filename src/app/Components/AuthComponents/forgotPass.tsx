@@ -23,7 +23,7 @@ export default function ForgotPassword() {
             const response = await requestPasswordReset(email);
             if (response.message) {
                 setMessage(response.message);
-                setTimeout(() => router.push('/auth/access'), 5000);
+                setTimeout(() => router.push('/'), 3000);
             }
         } catch (err: any) {
             console.error('Error al solicitar restablecimiento de contraseña:', err);
@@ -80,7 +80,7 @@ export default function ForgotPassword() {
             <div className="mt-4 text-center">
                 <Label className="text-sm font-light">
                     ¿Recordaste tu contraseña?{" "}
-                    <Link href="/auth/access" className="text-cyan-500 hover:underline">
+                    <Link href="/" className="text-cyan-500 hover:underline">
                         Iniciar sesión
                     </Link>
                 </Label>
