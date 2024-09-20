@@ -1,148 +1,104 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Card, Text, Flex, Grid } from "@tremor/react";
-import { FaFacebook, FaInstagram, FaTwitter, FaYoutube, FaTiktok } from 'react-icons/fa';
-import XIcon from './XIcon';
-
-interface GroupSummaryData {
-  stats_date: string;
-  stats: Array<{
-    type_institution: string;
-    social_network: string;
-    total_followers: number;
-    total_publications: number;
-    total_reactions: number;
-    average_views: number;
-  }>;
-}
+import { FaFacebook, FaInstagram, FaYoutube, FaTiktok, FaUsers } from 'react-icons/fa';
+import { FaXTwitter } from "react-icons/fa6";
 
 interface SummaryCardsProps {
-  data: GroupSummaryData | null;
+  data: {
+    stats_date: string;
+    unique_followers: {
+      facebook: number;
+      X: number;
+      Instagram: number;
+      YouTube: number;
+      Tiktok: number;
+    };
+    stats?: Array<{
+      social_network: string;
+      total_followers: number;
+      total_publications: number;
+      total_reactions: number;
+      average_views: number;
+    }>;
+  } | null;
   isAllCategory: boolean;
   isLoading: boolean;
 }
 
 const SummaryCards: React.FC<SummaryCardsProps> = ({ data, isAllCategory, isLoading }) => {
+  if (isLoading) {
+    return <div>Loading summary data...</div>;
+  }
+
+  if (!data) {
+    return <div>No summary data available</div>;
+  }
+
   const getIcon = (network: string) => {
     switch (network.toLowerCase()) {
       case 'facebook': return <FaFacebook className="text-blue-600 text-2xl" />;
       case 'instagram': return <FaInstagram className="text-pink-600 text-2xl" />;
-      case 'x': return <XIcon className=" text-2xl" />;
+      case 'x': return <FaXTwitter className="text-black text-2xl" />;
       case 'youtube': return <FaYoutube className="text-red-600 text-2xl" />;
       case 'tiktok': return <FaTiktok className="text-black text-2xl" />;
       default: return null;
     }
   };
 
-  const formatNumber = (num: number) => {
-    return num.toLocaleString('es-ES');
-  };
+  const totalUniqueFollowers = Object.values(data.unique_followers).reduce((sum, count) => sum + count, 0);
 
-  const summaryData = useMemo(() => {
-    console.log('Processing summary data. Raw data:', data);
-    console.log('Is All Category:', isAllCategory);
-
-    if (!data || !data.stats) {
-      console.log('No data available');
-      return [];
-    }
-  
-    if (!isAllCategory) {
-      console.log('Returning specific category data');
-      return data.stats;
-    }
-  
-    const totals: Record<string, {
-      total_followers: number;
-      total_publications: number;
-      total_reactions: number;
-      average_views: number;
-    }> = {};
-  
-    // Process the stats data
-    data.stats.forEach(stat => {
-      if (!totals[stat.social_network]) {
-        totals[stat.social_network] = {
-          total_followers: 0,
-          total_publications: 0,
-          total_reactions: 0,
-          average_views: 0,
-        };
-      }
-  
-      totals[stat.social_network].total_followers += stat.total_followers;
-      totals[stat.social_network].total_publications += stat.total_publications;
-      totals[stat.social_network].total_reactions += stat.total_reactions;
-      totals[stat.social_network].average_views += stat.average_views;
-    });
-  
-    const result = Object.entries(totals).map(([social_network, stats]) => ({
-      social_network,
-      ...stats,
-    }));
-
-    console.log('Processed summary data:', result);
-    return result;
-  }, [data, isAllCategory]);
-
-  console.log('Rendering SummaryCards. Summary data:', summaryData);
-
-  if (isLoading) {
+  const networkCards = Object.entries(data.unique_followers).map(([network, followers]) => {
+    const statsForNetwork = data.stats?.find(stat => stat.social_network.toLowerCase() === network.toLowerCase());
+    
     return (
-      <div className="overflow-x-auto">
-        <div className="flex space-x-10 pb-4" style={{ minWidth: 'max-content' }}>
-          {[1, 2, 3, 4, 5].map((_, index) => (
-            <Card key={index} className="w-64 flex-shrink-0">
-              <div className="animate-pulse">
-                <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
-                <div className="space-y-2">
-                  <div className="h-4 bg-gray-200 rounded"></div>
-                  <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (!data || !data.stats || summaryData.length === 0) {
-    console.log('No data available to display');
-    return <div>No hay datos disponibles</div>;
-  }
-
-  return (
-    <div className="overflow-x-auto">
-      <div className="flex space-x-10 pb-4" style={{ minWidth: 'max-content' }}>
-        {summaryData.map((stat, index) => (
-          <Card key={index} className="w-64 flex-shrink-0">
-            <Flex alignItems="center" justifyContent="around" className="mb-4">
-              {getIcon(stat.social_network)}
-              <Text className="font-bold">{stat.social_network}</Text>
-            </Flex>
-            <Grid numCols={1} className="gap-4">
+      <Card key={network} className="w-64 flex-shrink-0">
+        <Flex alignItems="center" justifyContent="around" className="mb-4">
+          {getIcon(network)}
+          <Text className="font-bold">{network}</Text>
+        </Flex>
+        <Grid numCols={1} className="gap-4">
+          <div>
+            <Text className="text-sm text-gray-500">Seguidores Únicos</Text>
+            <Text className="text-xl font-bold">{followers.toLocaleString()}</Text>
+          </div>
+          {statsForNetwork && (
+            <>
               <div>
-                <Text className="text-sm text-gray-500">Seguidores</Text>
-                <Text className="text-xl font-bold">{formatNumber(stat.total_followers)}</Text>
+                <Text className="text-sm text-gray-500">Total Seguidores</Text>
+                <Text className="text-xl font-bold">{statsForNetwork.total_followers.toLocaleString()}</Text>
               </div>
               <div>
                 <Text className="text-sm text-gray-500">Publicaciones</Text>
-                <Text className="text-xl font-bold">{formatNumber(stat.total_publications)}</Text>
+                <Text className="text-xl font-bold">{statsForNetwork.total_publications.toLocaleString()}</Text>
               </div>
               <div>
                 <Text className="text-sm text-gray-500">Reacciones</Text>
-                <Text className="text-xl font-bold">{formatNumber(stat.total_reactions)}</Text>
+                <Text className="text-xl font-bold">{statsForNetwork.total_reactions.toLocaleString()}</Text>
               </div>
-              {stat.average_views > 0 && (
+              {statsForNetwork.average_views > 0 && (
                 <div>
                   <Text className="text-sm text-gray-500">Vistas promedio</Text>
-                  <Text className="text-xl font-bold">{formatNumber(stat.average_views)}</Text>
+                  <Text className="text-xl font-bold">{statsForNetwork.average_views.toLocaleString()}</Text>
                 </div>
               )}
-            </Grid>
-          </Card>
-        ))}
+            </>
+          )}
+        </Grid>
+      </Card>
+    );
+  });
+
+  return (
+    <div className="overflow-x-auto">
+      <div className="flex space-x-4 pb-4" style={{ minWidth: 'max-content' }}>
+        <Card className="w-64 flex-shrink-0">
+          <Flex alignItems="center" justifyContent="around" className="mb-4">
+            <FaUsers className="text-green-600 text-2xl" />
+            <Text className="font-bold">Total Seguidores Únicos</Text>
+          </Flex>
+          <Text className="text-xl font-bold">{totalUniqueFollowers.toLocaleString()}</Text>
+        </Card>
+        {networkCards}
       </div>
     </div>
   );
