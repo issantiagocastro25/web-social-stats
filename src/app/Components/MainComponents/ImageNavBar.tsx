@@ -39,15 +39,12 @@ const PrevArrow = (props: any) => {
 
 const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCategory, categories, currentSection }) => {
   const handleCategorySelect = (categoryName: string) => {
+    console.log('Category selected in ImageNavbar:', categoryName);
     onCategorySelect(categoryName);
   };
 
   const filteredCategories = useMemo(() => {
-    if (currentSection === 'salud') {
-      return categories;
-    } else {
-      return categories.filter(category => category.name !== 'Todos');
-    }
+    return currentSection === 'salud' ? categories : [];
   }, [categories, currentSection]);
 
   const slidesToShow = useMemo(() => {
@@ -87,6 +84,10 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
       }
     ]
   }), [filteredCategories, slidesToShow]);
+
+  if (currentSection !== 'salud' || filteredCategories.length === 0) {
+    return null;
+  }
 
   return (
     <div className="mb-8 relative">

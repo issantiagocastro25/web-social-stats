@@ -1,5 +1,3 @@
-// api/list/listData.js
-
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -45,8 +43,14 @@ export const fetchTemporalData = async (institutions, dates, category) => {
   }
 };
 
-// Función para obtener datos de las tarjetas de resumen
-export const fetchSummaryCardsData = async (institutionId, date, category) => {
+// Función combinada para obtener datos de resumen y seguidores únicos
+export const fetchSummaryAndUniqueFollowers = async (options = {}) => {
+  const {
+    category = 'salud',
+    institutionId = null,
+    date = '2021-06-01',
+  } = options;
+
   try {
     const response = await axios.get(`${API_URL}/api/social-metrics/stats`, {
       params: {
@@ -55,10 +59,10 @@ export const fetchSummaryCardsData = async (institutionId, date, category) => {
         stats_date: date
       }
     });
-    console.log('Summary cards data response:', response.data);
+    console.log('Summary and unique followers data response:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error fetching summary cards data:', error);
+    console.error('Error fetching summary and unique followers data:', error);
     throw error;
   }
 };
@@ -101,28 +105,6 @@ export const fetchPopulationData = async (options = {}) => {
     return response.data;
   } catch (error) {
     console.error('Error fetching population data:', error);
-    throw error;
-  }
-};
-
-// Función para obtener datos de seguidores únicos
-export const fetchUniqueFollowers = async (options = {}) => {
-  const {
-    category = 'salud',
-    date = '2021-06-01',
-  } = options;
-
-  try {
-    const response = await axios.get(`${API_URL}/api/social-metrics/stats`, {
-      params: {
-        category,
-        stats_date: date,
-      }
-    });
-    
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching unique followers:', error);
     throw error;
   }
 };
