@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, Select, Button, TextInput } from 'flowbite-react';
 import { FaSearch } from 'react-icons/fa';
 import { Grid } from '@tremor/react';
-import { fetchSocialStats, fetchTemporalData, fetchSummaryCardsData, fetchCategories, fetchPopulationData } from '@/api/list/listData';
+import { fetchSocialStats, fetchTemporalData, fetchSummaryCardsData, fetchCategories, fetchUniqueFollowers } from '@/api/list/listData';
 import ImageNavbar from './ImageNavBar';
 import SummaryCards from './SummaryCards';
 import InteractiveDataTable from './InteractiveDataTable';
@@ -34,7 +34,6 @@ type SectionType = 'salud' | 'compensacion' | 'hospitales';
 const SocialStatsDashboard: React.FC = () => {
   const pathname = usePathname();
   const [currentSection, setCurrentSection] = useState<SectionType>('salud');
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [data, setData] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('Todos');
@@ -51,47 +50,12 @@ const SocialStatsDashboard: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [summaryCardsData, setSummaryCardsData] = useState<any>(null);
   const [showGroupTemporalAnalysis, setShowGroupTemporalAnalysis] = useState<boolean>(false);
+  const [uniqueFollowers, setUniqueFollowers] = useState<any>(null);
   const [populationData, setPopulationData] = useState({
     population: 0,
     uniqueFollowers: 0,
     penetrationRate: 0,
   });
-  const [isLoadingSummary, setIsLoadingSummary] = useState(true);
-
-
-  const fetchPopulationStats = useCallback(async (date: string) => {
-    try {
-      const apiCategory = currentSection === 'hospitales' ? 'latinoamerica' : currentSection;
-      const response = await fetchPopulationData({ 
-        category: apiCategory,
-        date: date
-      });
-
-      setPopulationData({
-        population: response.population,
-        uniqueFollowers: response.uniqueFollowers,
-        penetrationRate: response.penetrationRate,
-      });
-    } catch (error) {
-      console.error('Error fetching population data:', error);
-      setPopulationData({
-        population: 0,
-        uniqueFollowers: 0,
-        penetrationRate: 0,
-      });
-    }
-  }, [currentSection]);
-
-  useEffect(() => {
-    fetchPopulationStats(selectedDate);
-  }, [selectedDate, fetchPopulationStats, currentSection]);
-
-  const determineSection = useCallback((path: string | null): SectionType => {
-    if (!path || path === '/' || path.startsWith('/salud')) return 'salud';
-    if (path.startsWith('/hospitales')) return 'hospitales';
-    if (path.startsWith('/compensacion')) return 'compensacion';
-    return 'salud';
-  }, []);
 
   const loadCategories = useCallback(async (section: SectionType) => {
     try {
@@ -112,63 +76,60 @@ const SocialStatsDashboard: React.FC = () => {
     }
   }, []);
 
-  const loadData = useCallback(async (section: SectionType) => {
+  const loadData = useCallback(async (section: SectionType, category: string, categoryId: number | null) => {
     setIsLoading(true);
     setError(null);
     try {
       const apiCategory = section === 'hospitales' ? 'latinoamerica' : section;
-      const apiType = activeCategory === 'Todos' ? 'todos' : activeCategory.toLowerCase();
+      const apiType = category === 'Todos' ? 'todos' : category.toLowerCase();
       
-      const response = await fetchSocialStats({ 
-        category: apiCategory,
-        type: apiType,
-        date: selectedDate
-      });
+      console.log('Loading data for:', { section, category, categoryId, date: selectedDate });
+
+      const [socialStatsResponse, summaryCardsResponse, uniqueFollowersResponse] = await Promise.all([
+        fetchSocialStats({ 
+          category: apiCategory,
+          type: apiType,
+          date: selectedDate
+        }),
+        fetchSummaryCardsData(
+          category === 'Todos' ? null : categoryId, 
+          selectedDate,
+          apiCategory
+        ),
+        fetchUniqueFollowers({
+          category: apiCategory,
+          date: selectedDate
+        })
+      ]);
       
-      if (response && response.data && Array.isArray(response.data.metrics)) {
-        setData(response.data.metrics);
-        setFilteredData(response.data.metrics);
+      if (socialStatsResponse && socialStatsResponse.data && Array.isArray(socialStatsResponse.data.metrics)) {
+        console.log('Data loaded successfully:', socialStatsResponse.data.metrics.length, 'items');
+        setData(socialStatsResponse.data.metrics);
+        setFilteredData(socialStatsResponse.data.metrics);
       } else {
         throw new Error('Formato de respuesta inesperado');
       }
 
-      const summaryCardsResponse = await fetchSummaryCardsData(
-        activeCategory === 'Todos' ? null : activeCategoryId, 
-        selectedDate,
-        apiCategory
-      );
       setSummaryCardsData(summaryCardsResponse);
+      
+      if (uniqueFollowersResponse && uniqueFollowersResponse.unique_followers) {
+        setUniqueFollowers(uniqueFollowersResponse.unique_followers);
+        setPopulationData({
+          population: uniqueFollowersResponse.population || 0,
+          uniqueFollowers: uniqueFollowersResponse.unique_followers.total || 0,
+          penetrationRate: uniqueFollowersResponse.penetration_rate || 0,
+        });
+      }
     } catch (err: any) {
       console.error('Error loading data:', err);
       setError(err.message || 'Ocurrió un error al cargar los datos');
     } finally {
       setIsLoading(false);
     }
-  }, [activeCategory, activeCategoryId, selectedDate]);
-
-  useEffect(() => {
-    const newSection = determineSection(pathname);
-    
-    if (newSection !== currentSection || isInitialLoad) {
-      setCurrentSection(newSection);
-      setActiveCategory('Todos');
-      setActiveCategoryId(null);
-      setSelectedInstitutions([]);
-      setShowTemporalAnalysis(false);
-      setTemporalData([]);
-      setShowGroupTemporalAnalysis(false);
-      loadData(newSection);
-      loadCategories(newSection);
-      setIsInitialLoad(false);
-    }
-  }, [pathname, determineSection, currentSection, loadData, loadCategories, isInitialLoad]);
-
-  const handleDateChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedDate(e.target.value);
-    loadData(currentSection);
-  }, [currentSection, loadData]);
+  }, [selectedDate]);
 
   const handleCategorySelect = useCallback((categoryName: string) => {
+    console.log('Category selected:', categoryName);
     if (currentSection !== 'hospitales') {
       const category = categories.find(cat => cat.name === categoryName);
       if (category) {
@@ -178,21 +139,28 @@ const SocialStatsDashboard: React.FC = () => {
         setShowTemporalAnalysis(false);
         setTemporalData([]);
         setShowGroupTemporalAnalysis(false);
-        loadData(currentSection);
+        loadData(currentSection, category.name, category.id);
       }
     }
   }, [currentSection, categories, loadData]);
 
-  const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const term = e.target.value.toLowerCase();
-    setSearchTerm(term);
-    const filtered = data.filter((item: any) =>
-      item.Institucion.toLowerCase().includes(term) ||
-      (item.Ciudad && item.Ciudad.toLowerCase().includes(term)) ||
-      (item.Tipo && item.Tipo.toLowerCase().includes(term))
-    );
-    setFilteredData(filtered);
-  }, [data]);
+  useEffect(() => {
+    const section = pathname?.split('/')[1] as SectionType;
+    if (['salud', 'compensacion', 'hospitales'].includes(section)) {
+      console.log('URL changed, new section:', section);
+      setCurrentSection(section);
+      setActiveCategory('Todos');
+      setActiveCategoryId(null);
+      loadCategories(section);
+      loadData(section, 'Todos', null);
+    }
+  }, [pathname, loadCategories, loadData]);
+
+
+  const handleDateChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedDate(e.target.value);
+    loadData(currentSection);
+  }, [currentSection, loadData]);
 
   const handleInstitutionSelect = useCallback((institutions: any[]) => {
     setSelectedInstitutions(institutions);
@@ -257,28 +225,16 @@ const SocialStatsDashboard: React.FC = () => {
     }
   };
 
-  const loadSummaryData = useCallback(async () => {
-    setIsLoadingSummary(true);
-    try {
-      const apiCategory = currentSection === 'hospitales' ? 'latinoamerica' : currentSection;
-      const response = await fetchSummaryCardsData(
-        activeCategory === 'Todos' ? null : activeCategoryId,
-        selectedDate,
-        apiCategory
-      );
-      console.log('Summary cards data loaded:', response);
-      setSummaryCardsData(response);
-    } catch (error) {
-      console.error('Error loading summary cards data:', error);
-      setError('Error al cargar los datos de resumen');
-    } finally {
-      setIsLoadingSummary(false);
-    }
-  }, [currentSection, activeCategory, activeCategoryId, selectedDate]);
-
-  useEffect(() => {
-    loadSummaryData();
-  }, [loadSummaryData]);
+  const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const term = e.target.value.toLowerCase();
+    setSearchTerm(term);
+    const filtered = data.filter((item: any) =>
+      item.Institucion.toLowerCase().includes(term) ||
+      (item.Ciudad && item.Ciudad.toLowerCase().includes(term)) ||
+      (item.Tipo && item.Tipo.toLowerCase().includes(term))
+    );
+    setFilteredData(filtered);
+  }, [data]);
 
   const renderSkeleton = () => (
     <div className="animate-pulse space-y-4">
@@ -288,7 +244,7 @@ const SocialStatsDashboard: React.FC = () => {
     </div>
   );
 
-  const showCategories = useMemo(() => categories.length > 0, [categories]);
+  const showCategories = useMemo(() => currentSection !== 'hospitales' && categories.length > 0, [currentSection, categories]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -309,16 +265,22 @@ const SocialStatsDashboard: React.FC = () => {
           ))}
         </Select>
 
-        {isLoading ? renderSkeleton() : (
+        {isLoading ? (
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-gray-200 rounded w-64"></div>
+            <div className="h-32 bg-gray-200 rounded"></div>
+            <div className="h-64 bg-gray-200 rounded"></div>
+          </div>
+        ) : (
           <>
-            {showCategories && (
-              <ImageNavbar 
-                onCategorySelect={handleCategorySelect} 
-                activeCategory={activeCategory} 
-                categories={categories}
-                currentSection={currentSection}
-              />
-            )}
+             {showCategories && (
+          <ImageNavbar 
+            onCategorySelect={handleCategorySelect} 
+            activeCategory={activeCategory} 
+            categories={categories}
+            currentSection={currentSection}
+          />
+        )}
 
             <PopulationCard 
               selectedDate={selectedDate}
@@ -327,11 +289,12 @@ const SocialStatsDashboard: React.FC = () => {
               penetrationRate={populationData.penetrationRate}
             />
 
-<SummaryCards 
-          data={summaryCardsData}
-          isAllCategory={activeCategory === 'Todos' || currentSection === 'hospitales'}
-          isLoading={isLoadingSummary}
-        />
+            <SummaryCards 
+              data={summaryCardsData} 
+              uniqueFollowers={uniqueFollowers}
+              isAllCategory={activeCategory === 'Todos' || currentSection === 'hospitales'} 
+              isLoading={isLoading}
+            />
 
             {(activeCategory === 'Todos' || currentSection === 'hospitales') && summaryCardsData && (
               <Card className="mb-6">
@@ -390,7 +353,7 @@ const SocialStatsDashboard: React.FC = () => {
                   institution={selectedInstitutions[0]}
                   isLoading={isLoading}
                 />
-              </Card>
+                </Card>
             )}
 
             {selectedInstitutions.length > 1 && (

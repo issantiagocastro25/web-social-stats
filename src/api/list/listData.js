@@ -106,15 +106,11 @@ export const fetchPopulationData = async (options = {}) => {
 };
 
 // Función para obtener datos de seguidores únicos
-export const fetchUniqueFollowersData = async (options = {}) => {
+export const fetchUniqueFollowers = async (options = {}) => {
   const {
-    category,
-    date,
+    category = 'salud',
+    date = '2021-06-01',
   } = options;
-
-  if (!category || !date) {
-    throw new Error('Category and date are required for fetching unique followers data');
-  }
 
   try {
     const response = await axios.get(`${API_URL}/api/social-metrics/stats`, {
@@ -124,10 +120,9 @@ export const fetchUniqueFollowersData = async (options = {}) => {
       }
     });
     
-    console.log('Unique followers data response:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error fetching unique followers data:', error);
+    console.error('Error fetching unique followers:', error);
     throw error;
   }
 };
