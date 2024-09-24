@@ -75,7 +75,11 @@ export const fetchCategories = async (category) => {
         category
       }
     });
-    return response.data;
+    
+    // Sort the categories based on the ordering field
+    const sortedCategories = response.data.sort((a, b) => a.ordering - b.ordering);
+    
+    return sortedCategories;
   } catch (error) {
     console.error('Error fetching categories:', error);
     throw error;
