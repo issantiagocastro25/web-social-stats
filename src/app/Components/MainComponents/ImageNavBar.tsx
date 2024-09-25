@@ -7,9 +7,11 @@ import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 interface Category {
   id: number;
   name: string;
-  institution_count: number | null;
+  institution_count: number;
   url: string;
   ordering: number;
+  category: string;
+  date_collection: string;
 }
 
 interface ImageNavbarProps {
