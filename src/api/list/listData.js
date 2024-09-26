@@ -61,16 +61,14 @@ export const fetchSummaryAndUniqueFollowers = async (options = {}) => {
 
 export const fetchCategories = async (category, date) => {
   try {
-    const response = await axios.get(`${API_URL}/api/social-metrics/institutions/types`, {
+    const response = await axios.get(`${API_URL}/api/social-metrics/institutions-types`, {
       params: {
         category,
         stats_date: date
       }
     });
-    
     // Asumiendo que la respuesta ya viene ordenada, si no, descomenta la siguiente línea
     // const sortedCategories = response.data.sort((a, b) => a.ordering - b.ordering);
-    
     return response.data;
   } catch (error) {
     console.error('Error fetching categories:', error);
