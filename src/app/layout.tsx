@@ -2,6 +2,7 @@
 import "./globals.css";
 import { AlertProvider } from './contexts/AlertContext';
 import ClientLayout from './ClientLayout';
+import { AuthProvider } from "./contexts/AuthContext";
 
 export default function RootLayout({
   children,
@@ -11,11 +12,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AlertProvider>
-          <ClientLayout>
-            {children}
-          </ClientLayout>
-        </AlertProvider>
+        <AuthProvider>
+          <AlertProvider>
+            <ClientLayout>
+              {children}
+            </ClientLayout>
+          </AlertProvider>
+        </AuthProvider>
       </body>
     </html>
   );
