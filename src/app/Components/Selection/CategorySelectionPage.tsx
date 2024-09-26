@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation';
 // Ejemplo de categorías
 const mockCategories = [
   { id: 1, name: 'Hospitales', imageUrl: 'https://mediaweb.sfo3.cdn.digitaloceanspaces.com/social-media-stats-assets/portadas/hospitales.webp' },
-  { id: 2, name: 'Salud', imageUrl: 'https://mediaweb.sfo3.cdn.digitaloceanspaces.com/social-media-stats-assets/portadas/salud.jpg' },
-  { id: 3, name: 'Compensacion', imageUrl: 'https://mediaweb.sfo3.cdn.digitaloceanspaces.com/social-media-stats-assets/portadas/compensacion.jpg' },
+    { id: 2, name: 'Salud', imageUrl: 'https://mediaweb.sfo3.cdn.digitaloceanspaces.com/social-media-stats-assets/portadas/salud.jpg' },
+    { id: 3, name: 'Compensacion', imageUrl: 'https://mediaweb.sfo3.cdn.digitaloceanspaces.com/social-media-stats-assets/portadas/compensacion.jpg' },
 ];
 
 const CategorySelectionMockup: React.FC = () => {
