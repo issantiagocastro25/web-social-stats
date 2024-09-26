@@ -5,18 +5,17 @@ import { useRouter } from 'next/navigation';
 
 // Ejemplo de categorías
 const mockCategories = [
-  { id: 1, name: 'Hospitales', imageUrl: 'https://mediaweb.sfo3.cdn.digitaloceanspaces.com/social-media-stats-assets/portadas/hospitales.webp' },
-    { id: 2, name: 'Salud', imageUrl: 'https://mediaweb.sfo3.cdn.digitaloceanspaces.com/social-media-stats-assets/portadas/salud.jpg' },
-    { id: 3, name: 'Compensacion', imageUrl: 'https://mediaweb.sfo3.cdn.digitaloceanspaces.com/social-media-stats-assets/portadas/compensacion.jpg' },
+  { id: 1, name: 'Hospitales', imageUrl: 'https://mediaweb.sfo3.cdn.digitaloceanspaces.com/social-media-stats-assets/portadas/hospitales.webp', route: '/hospitales' },
+  { id: 2, name: 'Salud', imageUrl: 'https://mediaweb.sfo3.cdn.digitaloceanspaces.com/social-media-stats-assets/portadas/salud.jpg', route: '/salud' },
+  { id: 3, name: 'Compensacion', imageUrl: 'https://mediaweb.sfo3.cdn.digitaloceanspaces.com/social-media-stats-assets/portadas/compensacion.jpg', route: '/compensacion' },
 ];
 
 const CategorySelectionMockup: React.FC = () => {
   const router = useRouter();
 
-  const handleCategoryClick = (categoryName: string) => {
-    console.log(`Clicked on ${categoryName}`);
-    // Aquí puedes agregar la lógica de navegación real
-    // Por ejemplo: router.push(`/category/${categoryName.toLowerCase()}`);
+  const handleCategoryClick = (route: string) => {
+    console.log(`Navigating to ${route}`);
+    router.push(route);
   };
 
   return (
@@ -25,7 +24,7 @@ const CategorySelectionMockup: React.FC = () => {
         <div
           key={category.id}
           className="flex-1 relative overflow-hidden cursor-pointer"
-          onClick={() => handleCategoryClick(category.name)}
+          onClick={() => handleCategoryClick(category.route)}
         >
           <img
             src={category.imageUrl}
