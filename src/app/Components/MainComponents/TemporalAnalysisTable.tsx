@@ -101,6 +101,14 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
     );
   };
 
+  const networkColors = {
+    'Facebook': 'blue',
+    'X': 'slate',
+    'Instagram': 'fuchsia',
+    'YouTube': 'red',
+    'TikTok': 'cyan'
+  };
+
   const renderCharts = () => (
     <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
       {networks.map(network => (
@@ -111,7 +119,7 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
             data={processedData[selectedInstitutionIndex]?.data || []}
             index="date"
             categories={[network]}
-            colors={["blue"]}
+            colors={[networkColors[network]]}
             valueFormatter={(number: number) => Intl.NumberFormat("us").format(number).toString()}
             yAxisWidth={60}
           />
@@ -150,6 +158,7 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
             size="xs"
             variant="secondary"
             onClick={() => setShowCharts(!showCharts)}
+            className='bg-[#5521B5] rounded-md'
           >
             {showCharts ? 'Ver Tabla' : 'Ver Gráficas'}
           </Button>

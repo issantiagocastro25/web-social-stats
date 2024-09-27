@@ -7,26 +7,26 @@ const config: Config = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
-
-    // Or if using `src` directory:
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
-    // Path to Tremor module
     './node_modules/@tremor/**/*.{js,ts,jsx,tsx}',
     flowbite.content(),
   ],
   theme: {
-    transparent: 'transparent',
-    current: 'currentColor',
+    fontFamily: {
+      sans: ['Poppins', 'sans-serif'],
+    },
     extend: {
       colors: {
-        // light mode
+        primary: '#FF0000',
+        secondary: '#5C00CE',
+        tertiary: '#FFCD25',
         tremor: {
           brand: {
-            faint: colors.blue[50],
-            muted: colors.blue[200],
-            subtle: colors.blue[400],
-            DEFAULT: colors.blue[500],
-            emphasis: colors.blue[700],
+            faint: colors.gray[100],
+            muted: colors.gray[200],
+            subtle: colors.gray[400],
+            DEFAULT: colors.gray[500],
+            emphasis: colors.gray[700],
             inverted: colors.white,
           },
           background: {
@@ -49,15 +49,14 @@ const config: Config = {
             inverted: colors.white,
           },
         },
-        // dark mode
         'dark-tremor': {
           brand: {
-            faint: '#0B1229',
-            muted: colors.blue[950],
-            subtle: colors.blue[800],
-            DEFAULT: colors.blue[500],
-            emphasis: colors.blue[400],
-            inverted: colors.blue[950],
+            faint: colors.gray[900],
+            muted: colors.gray[800],
+            subtle: colors.gray[600],
+            DEFAULT: colors.gray[500],
+            emphasis: colors.gray[300],
+            inverted: colors.gray[950],
           },
           background: {
             muted: '#131A2B',
@@ -66,7 +65,7 @@ const config: Config = {
             emphasis: colors.gray[300],
           },
           border: {
-            DEFAULT: colors.gray[800],
+            DEFAULT: colors.gray[700],
           },
           ring: {
             DEFAULT: colors.gray[800],
@@ -79,31 +78,6 @@ const config: Config = {
             inverted: colors.gray[950],
           },
         },
-      },
-      boxShadow: {
-        // light
-        'tremor-input': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-        'tremor-card':
-          '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
-        'tremor-dropdown':
-          '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-        // dark
-        'dark-tremor-input': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-        'dark-tremor-card':
-          '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
-        'dark-tremor-dropdown':
-          '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-      },
-      borderRadius: {
-        'tremor-small': '0.375rem',
-        'tremor-default': '0.5rem',
-        'tremor-full': '9999px',
-      },
-      fontSize: {
-        'tremor-label': ['0.75rem', { lineHeight: '1rem' }],
-        'tremor-default': ['0.875rem', { lineHeight: '1.25rem' }],
-        'tremor-title': ['1.125rem', { lineHeight: '1.75rem' }],
-        'tremor-metric': ['1.875rem', { lineHeight: '2.25rem' }],
       },
     },
   },

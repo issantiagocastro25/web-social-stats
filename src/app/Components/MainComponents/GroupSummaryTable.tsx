@@ -150,7 +150,7 @@ const GroupSummaryTable: React.FC<GroupSummaryTableProps> = ({ summaryCardsData,
     <Card>
       <div className="flex justify-between items-center mb-4">
         <Title>Resumen por Grupos ({summaryCardsData.stats_date})</Title>
-        <Button onClick={toggleView}>
+        <Button onClick={toggleView} className=' bg-[#5C00CE] rounded-md hover:bg-purple-800'>
           {showPercentages ? 'Mostrar Números' : 'Mostrar Porcentajes'}
         </Button>
       </div>

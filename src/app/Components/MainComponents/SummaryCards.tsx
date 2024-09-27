@@ -77,7 +77,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data, isAllCategory, isLoad
   if (isLoading) {
     return (
       <div className="overflow-x-auto">
-        <div className="flex space-x-10 pb-4" style={{ minWidth: 'max-content' }}>
+        <div className="flex justify-center space-x-6 pb-4">
           {[1, 2, 3, 4, 5].map((_, index) => (
             <Card key={index} className="w-64 flex-shrink-0">
               <div className="animate-pulse">
@@ -101,13 +101,13 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data, isAllCategory, isLoad
   }
 
   return (
-    <div className="overflow-x-auto">
-      <div className="flex space-x-10 pb-4" style={{ minWidth: 'max-content' }}>
+    <div className="overflow-x-auto pt-6">
+      <div className="flex justify-center flex-wrap gap-6 pb-4">
         {summaryData.map((stat, index) => (
           <Card key={index} className="w-64 flex-shrink-0">
             <Flex alignItems="center" justifyContent="around" className="mb-4">
+              <Text className="font-bold text-2xl">{stat.social_network}</Text>
               {getIcon(stat.social_network)}
-              <Text className="font-bold">{stat.social_network}</Text>
             </Flex>
             <Grid numCols={1} className="gap-4">
               <div>

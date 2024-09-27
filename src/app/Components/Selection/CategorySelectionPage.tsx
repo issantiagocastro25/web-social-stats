@@ -32,12 +32,12 @@ const CategorySelectionMockup: React.FC = () => {
             className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
           />
           <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
-            <h2 className="text-2xl font-bold mb-4 text-white">{category.name}</h2>
+            <h2 className="text-4xl font-bold mb-4 text-white">{category.name}</h2>
             <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-300"
-            >
-              Entrar
-            </button>
+  className="bg-[#5C00CE] hover:bg-[#4a00a3] text-white font-bold py-2 px-4 rounded transition-colors duration-300"
+>
+  Entrar
+</button>
           </div>
         </div>
       ))}

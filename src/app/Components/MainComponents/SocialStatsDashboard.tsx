@@ -304,9 +304,9 @@ const SocialStatsDashboard: React.FC = () => {
            currentSection === 'compensacion' ? 'Compensación' : 
            'Hospitales Latinoamérica'}
         </h1>
-
+  
         <Select 
-          className='w-64 mb-6' 
+          className="w-64 mb-6 border-gray-300 focus:border-secondary focus:ring-secondary" 
           value={selectedDate} 
           onChange={handleDateChange} 
         >
@@ -314,7 +314,7 @@ const SocialStatsDashboard: React.FC = () => {
             <option key={date} value={date}>{formatDate(date)}</option>
           ))}
         </Select>
-
+  
         {isLoading ? (
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-gray-200 rounded w-64"></div>
@@ -335,126 +335,129 @@ const SocialStatsDashboard: React.FC = () => {
                 currentSection={currentSection}
               />
             )}
-
+  
             <PopulationCard 
               selectedDate={selectedDate}
               population={populationData.population}
               uniqueFollowers={populationData.uniqueFollowers}
               penetrationRate={populationData.penetrationRate}
-              />
-
-              <SummaryCards 
-                data={summaryCardsData} 
-                uniqueFollowers={uniqueFollowers}
-                isAllCategory={activeCategory === 'Todos' || currentSection === 'hospitales'} 
-                isLoading={isLoading}
-              />
+              className="mb-6 bg-white shadow-lg border-l-4 border-primary"
+            />
   
-              {(activeCategory === 'Todos' || currentSection === 'hospitales') && summaryCardsData && (
-                <Card className="mb-6">
-                  <GroupSummaryTable 
-                    summaryCardsData={summaryCardsData} 
-                    onTemporalAnalysis={handleGroupTemporalAnalysis}
-                    isLoading={isLoading}
-                  />
-                </Card>
-              )}
+            <SummaryCards 
+              data={summaryCardsData} 
+              uniqueFollowers={uniqueFollowers}
+              isAllCategory={activeCategory === 'Todos' || currentSection === 'hospitales'} 
+              isLoading={isLoading}
+              className="mb-6"
+            />
   
-              <div className="mb-6 flex space-x-4 items-center">
-                <TextInput
-                  icon={FaSearch}
-                  type="text"
-                  placeholder="Buscar por institución, ciudad o tipo..."
-                  value={searchTerm}
-                  onChange={handleSearch}
-                />
-                <Button 
-                  color="success" 
-                  onClick={handleTemporalAnalysis}
-                  disabled={isLoadingTemporal || selectedInstitutions.length === 0}
-                >
-                  {isLoadingTemporal ? 'Analizando...' : 'Análisis Temporal'}
-                </Button>
-              </div>
-  
-              {isLoadingTemporal && (
-                <Card>
-                  <h2 className="text-xl font-bold mb-4">Analizando datos temporales...</h2>
-                  <ProgressBar progress={temporalProgress} />
-                </Card>
-              )}
-  
-              <Card>
-                <h2 className="text-2xl font-bold mb-4">
-                  {currentSection === 'hospitales' 
-                    ? 'Hospitales de Latinoamérica' 
-                    : `Datos para la categoría: ${activeCategory}`}
-                </h2>
-                <InteractiveDataTable 
-                  data={filteredData}
-                  onInstitutionSelect={handleInstitutionSelect}
-                  onClearSelection={handleClearSelection}
-                  selectedType={currentSection === 'hospitales' ? 'Hospitales' : activeCategory}
-                  selectedDate={selectedDate}
-                  selectedInstitutions={selectedInstitutions}
+            {(activeCategory === 'Todos' || currentSection === 'hospitales') && summaryCardsData && (
+              <Card className="mb-6 bg-white shadow-md">
+                <GroupSummaryTable 
+                  summaryCardsData={summaryCardsData} 
+                  onTemporalAnalysis={handleGroupTemporalAnalysis}
                   isLoading={isLoading}
                 />
               </Card>
+            )}
   
-              {selectedInstitutions.length === 1 && (
-                <Card className="mt-6">
-                  <InstitutionStats 
-                    institution={selectedInstitutions[0]}
-                    isLoading={isLoading}
-                  />
-                </Card>
-              )}
-  
-              {selectedInstitutions.length > 1 && (
-                <Grid numColsLg={2} className="gap-6 mt-6">
-                  <ComparisonCharts 
-                    selectedInstitutions={selectedInstitutions}
-                    isLoading={isLoading}
-                  />
-                  <ComparisonTable 
-                    selectedInstitutions={selectedInstitutions}
-                    isLoading={isLoading}
-                  />
-                </Grid>
-              )}
-  
-              {showTemporalAnalysis && temporalData.length > 0 && (
-                <TemporalAnalysisTable 
-                  selectedInstitutions={selectedInstitutions}
-                  temporalData={temporalData}
-                  availableDates={availableDates}
-                  isLoading={isLoadingTemporal}
-                />
-              )}
-  
-              {showGroupTemporalAnalysis && (
-                <GroupTemporalAnalysisTable 
-                  temporalData={temporalData}
-                  availableDates={availableDates}
-                  onClose={() => setShowGroupTemporalAnalysis(false)}
-                  isLoading={isLoadingTemporal}
-                />
-              )}
-            </>
-          )}
-  
-          {errors.length > 0 && (
-            <div className="mt-4">
-              {errors.map((error, index) => (
-                <Alert key={index} color="failure" className="mb-2">
-                  {error}
-                </Alert>
-              ))}
+            <div className="mb-6 flex space-x-4 items-center">
+              <TextInput
+                icon={FaSearch}
+                type="text"
+                placeholder="Buscar por institución, ciudad o tipo..."
+                value={searchTerm}
+                onChange={handleSearch}
+                className="border-gray-300 focus:border-secondary focus:ring-secondary"
+              />
+              <Button 
+                color="#5C00CE" 
+                onClick={handleTemporalAnalysis}
+                disabled={isLoadingTemporal || selectedInstitutions.length === 0}
+                className="bg-secondary hover:bg-secondary-dark text-white transition-colors duration-200"
+              >
+                {isLoadingTemporal ? 'Analizando...' : 'Análisis Temporal'}
+              </Button>
             </div>
-          )}
-        </div>
-      </div>
-    );
-  };
   
-  export default SocialStatsDashboard;
+            {isLoadingTemporal && (
+              <Card className="mb-6 bg-white shadow-md">
+                <h2 className="text-xl font-bold mb-4 text-gray-900">Analizando datos temporales...</h2>
+                <ProgressBar progress={temporalProgress} color="secondary" />
+              </Card>
+            )}
+  
+            <Card className="mb-6 bg-white shadow-lg">
+              <h2 className="text-2xl font-bold mb-4 text-gray-900">
+                {currentSection === 'hospitales' 
+                  ? 'Hospitales de Latinoamérica' 
+                  : `Datos para la categoría: ${activeCategory}`}
+              </h2>
+              <InteractiveDataTable 
+                data={filteredData}
+                onInstitutionSelect={handleInstitutionSelect}
+                onClearSelection={handleClearSelection}
+                selectedType={currentSection === 'hospitales' ? 'Hospitales' : activeCategory}
+                selectedDate={selectedDate}
+                selectedInstitutions={selectedInstitutions}
+                isLoading={isLoading}
+              />
+            </Card>
+  
+            {selectedInstitutions.length === 1 && (
+              <Card className="mt-6 bg-white shadow-md">
+                <InstitutionStats 
+                  institution={selectedInstitutions[0]}
+                  isLoading={isLoading}
+                />
+              </Card>
+            )}
+  
+            {selectedInstitutions.length > 1 && (
+              <Grid numColsLg={2} className="gap-6 mt-6">
+                <ComparisonCharts 
+                  selectedInstitutions={selectedInstitutions}
+                  isLoading={isLoading}
+                />
+                <ComparisonTable 
+                  selectedInstitutions={selectedInstitutions}
+                  isLoading={isLoading}
+                />
+              </Grid>
+            )}
+  
+            {showTemporalAnalysis && temporalData.length > 0 && (
+              <TemporalAnalysisTable 
+                selectedInstitutions={selectedInstitutions}
+                temporalData={temporalData}
+                availableDates={availableDates}
+                isLoading={isLoadingTemporal}
+              />
+            )}
+  
+            {showGroupTemporalAnalysis && (
+              <GroupTemporalAnalysisTable 
+                temporalData={temporalData}
+                availableDates={availableDates}
+                onClose={() => setShowGroupTemporalAnalysis(false)}
+                isLoading={isLoadingTemporal}
+              />
+            )}
+          </>
+        )}
+  
+        {errors.length > 0 && (
+          <div className="mt-4">
+            {errors.map((error, index) => (
+              <Alert key={index} color="failure" className="mb-2 bg-primary bg-opacity-10 border-l-4 border-primary text-gray-900">
+                {error}
+              </Alert>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+export default SocialStatsDashboard;

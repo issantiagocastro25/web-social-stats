@@ -1,6 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* El resto de tu CSS global */
+body {
+  font-family: 'Poppins', sans-serif;
+  @apply bg-white text-gray-900;
+}
 
 /* Estilos personalizados */
 .stats-table {
@@ -8,7 +15,7 @@
 }
 
 .stats-table th {
-  @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer;
+  @apply px-6 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider cursor-pointer;
 }
 
 .stats-table td {
@@ -20,7 +27,7 @@
 }
 
 .stats-table tr:hover {
-  @apply bg-gray-100;
+  @apply bg-tertiary bg-opacity-20;
 }
 
 .category-icon {
@@ -28,7 +35,7 @@
 }
 
 .category-icon-active {
-  @apply border-4 border-blue-500 rounded-full shadow-lg;
+  @apply border-4 border-secondary rounded-full shadow-lg;
 }
 
 .category-icon-inactive {

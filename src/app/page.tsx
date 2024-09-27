@@ -3,7 +3,7 @@ import LoginRegisterCard from "./Components/AuthComponents/AuthAccess";
 
 export default function Home() {
   return (
-    <main>
+    <main className="">
       <LoginRegisterCard />
     </main>
   );
