@@ -18,7 +18,7 @@ export function useAuthCheck(requireAuth: boolean = true, dashboardPath: string 
 
         if (authStatus.is_authenticated) {
           // Si el usuario está autenticado
-          if (pathname.startsWith('/profile/')) {
+          if (pathname.startsWith('/profile/' || pathname === '/' || pathname === '/pricing')) {
             // Permitir acceso a rutas que comienzan con /profile/
             return;
           } else if (!authStatus.subscription && !pathname.startsWith('/pricing')) {
@@ -30,7 +30,7 @@ export function useAuthCheck(requireAuth: boolean = true, dashboardPath: string 
           }
         } else {
           // Si no está autenticado y se requiere autenticación, redirigir al login
-          if (requireAuth && pathname !== '/') {
+          if (requireAuth && pathname !== '/' && pathname !== '/pricing') {
             router.push('/');
           }
         }
