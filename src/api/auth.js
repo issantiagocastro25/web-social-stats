@@ -40,7 +40,24 @@ export const checkAuthStatus = async () => {
 
 export const logout = async () => {
   try {
-    const response = await api.post('/api/logout/');
+    // Obtener el token CSRF
+    const csrftoken = getCookie('csrftoken');
+
+    if (!csrftoken) {
+      console.error('No se pudo obtener el token CSRF');
+      return { success: false, error: 'No se pudo obtener el token CSRF' };
+    }
+
+    console.log('CSRF Token:', csrftoken); // Para depuración
+
+    const response = await api.post('/api/logout/', {}, {
+      headers: {
+        'X-CSRFToken': csrftoken,
+        'Content-Type': 'application/json',
+      },
+      withCredentials: true, // Importante para incluir las cookies en la solicitud
+    });
+
     if (response.data.success) {
       console.log('Logout exitoso');
       
@@ -57,6 +74,23 @@ export const logout = async () => {
     return { success: false, error: error.response?.data?.message || 'Error en el proceso de logout' };
   }
 };
+
+// Función auxiliar para obtener el valor de una cookie
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
 
 export const signup = async (email, password, password2, firstName, lastName, identification, phone) => {
   try {

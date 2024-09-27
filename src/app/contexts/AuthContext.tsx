@@ -1,49 +1,53 @@
-// contexts/AuthContext.tsx
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-
-interface User {
-  token: string;
-}
+// AuthContext.tsx
+'use client';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { checkAuthStatus } from '@/api/auth';
 
 interface AuthContextType {
-  user: User | null;
-  login: (token: string) => Promise<void>;
-  logout: () => void;
+  isAuthenticated: boolean;
+  hasSubscription: boolean;
+  userRole: string | null;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const router = useRouter();
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [authState, setAuthState] = useState<AuthContextType>({
+    isAuthenticated: false,
+    hasSubscription: false,
+    userRole: null,
+    loading: true,
+  });
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      setUser({ token });
-    }
+    const checkAuth = async () => {
+      try {
+        const authStatus = await checkAuthStatus();
+        setAuthState({
+          isAuthenticated: authStatus.is_authenticated,
+          hasSubscription: !!authStatus.subscription,
+          userRole: authStatus.user_role, // Asumimos que el backend devuelve el rol del usuario
+          loading: false,
+        });
+      } catch (error) {
+        console.error('Error checking auth status:', error);
+        setAuthState({
+          isAuthenticated: false,
+          hasSubscription: false,
+          userRole: null,
+          loading: false,
+        });
+      }
+    };
+
+    checkAuth();
   }, []);
 
-  const login = async (token: string) => {
-    localStorage.setItem('authToken', token);
-    setUser({ token });
-  };
-
-  const logout = () => {
-    localStorage.removeItem('authToken');
-    setUser(null);
-    router.push('/login');
-  };
-
-  return (
-    <AuthContext.Provider value={{ user, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={authState}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = (): AuthContextType => {
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
