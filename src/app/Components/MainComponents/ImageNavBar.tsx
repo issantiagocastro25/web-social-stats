@@ -109,7 +109,7 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
                 alt={category.name}
                 className="w-40 h-40 object-cover rounded-xl mb-4"
               />
-              <span className="text-sm font-medium text-gray-700 text-center">
+              <span className="text-xl font-medium text-gray-700 text-center">
                 {category.name}
               </span>
               <span className="text-xs text-gray-500">
