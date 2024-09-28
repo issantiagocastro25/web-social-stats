@@ -79,7 +79,7 @@ const DashboardNavbar = () => {
             <Link href="/" className="flex-shrink-0">
               <img
                 className="h-8 w-auto"
-                src="/assets/imgs/Awindowschannellogo.C7p9k2-l_L99iE.png"
+                src="https://colombiaredessociales.com/wp-content/uploads/2024/08/RSCOLOMBIA_WHITE.png"
                 alt="Awindows Logo"
               />
             </Link>
