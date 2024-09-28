@@ -10,7 +10,7 @@ import ButtonLinkedIn from './linkedin/ButtonLinkedIn';
 import { useAuthCheck } from '@/app/hooks/useAuthCheck';
 import LoadingLogin from '../Loadings/LoadingLogin';
 
-const LoginRegisterCard: React.FC = () => {
+const AuthAccess: React.FC = () => {
     const [isLoginView, setIsLoginView] = useState(true);
     const [identification, setIdentification] = useState('');
     const [firstName, setFirstName] = useState('');
@@ -185,12 +185,21 @@ const LoginRegisterCard: React.FC = () => {
                                     </div>
                                 </>
                             )}
-                            <Button type="submit" className="w-full enabled:hover:bg-secondary-dark rounded-lg bg-secondary hover:bg-secondary-dark text-white">
+                            <Button 
+                                type="submit" 
+                                className="w-full bg-secondary hover:bg-secondary-dark text-white transition-colors duration-300 rounded-lg focus:outline-none focus:ring-0"
+                            >
                                 {isLoginView ? 'Iniciar Sesión' : 'Registrarse'}
                             </Button>
-                            <div className="bg-gray-300 w-full h-0.5 rounded-lg"></div>
-                            <ButtonGoogle buttonText={isLoginView ? 'Continuar con Google' : 'Registrarse con Google'} className="border-gray-300 hover:bg-gray-100" />
-                            <ButtonLinkedIn buttonText={isLoginView ? 'Continuar con LinkedIn' : 'Registrarse con LinkedIn'} className="border-gray-300 hover:bg-gray-100" />
+                            <div className="bg-gray-300 w-full h-0.5 rounded-lg my-4"></div>
+                            <ButtonGoogle 
+                                buttonText={isLoginView ? 'Continuar con Google' : 'Registrarse con Google'} 
+                                className="w-full border border-gray-300 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors duration-300 mb-2 focus:outline-none focus:ring-0"
+                            />
+                            <ButtonLinkedIn 
+                                buttonText={isLoginView ? 'Continuar con LinkedIn' : 'Registrarse con LinkedIn'} 
+                                className="w-full border border-gray-300 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors duration-300 focus:outline-none focus:ring-0"
+                            />
                         </form>
                         {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
                     </div>
@@ -204,7 +213,10 @@ const LoginRegisterCard: React.FC = () => {
                             <li>Más de 1,000,000 conjuntos de datos</li>
                             <li>Descarga en XLS, PDF y PNG</li>
                         </ul>
-                        <Button onClick={() => setIsLoginView(!isLoginView)} className="mt-4 w-full md:w-auto bg-tertiary hover:bg-tertiary-dark text-primary text-2xl transition-colors duration-300">
+                        <Button 
+                            onClick={() => setIsLoginView(!isLoginView)} 
+                            className="mt-4 w-full md:w-auto bg-tertiary hover:bg-tertiary-dark text-primary text-2xl transition-colors duration-300 rounded-lg focus:outline-none focus:ring-0"
+                        >
                             {isLoginView ? 'Registrarse ahora' : 'Ya tengo una cuenta'}
                         </Button>
                     </div>
@@ -223,10 +235,18 @@ const LoginRegisterCard: React.FC = () => {
                 </Modal.Body>
                 <Modal.Footer>
                     <div className="flex justify-start w-full space-x-4">
-                        <Button color="success" onClick={handleAcceptTerms} className="bg-secondary hover:bg-secondary-dark text-white">
+                        <Button 
+                            color="success" 
+                            onClick={handleAcceptTerms} 
+                            className="bg-secondary hover:bg-secondary-dark text-white transition-colors duration-300 rounded-lg focus:outline-none focus:ring-0"
+                        >
                             Aceptar
                         </Button>
-                        <Button color="gray" onClick={handleDeclineTerms}>
+                        <Button 
+                            color="gray" 
+                            onClick={handleDeclineTerms}
+                            className="bg-gray-200 hover:bg-gray-300 text-gray-700 transition-colors duration-300 rounded-lg focus:outline-none focus:ring-0"
+                        >
                             Declinar
                         </Button>
                     </div>
@@ -236,4 +256,4 @@ const LoginRegisterCard: React.FC = () => {
     );
 };
 
-export default LoginRegisterCard;
+export default AuthAccess;
