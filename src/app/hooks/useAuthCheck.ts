@@ -16,6 +16,7 @@ export function useAuthCheck(requireAuth: boolean = true) {
 
         if (!authStatus.is_authenticated && requireAuth && pathname !== '/' && pathname !== '/pricing') {
           router.push('/');
+          window.location.href = '/';
         }
       } catch (error) {
         console.error('Error checking auth status:', error);

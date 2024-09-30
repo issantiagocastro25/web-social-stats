@@ -40,6 +40,7 @@ export function useSubscriptionCheck() {
               router.push(allowedRoutes[0]);
             } else {
               router.push('/categories');
+              window.location.href = '/categories';
             }
           }
         }
