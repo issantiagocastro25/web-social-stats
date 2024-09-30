@@ -32,7 +32,7 @@ body {
 
 .category-icon {
   @apply w-20 h-20 cursor-pointer transition-all duration-300;
-}
+} 
 
 .category-icon-active {
   @apply border-4 border-secondary rounded-full shadow-lg;

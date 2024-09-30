@@ -72,14 +72,14 @@ const DashboardNavbar = () => {
   }
 
   return (
-    <nav className="bg-white shadow-md">
+    <nav className="bg-red-600 shadow-md">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0">
               <img
                 className="h-8 w-auto"
-                src="/assets/imgs/Awindowschannellogo.C7p9k2-l_L99iE.png"
+                src="https://colombiaredessociales.com/wp-content/uploads/2024/08/RSCOLOMBIA_WHITE.png"
                 alt="Awindows Logo"
               />
             </Link>
@@ -92,8 +92,8 @@ const DashboardNavbar = () => {
                   onClick={toggleAdminDropdown}
                   className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
                     pathname.startsWith('/administration')
-                      ? 'border-indigo-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                      ? 'border-yellow-400 text-white'
+                      : 'border-transparent text-white hover:border-yellow-300 hover:text-yellow-300'
                   }`}
                   aria-expanded={isAdminDropdownOpen}
                 >
@@ -120,7 +120,7 @@ const DashboardNavbar = () => {
               <div className="ml-3 relative" ref={userMenuRef}>
                 <button
                   onClick={toggleMenu}
-                  className="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  className="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                   id="user-menu"
                   aria-haspopup="true"
                   aria-expanded={isMenuOpen}
@@ -153,7 +153,7 @@ const DashboardNavbar = () => {
           <div className="flex items-center sm:hidden">
             <button
               onClick={toggleMenu}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+              className="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-yellow-300 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
               aria-expanded={isMenuOpen}
             >
               <span className="sr-only">Open main menu</span>
@@ -179,7 +179,7 @@ const DashboardNavbar = () => {
             <MobileNavLink href="/administration/youtube" currentPath={pathname}>Administración - YouTube</MobileNavLink>
           </div>
           {user && (
-            <div className="pt-4 pb-3 border-t border-gray-200">
+            <div className="pt-4 pb-3 border-t border-red-700">
               <div className="flex items-center px-4">
                 <div className="flex-shrink-0">
                   <img
@@ -189,8 +189,8 @@ const DashboardNavbar = () => {
                   />
                 </div>
                 <div className="ml-3">
-                  <div className="text-base font-medium text-gray-800">{user.first_name} {user.last_name}</div>
-                  <div className="text-sm font-medium text-gray-500">{user.email}</div>
+                  <div className="text-base font-medium text-white">{user.first_name} {user.last_name}</div>
+                  <div className="text-sm font-medium text-red-300">{user.email}</div>
                 </div>
               </div>
               <div className="mt-3 space-y-1">
@@ -199,7 +199,7 @@ const DashboardNavbar = () => {
                 <MobileUserMenuItem href="/settings">Configuración</MobileUserMenuItem>
                 <button
                   onClick={handleLogout}
-                  className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                  className="block w-full text-left px-4 py-2 text-base font-medium text-white hover:text-yellow-300 hover:bg-red-700"
                 >
                   Cerrar Sesión
                 </button>
@@ -217,8 +217,8 @@ const NavLink = ({ href, currentPath, children }) => (
     href={href}
     className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
       currentPath === href
-        ? 'border-indigo-500 text-gray-900'
-        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+        ? 'border-yellow-400 text-white'
+        : 'border-transparent text-white hover:border-yellow-300 hover:text-yellow-300'
     }`}
   >
     {children}
@@ -230,8 +230,8 @@ const MobileNavLink = ({ href, currentPath, children }) => (
     href={href}
     className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
       currentPath === href
-        ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
-        : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'
+        ? 'bg-red-700 border-yellow-400 text-white'
+        : 'border-transparent text-white hover:bg-red-700 hover:border-yellow-300 hover:text-yellow-300'
     }`}
   >
     {children}
@@ -245,7 +245,7 @@ const UserMenuItem = ({ href, children }) => (
 );
 
 const MobileUserMenuItem = ({ href, children }) => (
-  <Link href={href} className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+  <Link href={href} className="block px-4 py-2 text-base font-medium text-white hover:text-yellow-300 hover:bg-red-700">
     {children}
   </Link>
 );

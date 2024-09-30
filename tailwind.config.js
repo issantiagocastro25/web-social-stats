@@ -17,9 +17,21 @@ const config: Config = {
     },
     extend: {
       colors: {
-        primary: '#FF0000',
-        secondary: '#5C00CE',
-        tertiary: '#FFCD25',
+        primary: {
+          DEFAULT: '#FF0000',
+          dark: '#CC0000',
+          light: '#FF3333',
+        },
+        secondary: {
+          DEFAULT: '#5C00CE',
+          dark: '#4A00A5',
+          light: '#7A00FF',
+        },
+        tertiary: {
+          DEFAULT: '#FFCD25',
+          dark: '#E6B800',
+          light: '#FFD84D',
+        },
         tremor: {
           brand: {
             faint: colors.gray[100],
@@ -68,7 +80,7 @@ const config: Config = {
             DEFAULT: colors.gray[700],
           },
           ring: {
-            DEFAULT: colors.gray[800],
+            DEFAULT: colors.gray[800], 
           },
           content: {
             subtle: colors.gray[600],
@@ -77,6 +89,23 @@ const config: Config = {
             strong: colors.gray[50],
             inverted: colors.gray[950],
           },
+        },
+      },
+      textColor: {
+        primary: {
+          DEFAULT: '#FF0000',
+          dark: '#CC0000',
+          light: '#FF3333',
+        },
+        secondary: {
+          DEFAULT: '#5C00CE',
+          dark: '#4A00A5',
+          light: '#7A00FF',
+        },
+        tertiary: {
+          DEFAULT: '#FFCD25',
+          dark: '#E6B800',
+          light: '#FFD84D',
         },
       },
     },
@@ -109,6 +138,8 @@ const config: Config = {
       pattern:
         /^(fill-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(?:50|100|200|300|400|500|600|700|800|900|950))$/,
     },
+    'hover:brightness-90',
+    'hover:brightness-75',
   ],
   plugins: [require('@headlessui/tailwindcss'), require('@tailwindcss/forms'), flowbite.plugin(),],
 };

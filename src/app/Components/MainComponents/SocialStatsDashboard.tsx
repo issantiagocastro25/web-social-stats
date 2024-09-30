@@ -336,13 +336,13 @@ const SocialStatsDashboard: React.FC = () => {
               />
             )}
   
-            <PopulationCard 
+            {/* <PopulationCard 
               selectedDate={selectedDate}
               population={populationData.population}
               uniqueFollowers={populationData.uniqueFollowers}
               penetrationRate={populationData.penetrationRate}
               className="mb-6 bg-white shadow-lg border-l-4 border-primary"
-            />
+            /> */}
   
             <SummaryCards 
               data={summaryCardsData} 
