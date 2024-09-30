@@ -185,12 +185,12 @@ const AuthAccess: React.FC = () => {
                                     </div>
                                 </>
                             )}
-                            <Button 
+                            <button 
                                 type="submit" 
-                                className="w-full bg-secondary hover:bg-secondary-dark text-white transition-colors duration-300 rounded-lg focus:outline-none focus:ring-0"
+                                className="w-full text-sm py-2 bg-secondary hover:bg-secondary-dark text-white transition-colors duration-300 rounded-lg focus:outline-none focus:ring-0"
                             >
                                 {isLoginView ? 'Iniciar Sesión' : 'Registrarse'}
-                            </Button>
+                            </button>
                             <div className="bg-gray-300 w-full h-0.5 rounded-lg my-4"></div>
                             <ButtonGoogle 
                                 buttonText={isLoginView ? 'Continuar con Google' : 'Registrarse con Google'} 
@@ -213,12 +213,12 @@ const AuthAccess: React.FC = () => {
                             <li>Más de 1,000,000 conjuntos de datos</li>
                             <li>Descarga en XLS, PDF y PNG</li>
                         </ul>
-                        <Button 
+                        <button
                             onClick={() => setIsLoginView(!isLoginView)} 
-                            className="mt-4 w-full md:w-auto bg-tertiary hover:bg-tertiary-dark text-primary text-2xl transition-colors duration-300 rounded-lg focus:outline-none focus:ring-0"
-                        >
+                                className="mt-4 w-full md:w-auto bg-tertiary hover:bg-tertiary-dark text-primary text-sm py-2 px-6 transition-colors duration-300 rounded-lg focus:outline-none focus:ring-0"
+                            >
                             {isLoginView ? 'Registrarse ahora' : 'Ya tengo una cuenta'}
-                        </Button>
+                        </button>
                     </div>
                 </div>
             </Card>
