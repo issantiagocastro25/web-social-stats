@@ -19,14 +19,13 @@ export default function RootLayout({
   return (
     <html lang="es" className={poppins.className}>
       <body>
-      {children}
-        {/* <AuthProvider>
+        <AuthProvider>
           <AlertProvider>
             <ClientLayout>
               {children}
             </ClientLayout>
           </AlertProvider>
-        </AuthProvider> */}
+        </AuthProvider>
       </body>
     </html>
   );
