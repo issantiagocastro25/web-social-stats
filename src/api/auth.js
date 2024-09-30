@@ -60,13 +60,13 @@ async function getCSRFToken() {
 export const logout = async () => {
   try {
     // Obtener el token CSRF justo antes de hacer logout
-    const csrftoken = await getCSRFToken();
+    //const csrftoken = await getCSRFToken();
 
-    console.log('CSRF Token obtenido:', csrftoken); // Para depuración
+    //console.log('CSRF Token obtenido:', csrftoken); // Para depuración
 
-    const response = await api.post('/api/logout/', {}, {
+    const response = await api.post('/accounts/logout/', {}, {
       headers: {
-        'X-CSRFToken': csrftoken,
+        //'X-CSRFToken': csrftoken,
         'Content-Type': 'application/json',
       },
       withCredentials: true, // Importante para incluir las cookies en la solicitud
