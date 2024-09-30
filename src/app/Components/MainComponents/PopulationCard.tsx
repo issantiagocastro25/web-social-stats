@@ -1,15 +1,19 @@
 import React from 'react';
-import { Card, Title, Text, Metric, AreaChart, Flex, Badge } from '@tremor/react';
+import { Card, Title, Text, Metric, AreaChart, Flex, Badge, Select, SelectItem } from '@tremor/react';
 
 interface PopulationCardProps {
+  dates: string[];
   selectedDate: string;
+  onDateChange: (date: string) => void;
   population: number;
   uniqueFollowers: number;
   penetrationRate: number;
 }
 
 const PopulationCard: React.FC<PopulationCardProps> = ({
+  dates,
   selectedDate,
+  onDateChange,
   population,
   uniqueFollowers,
   penetrationRate,
@@ -36,7 +40,13 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
     <Card className="mt-6">
       <Flex justifyContent="between" alignItems="center">
         <Title>Población Colombia</Title>
-        <Badge color="blue">{year}</Badge>
+        <Select value={selectedDate} onValueChange={onDateChange}>
+          {dates.map((date) => (
+            <SelectItem key={date} value={date}>
+              {date}
+            </SelectItem>
+          ))}
+        </Select>
       </Flex>
       
       <Flex justifyContent="start" alignItems="baseline" className="space-x-2 mt-4">
