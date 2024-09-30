@@ -105,7 +105,9 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
               onClick={() => handleCategorySelect(category.name)}
             >
               <img
-                src={category.url}
+                src={category.name === 'Todos' 
+                  ? 'https://mediaweb.sfo3.cdn.digitaloceanspaces.com/social-media-stats-assets/todos.png' 
+                  : category.url}
                 alt={category.name}
                 className="w-40 h-40 object-cover rounded-xl mb-4"
               />

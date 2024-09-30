@@ -205,7 +205,7 @@ const AuthAccess: React.FC = () => {
 
                     {/* Sección de información/publicidad */}
                     <div className="w-full md:w-1/2 text-white p-6 md:p-8">
-                        <h2 className="text-xl md:text-2xl text-[#5C00CE] font-bold mb-4">SMART impulsa tus redes sociales con inteligencia</h2>
+                        <h2 className="text-xl md:text-2xl text-secondary font-bold mb-4">SMART impulsa tus redes sociales con inteligencia</h2>
                         <p className="mb-4 text-gray-700 text-sm md:text-base">Colombia redes sociales audita actualmente la presencia en redes sociales en tres mercados:</p>
                         <ul className="list-disc list-inside mb-4 text-gray-700 text-sm md:text-base">
                     
@@ -215,9 +215,9 @@ const AuthAccess: React.FC = () => {
                         </ul>
                         <p className="mb-4 text-gray-700 text-sm md:text-base">Iremos incrementando nuevos sectores y grupos de mercados para ofrecer, por primera vez, datos cuantitativos de la presencia en redes sociales que sirvan para contextualizar los esfuerzos y resultados de cada empresa y organización.</p>
 
-                        <button 
+                        <button  
                             onClick={() => setIsLoginView(!isLoginView)} 
-                            className="text-white bg-[#5C00CE] hover:bg-[#FFD700] hover:text-[#8A2BE2] focus:ring-4 focus:outline-none focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 transition-all duration-300"
+                            className="text-white bg-secondary-dark hover:bg-[#FFD700] hover:text-secondary-dark focus:ring-4 focus:outline-none focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 transition-all duration-300"
                         >
                             {isLoginView ? 'Registrarse ahora' : 'Ya tengo una cuenta'}
                         </button>

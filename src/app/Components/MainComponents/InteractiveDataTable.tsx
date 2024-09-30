@@ -176,7 +176,7 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
                 key={network}
                 onClick={() => toggleNetwork(network as keyof typeof visibleNetworks)}
                 size="xs"
-                color={isVisible ? "blue" : "gray"}
+                color={isVisible ? "purple" : "gray"}
               >
                 {network === 'Facebook' && <FaFacebook className="mr-2" />}
                 {network === 'X' && <XIcon className="mr-2" />}

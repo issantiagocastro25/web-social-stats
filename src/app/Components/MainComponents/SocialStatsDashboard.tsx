@@ -299,10 +299,10 @@ const SocialStatsDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <div className="container mx-auto px-4 py-8 flex-grow">
-        <h1 className="text-4xl font-extrabold text-center mb-8 text-gray-900">
-          {currentSection === 'salud' ? 'Salud Colombia' : 
-           currentSection === 'compensacion' ? 'Compensación' : 
-           'Hospitales Latinoamérica'}
+        <h1 className="text-5xl font-bold text-center mb-8 text-secondary-dark">
+          {currentSection === 'salud' ? 'El sector salud de Colombia' : 
+           currentSection === 'compensacion' ? 'Cajas de compensación de Colombia' : 
+           'Hospitales de referencia internacionales'}
         </h1>
   
         <Select 
@@ -362,7 +362,16 @@ const SocialStatsDashboard: React.FC = () => {
               </Card>
             )}
   
-            <div className="mb-6 flex space-x-4 items-center">
+            
+  
+            
+  
+            <Card className="mb-6 bg-white shadow-lg">
+              <h2 className="text-2xl font-bold mb-4 text-gray-900">
+                {currentSection === 'hospitales' 
+                  ? 'Hospitales de Latinoamérica' 
+                  : `Datos para la categoría: ${activeCategory}`}
+              </h2>
               <TextInput
                 icon={FaSearch}
                 type="text"
@@ -371,29 +380,6 @@ const SocialStatsDashboard: React.FC = () => {
                 onChange={handleSearch}
                 className="border-gray-300 focus:border-secondary focus:ring-secondary"
               />
-              <Button 
-                color="#5C00CE" 
-                onClick={handleTemporalAnalysis}
-                disabled={isLoadingTemporal || selectedInstitutions.length === 0}
-                className="bg-secondary hover:bg-secondary-dark text-white transition-colors duration-200"
-              >
-                {isLoadingTemporal ? 'Analizando...' : 'Análisis Temporal'}
-              </Button>
-            </div>
-  
-            {isLoadingTemporal && (
-              <Card className="mb-6 bg-white shadow-md">
-                <h2 className="text-xl font-bold mb-4 text-gray-900">Analizando datos temporales...</h2>
-                <ProgressBar progress={temporalProgress} color="secondary" />
-              </Card>
-            )}
-  
-            <Card className="mb-6 bg-white shadow-lg">
-              <h2 className="text-2xl font-bold mb-4 text-gray-900">
-                {currentSection === 'hospitales' 
-                  ? 'Hospitales de Latinoamérica' 
-                  : `Datos para la categoría: ${activeCategory}`}
-              </h2>
               <InteractiveDataTable 
                 data={filteredData}
                 onInstitutionSelect={handleInstitutionSelect}
@@ -403,6 +389,25 @@ const SocialStatsDashboard: React.FC = () => {
                 selectedInstitutions={selectedInstitutions}
                 isLoading={isLoading}
               />
+
+                  
+              <div className="mb-6 flex space-x-4 items-center justify-end pt-3">
+              
+                      <Button 
+                        color="#5C00CE" 
+                        onClick={handleTemporalAnalysis}
+                        disabled={isLoadingTemporal || selectedInstitutions.length === 0}
+                        className="bg-secondary hover:bg-secondary-dark text-white transition-colors duration-200"
+                      >
+                        {isLoadingTemporal ? 'Analizando...' : 'Análisis Temporal'}
+                      </Button>
+              </div>
+                      {isLoadingTemporal && (
+                          <Card className="mb-6 bg-white shadow-md">
+                            <h2 className="text-xl font-bold mb-4 text-gray-900">Analizando datos temporales...</h2>
+                            <ProgressBar progress={temporalProgress} color="secondary" />
+                          </Card>
+                      )}
             </Card>
   
             {selectedInstitutions.length === 1 && (
