@@ -78,6 +78,7 @@ export const logout = async () => {
       // Limpia cualquier token o dato de sesión almacenado localmente
       localStorage.removeItem('token');
       sessionStorage.clear();
+      window.location.href = '/';
       
       return { success: true, message: response.data.message };
     } else {

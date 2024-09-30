@@ -42,7 +42,8 @@ const AuthAccess: React.FC = () => {
             if (isLoginView) {
                 const response = await login(email, password1);
                 console.log('Login exitoso:', response);
-                router.push('/salud');
+                router.push('/categories');
+                window.location.href = '/categories';
             } else {
                 if (password1 !== password2) {
                     setError('Las contraseñas no coinciden');
