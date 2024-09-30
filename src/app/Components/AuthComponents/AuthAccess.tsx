@@ -185,40 +185,41 @@ const AuthAccess: React.FC = () => {
                                     </div>
                                 </>
                             )}
-                            <Button 
+                            <button 
                                 type="submit" 
-                                className="w-full bg-secondary hover:bg-secondary-dark text-white transition-colors duration-300 rounded-lg focus:outline-none focus:ring-0"
+                                className=" w-full text-white bg-[#5C00CE] hover:bg-[#FFD700] hover:text-[#8A2BE2] focus:ring-4 focus:outline-none focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 transition-all duration-300"
                             >
                                 {isLoginView ? 'Iniciar Sesión' : 'Registrarse'}
-                            </Button>
+                            </button>
                             <div className="bg-gray-300 w-full h-0.5 rounded-lg my-4"></div>
                             <ButtonGoogle 
-                                buttonText={isLoginView ? 'Continuar con Google' : 'Registrarse con Google'} 
-                                className="w-full border border-gray-300 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors duration-300 mb-2 focus:outline-none focus:ring-0"
+                                buttonText={isLoginView ? 'Continuar con Google' : 'Registrarse con Google'}
                             />
-                            <ButtonLinkedIn 
+                            <ButtonLinkedIn
                                 buttonText={isLoginView ? 'Continuar con LinkedIn' : 'Registrarse con LinkedIn'} 
-                                className="w-full border border-gray-300 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors duration-300 focus:outline-none focus:ring-0"
                             />
                         </form>
                         {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
                     </div>
 
                     {/* Sección de información/publicidad */}
-                    <div className="w-full md:w-1/2 bg-primary text-white p-6 md:p-8">
-                        <h2 className="text-xl md:text-2xl font-bold mb-4">Bienvenido a nuestra plataforma</h2>
-                        <p className="mb-4 text-sm md:text-base">Disfruta de los siguientes beneficios:</p>
-                        <ul className="list-disc list-inside mb-4 text-sm md:text-base">
-                            <li>Acceso completo a todas las estadísticas</li>
-                            <li>Más de 1,000,000 conjuntos de datos</li>
-                            <li>Descarga en XLS, PDF y PNG</li>
+                    <div className="w-full md:w-1/2 text-white p-6 md:p-8">
+                        <h2 className="text-xl md:text-2xl text-[#5C00CE] font-bold mb-4">SMART impulsa tus redes sociales con inteligencia</h2>
+                        <p className="mb-4 text-gray-700 text-sm md:text-base">Colombia redes sociales audita actualmente la presencia en redes sociales en tres mercados:</p>
+                        <ul className="list-disc list-inside mb-4 text-gray-700 text-sm md:text-base">
+                    
+                            <li>El sector salud de Colombia</li>
+                            <li>Cajas de compensación de Colombia</li>
+                            <li>Hospitales de referencia internacionales</li>
                         </ul>
-                        <Button 
+                        <p className="mb-4 text-gray-700 text-sm md:text-base">Iremos incrementando nuevos sectores y grupos de mercados para ofrecer, por primera vez, datos cuantitativos de la presencia en redes sociales que sirvan para contextualizar los esfuerzos y resultados de cada empresa y organización.</p>
+
+                        <button 
                             onClick={() => setIsLoginView(!isLoginView)} 
-                            className="mt-4 w-full md:w-auto bg-tertiary hover:bg-tertiary-dark text-primary text-2xl transition-colors duration-300 rounded-lg focus:outline-none focus:ring-0"
+                            className="text-white bg-[#5C00CE] hover:bg-[#FFD700] hover:text-[#8A2BE2] focus:ring-4 focus:outline-none focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 transition-all duration-300"
                         >
                             {isLoginView ? 'Registrarse ahora' : 'Ya tengo una cuenta'}
-                        </Button>
+                        </button>
                     </div>
                 </div>
             </Card>

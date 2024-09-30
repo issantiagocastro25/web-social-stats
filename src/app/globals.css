@@ -4,7 +4,7 @@
 
 
 /* Estilos personalizados */
-.stats-table {
+/* .stats-table {
   @apply min-w-full divide-y divide-gray-200;
 }
 
@@ -34,4 +34,4 @@
 
 .category-icon-inactive {
   @apply opacity-70 hover:opacity-100 hover:scale-110;
-}
+} */
