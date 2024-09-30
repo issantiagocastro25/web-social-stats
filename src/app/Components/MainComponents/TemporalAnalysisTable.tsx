@@ -158,7 +158,7 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
             size="xs"
             variant="secondary"
             onClick={() => setShowCharts(!showCharts)}
-            className='bg-[#5521B5] rounded-md'
+            className='bg-[#5521B5] rounded-md text-white hover:text-gray-800 px-2 '
           >
             {showCharts ? 'Ver Tabla' : 'Ver Gráficas'}
           </Button>

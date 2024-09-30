@@ -297,7 +297,7 @@ const SocialStatsDashboard: React.FC = () => {
   console.log('Is Loading Categories:', isLoadingCategories);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-[#fffefb] flex flex-col">
       <div className="container mx-auto px-4 py-8 flex-grow">
         <h1 className="text-5xl font-bold text-center mb-8 text-secondary-dark">
           {currentSection === 'salud' ? 'El sector salud de Colombia' : 
