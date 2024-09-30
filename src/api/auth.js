@@ -38,17 +38,31 @@ export const checkAuthStatus = async () => {
   }
 };
 
+async function getCSRFToken() {
+  try {
+    const response = await api.get('/api/get-csrf-token/', {
+      credentials: 'include', // Importante para incluir las cookies
+    });
+    
+    if (response.ok) {
+      const csrftoken = getCookie('csrftoken');
+      if (csrftoken) {
+        return csrftoken;
+      }
+    }
+    throw new Error('No se pudo obtener el token CSRF');
+  } catch (error) {
+    console.error('Error al obtener el token CSRF:', error);
+    throw error;
+  }
+}
+
 export const logout = async () => {
   try {
-    // Obtener el token CSRF
-    const csrftoken = getCookie('csrftoken');
+    // Obtener el token CSRF justo antes de hacer logout
+    const csrftoken = await getCSRFToken();
 
-    if (!csrftoken) {
-      console.error('No se pudo obtener el token CSRF');
-      return { success: false, error: 'No se pudo obtener el token CSRF' };
-    }
-
-    console.log('CSRF Token:', csrftoken); // Para depuración
+    console.log('CSRF Token obtenido:', csrftoken); // Para depuración
 
     const response = await api.post('/api/logout/', {}, {
       headers: {
@@ -71,26 +85,20 @@ export const logout = async () => {
     }
   } catch (error) {
     console.error('Error durante el logout:', error);
-    return { success: false, error: error.response?.data?.message || 'Error en el proceso de logout' };
+    return { 
+      success: false, 
+      error: error.response?.data?.message || 'Error en el proceso de logout' 
+    };
   }
 };
 
 // Función auxiliar para obtener el valor de una cookie
 function getCookie(name) {
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.substring(0, name.length + 1) === (name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-        break;
-      }
-    }
-  }
-  return cookieValue;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
 }
-
 
 export const signup = async (email, password, password2, firstName, lastName, identification, phone) => {
   try {
