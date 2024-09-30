@@ -6,12 +6,12 @@ import {useSubscriptionCheck} from '@/app/hooks/useSubscriptionCheck';
 import SocialStatsDashboard from '@/app/Components/MainComponents/SocialStatsDashboard';
 
 const MainPage = () => {
-  {/*const { isAuthenticated, isLoading: authLoading } = useAuthCheck();
+  const { isAuthenticated, isLoading: authLoading } = useAuthCheck();
   const { hasSubscription, isLoading: subLoading } = useSubscriptionCheck();
 
   if (!isAuthenticated || !hasSubscription('salud')) {
     return null; // El hook se encargará de la redirección si es necesario
-  }*/}
+  }
 
   return (
     <>
