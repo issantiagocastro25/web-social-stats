@@ -7,6 +7,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   hasSubscription: boolean;
   userRole: string | null;
+  userId: string | null;
   loading: boolean;
 }
 
@@ -17,6 +18,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAuthenticated: false,
     hasSubscription: false,
     userRole: null,
+    userId: null,
     loading: true,
   });
 
@@ -27,7 +29,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setAuthState({
           isAuthenticated: authStatus.is_authenticated,
           hasSubscription: !!authStatus.subscription,
-          userRole: authStatus.user_role, // Asumimos que el backend devuelve el rol del usuario
+          userRole: authStatus.user_role,
+          userId: authStatus.user_id, // Asegúrate de que el backend devuelva el user_id
           loading: false,
         });
       } catch (error) {
@@ -36,6 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           isAuthenticated: false,
           hasSubscription: false,
           userRole: null,
+          userId: null,
           loading: false,
         });
       }
@@ -50,7 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    // throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };

@@ -7,10 +7,10 @@ export const getPricing = async () => {
     return response.data;
 };
 
-export const getPaymentUrl = async (user_id, plan) => {
+export const getPaymentUrl = async (user_id, plans) => {
   try {
     const response = await api.post('/payment/create-subscription/', {
-      plan: plan,
+      plans: plans,
       user_id: user_id,
     }, {
       headers: {
