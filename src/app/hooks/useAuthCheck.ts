@@ -14,7 +14,7 @@ export function useAuthCheck(requireAuth: boolean = true) {
         const authStatus = await checkAuthStatus();
         setIsAuthenticated(authStatus.is_authenticated);
 
-        if (!authStatus.is_authenticated && requireAuth && pathname !== '/' && pathname !== '/pricing' && pathname!== '/salud' && pathname!== '/hospitales' && pathname!== '/compensacion' && pathname!== '/payment') {
+        if (!authStatus.is_authenticated && requireAuth && pathname !== '/' && pathname !== '/pricing' && pathname!== '/salud' && pathname!== '/hospitales' && pathname!== '/compensacion') {
           router.push('/');
           window.location.href = '/';
         }
