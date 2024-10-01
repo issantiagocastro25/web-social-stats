@@ -247,15 +247,11 @@ const MobileNavLink = ({ href, currentPath, children }) => (
 );
 
 const UserMenuItem = ({ href, children }) => (
-  <Link href={href} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-    {children}
-  </Link>
+  <a href={href} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" aria-current="page">{children}</a>
 );
 
 const MobileUserMenuItem = ({ href, children }) => (
-  <Link href={href} className="block px-4 py-2 text-base font-medium text-white hover:text-yellow-300 hover:bg-red-700">
-    {children}
-  </Link>
+  <a href={href} className="block px-4 py-2 text-base font-medium text-gray-200 hover:text-yellow-300 hover:bg-red-700" aria-current="page">{children}</a>
 );
 
 export default DashboardNavbar;
