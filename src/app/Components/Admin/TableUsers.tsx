@@ -57,7 +57,11 @@ export default function TableUsers() {
                                     <td className="px-4 py-4">{`${user.first_name} ${user.last_name}`}</td>
                                     <td className="px-4 py-4">{user.identification || 'N/A'}</td>
                                     <td className="px-4 py-4">{user.organization || 'N/A'}</td>
-                                    <td className="px-4 py-4">{user.role || 'N/A'}</td>
+                                    <td className="px-4 py-4">
+                                    {user.user_roles && user.user_roles.length > 0
+                                        ? user.user_roles.map(userRole => userRole.role.title).join(", ")
+                                        : 'N/A'}
+                                    </td>
                                     <td className="px-4 py-4"><UserStatus isActive={user.is_active} /></td>
                                     <td className="px-4 py-4">{user.email}</td>
                                     <td className="px-4 py-4">

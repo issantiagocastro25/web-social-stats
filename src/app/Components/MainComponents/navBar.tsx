@@ -49,6 +49,10 @@ const DashboardNavbar = () => {
     };
   }, []);
 
+  const hasAdminRole = user && user.roles?.some(role =>
+    role.identifier === '8np49Ab#' || role.identifier === 'Ca0-T17A'
+  );
+
   const handleLogout = async () => {
     try {
       const result = await logout();
@@ -84,35 +88,37 @@ const DashboardNavbar = () => {
               />
             </Link>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <NavLink href="/salud" currentPath={pathname}>
-                Inicio
+              <NavLink href="/categories" currentPath={pathname}>
+                Categorías
               </NavLink>
-              <div className="relative" ref={adminDropdownRef}>
-                <button
-                  onClick={toggleAdminDropdown}
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                    pathname.startsWith('/administration')
-                      ? 'border-yellow-400 text-white'
-                      : 'border-transparent text-white hover:border-yellow-300 hover:text-yellow-300'
-                  }`}
-                  aria-expanded={isAdminDropdownOpen}
-                >
-                  Administración
-                  <svg className="ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </button>
-                {isAdminDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
-                    <Link href="/administration/users" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                      Usuarios
-                    </Link>
-                    <Link href="/administration/youtube" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                      YouTube
-                    </Link>
-                  </div>
-                )}
-              </div>
+              {hasAdminRole && (
+                <div className="relative" ref={adminDropdownRef}>
+                  <button
+                    onClick={toggleAdminDropdown}
+                    className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                      pathname.startsWith('/administration')
+                        ? 'border-yellow-400 text-white'
+                        : 'border-transparent text-white hover:border-yellow-300 hover:text-yellow-300'
+                    }`}
+                    aria-expanded={isAdminDropdownOpen}
+                  >
+                    Administración
+                    <svg className="ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  {isAdminDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
+                      <Link href="/administration/users" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        Usuarios
+                      </Link>
+                      <Link href="/administration/youtube" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        YouTube
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
@@ -139,9 +145,11 @@ const DashboardNavbar = () => {
                     aria-orientation="vertical"
                     aria-labelledby="user-menu"
                   >
+                    <div className='my-2 px-4'>
+                      <div className="text-sm font-medium text-slate-700">{user.first_name} {user.last_name}</div>
+                      <div className="text-sm font-medium text-slate-700/60">{user.email}</div>
+                    </div>
                     <UserMenuItem href="/profile/user-profile">Perfil</UserMenuItem>
-                    <UserMenuItem href="/salud">Dashboard</UserMenuItem>
-                    <UserMenuItem href="/settings">Configuración</UserMenuItem>
                     <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                       Cerrar Sesión
                     </button>
@@ -173,18 +181,20 @@ const DashboardNavbar = () => {
 
       {isMenuOpen && (
         <div className="sm:hidden">
+          <MobileNavLink href="/categories" currentPath={pathname}>Categorías</MobileNavLink>
+          {hasAdminRole && (
           <div className="pt-2 pb-3 space-y-1">
-            <MobileNavLink href="/salud" currentPath={pathname}>Inicio</MobileNavLink>
             <MobileNavLink href="/administration/users" currentPath={pathname}>Administración - Usuarios</MobileNavLink>
             <MobileNavLink href="/administration/youtube" currentPath={pathname}>Administración - YouTube</MobileNavLink>
           </div>
+          )}
           {user && (
             <div className="pt-4 pb-3 border-t border-red-700">
               <div className="flex items-center px-4">
                 <div className="flex-shrink-0">
                   <img
                     className="h-10 w-10 rounded-full"
-                    src={user.profile_picture || "https://flowbite.com/docs/images/people/profile-picture-5.jpg"}
+                    src={user.profile_picture || "/assets/imgs/profile_photo.png"}
                     alt=""
                   />
                 </div>
@@ -195,8 +205,6 @@ const DashboardNavbar = () => {
               </div>
               <div className="mt-3 space-y-1">
                 <MobileUserMenuItem href="/profile/user-profile">Perfil</MobileUserMenuItem>
-                <MobileUserMenuItem href="/salud">Dashboard</MobileUserMenuItem>
-                <MobileUserMenuItem href="/settings">Configuración</MobileUserMenuItem>
                 <button
                   onClick={handleLogout}
                   className="block w-full text-left px-4 py-2 text-base font-medium text-white hover:text-yellow-300 hover:bg-red-700"
