@@ -65,14 +65,18 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
   useEffect(() => {
     const widths = {};
     visibleColumns.forEach(column => {
-      const maxLength = Math.max(
-        column.label.length,
-        ...data.map(item => {
-          const value = column.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : ''), item);
-          return String(value).length;
-        })
-      );
-      widths[column.key] = Math.min(Math.max(maxLength * 8, 100), 300); // 8px per character, min 100px, max 300px
+      if (column.key === 'Institucion') {
+        widths[column.key] = 300; // Fixed width for Institution column
+      } else {
+        const maxLength = Math.max(
+          column.label.length,
+          ...data.map(item => {
+            const value = column.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : ''), item);
+            return String(value).length;
+          })
+        );
+        widths[column.key] = Math.min(Math.max(maxLength * 8, 100), 300);
+      }
     });
     setColumnWidths(widths);
   }, [data, visibleColumns]);
@@ -217,7 +221,7 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
           </div>
         </div>
       )}
-      <div className="relative overflow-hidden shadow-md sm:rounded-lg" style={{ height: '500px' }}>
+       <div className="relative overflow-hidden shadow-md sm:rounded-lg" style={{ height: '500px' }}>
         <div className="overflow-auto" style={{ height: '100%', width: '100%' }}>
           <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0 z-20">
@@ -265,10 +269,14 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
                   {visibleColumns.map((column, index) => (
                     <td
                       key={column.key}
-                      className={`px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap ${
+                      className={`px-6 py-4 font-medium text-gray-900 dark:text-white ${
                         index === 0 ? 'sticky left-12 z-10 bg-inherit' : ''
-                      }`}
-                      style={{ width: `${columnWidths[column.key]}px` }}
+                      } ${column.key === 'Institucion' ? 'whitespace-normal' : 'whitespace-nowrap'}`}
+                      style={{ 
+                        width: `${columnWidths[column.key]}px`,
+                        maxWidth: column.key === 'Institucion' ? '200px' : 'none',
+                        overflowWrap: column.key === 'Institucion' ? 'break-word' : 'normal'
+                      }}
                     >
                       {formatValue(
                         column.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : 'N/A'), item),
