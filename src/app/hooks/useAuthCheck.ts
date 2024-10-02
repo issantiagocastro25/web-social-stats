@@ -3,7 +3,8 @@ import { useRouter, usePathname } from 'next/navigation';
 import { checkAuthStatus } from '@/api/auth';
 
 export function useAuthCheck(requireAuth: boolean = true) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
+  // const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const pathname = usePathname();
   const router = useRouter();
@@ -14,7 +15,7 @@ export function useAuthCheck(requireAuth: boolean = true) {
         const authStatus = await checkAuthStatus();
         setIsAuthenticated(authStatus.is_authenticated);
 
-        if (!authStatus.is_authenticated && requireAuth && pathname !== '/' && pathname !== '/pricing' && pathname!== '/salud' && pathname!== '/hospitales' && pathname!== '/compensacion') {
+        if (!authStatus.is_authenticated && requireAuth && pathname !== '/' && pathname !== '/pricing' && pathname !== '/salud' && pathname !== '/hospitales' && pathname !== '/compensacion') {
           router.push('/');
           window.location.href = '/';
         }
