@@ -63,6 +63,9 @@ const SocialStatsDashboard: React.FC = () => {
   const [isLoadingCategories, setIsLoadingCategories] = useState<boolean>(true);
   const initialDataLoaded = useRef(false);
 
+
+
+  
   const addError = useCallback((error: string) => {
     setErrors(prevErrors => [...prevErrors, error]);
   }, []);
@@ -344,13 +347,15 @@ const SocialStatsDashboard: React.FC = () => {
               className="mb-6 bg-white shadow-lg border-l-4 border-primary"
             /> */}
   
-            <SummaryCards 
-              data={summaryCardsData} 
-              uniqueFollowers={uniqueFollowers}
-              isAllCategory={activeCategory === 'Todos' || currentSection === 'hospitales'} 
-              isLoading={isLoading}
-              className="mb-6"
-            />
+  <SummaryCards 
+  data={summaryCardsData} 
+  isAllCategory={activeCategory === 'Todos' || currentSection === 'hospitales'} 
+  isLoading={isLoading}
+  selectedInstitutionType={activeCategory} // Pasando la categoría seleccionada
+  className="mb-6"
+/>
+
+
   
             {(activeCategory === 'Todos' || currentSection === 'hospitales') && summaryCardsData && (
               <Card className="mb-6 bg-white shadow-md">

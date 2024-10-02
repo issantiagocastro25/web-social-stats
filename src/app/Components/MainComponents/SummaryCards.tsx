@@ -3,58 +3,89 @@ import { Card, Text, Flex, Grid } from "@tremor/react";
 import { FaFacebook, FaInstagram, FaYoutube, FaTiktok } from 'react-icons/fa';
 import XIcon from './XIcon';
 
+interface UniqueFollowers {
+  facebook: number;
+  X: number;
+  Instagram: number;
+  YouTube: number;
+  Tiktok: number;
+}
+
+interface Stat {
+  type_institution: string;
+  social_network: string;
+  total_followers: number;
+  total_publications: number;
+  total_reactions: number;
+  average_views: number;
+}
+
 interface SummaryCardsProps {
   data: {
     stats_date: string;
-    unique_followers?: {
-      facebook: number;
-      X: number;
-      Instagram: number;
-      YouTube: number;
-      Tiktok: number;
-    };
-    stats: Array<{
-      type_institution: string;
-      social_network: string;
-      total_followers: number;
-      total_publications: number;
-      total_reactions: number;
-      average_views: number;
-    }>;
+    unique_followers?: UniqueFollowers;
+    stats: Stat[];
   } | null;
   isAllCategory: boolean;
   isLoading: boolean;
+  selectedInstitutionType?: string; // Nueva prop para la categoría seleccionada
 }
 
-const SummaryCards: React.FC<SummaryCardsProps> = ({ data, isAllCategory, isLoading }) => {
+const SummaryCards: React.FC<SummaryCardsProps> = ({
+  data,
+  isAllCategory,
+  isLoading,
+  selectedInstitutionType
+}) => {
+  
+  // Función para obtener el ícono correspondiente a cada red social
   const getIcon = (network: string) => {
     switch (network.toLowerCase()) {
       case 'facebook': return <FaFacebook className="text-blue-600 text-2xl" />;
       case 'instagram': return <FaInstagram className="text-pink-600 text-2xl" />;
-      case 'x': return <XIcon className=" text-2xl" />;
+      case 'x': return <XIcon className="text-2xl" />;
       case 'youtube': return <FaYoutube className="text-red-600 text-2xl" />;
       case 'tiktok': return <FaTiktok className="text-black text-2xl" />;
       default: return null;
     }
   };
 
+  // Función para formatear números según la localización 'es-ES'
   const formatNumber = (num: number) => {
     return num.toLocaleString('es-ES');
   };
 
+  // Memoización para calcular los datos resumidos
   const summaryData = useMemo(() => {
     if (!data || !data.stats) {
       console.log('No data available');
       return [];
     }
 
+    console.log('Datos recibidos:', data.stats);
+    console.log('Categoría seleccionada:', selectedInstitutionType);
+
+    // Si no es "Todas las categorías", filtrar por el tipo de institución seleccionado
+    if (!isAllCategory && selectedInstitutionType) {
+      const filteredStats = data.stats.filter(
+        stat => stat.type_institution.toLowerCase() === selectedInstitutionType.toLowerCase()
+      );
+      console.log('Datos filtrados por categoría:', filteredStats);
+
+      return filteredStats.map(stat => ({
+        ...stat,
+        unique_followers: null // Se puede ajustar según necesidad
+      }));
+    }
+
+    // Para "Todas las categorías", agrupar por red social
     if (isAllCategory && data.unique_followers) {
-      return Object.entries(data.unique_followers).map(([network, uniqueFollowers]) => {
+      const groupedData = Object.entries(data.unique_followers).map(([network, uniqueFollowers]) => {
         const statsForNetwork = data.stats.filter(stat => stat.social_network.toLowerCase() === network.toLowerCase());
         const totalFollowers = statsForNetwork.reduce((sum, stat) => sum + stat.total_followers, 0);
         const totalPublications = statsForNetwork.reduce((sum, stat) => sum + stat.total_publications, 0);
         const totalReactions = statsForNetwork.reduce((sum, stat) => sum + stat.total_reactions, 0);
-        const averageViews = statsForNetwork.reduce((sum, stat) => sum + stat.average_views, 0) / statsForNetwork.length || 0;
+        const averageViews = statsForNetwork.reduce((sum, stat) => sum + stat.average_views, 0) / (statsForNetwork.length || 1);
 
         return {
           social_network: network,
@@ -65,15 +96,21 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data, isAllCategory, isLoad
           average_views: averageViews,
         };
       });
-    } else {
-      // For specific categories or when unique_followers is not available, use the stats directly
-      return data.stats.map(stat => ({
-        ...stat,
-        unique_followers: null // Set to null for specific categories or when not available
-      }));
-    }
-  }, [data, isAllCategory]);
 
+      console.log('Datos agrupados por red social:', groupedData);
+      return groupedData;
+    } else {
+      // Para categorías específicas o cuando unique_followers no está disponible
+      const mappedStats = data.stats.map(stat => ({
+        ...stat,
+        unique_followers: null
+      }));
+      console.log('Datos mapeados para categorías específicas:', mappedStats);
+      return mappedStats;
+    }
+  }, [data, isAllCategory, selectedInstitutionType]);
+
+  // Renderizado mientras se cargan los datos
   if (isLoading) {
     return (
       <div className="overflow-x-auto">
@@ -95,17 +132,19 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data, isAllCategory, isLoad
     );
   }
 
+  // Renderizado cuando no hay datos disponibles
   if (!data || summaryData.length === 0) {
-    console.log('No data available to display');
-    return <div>No hay datos disponibles</div>;
+    console.log('No hay datos disponibles');
+    return <div className="text-center text-gray-500">No hay datos disponibles</div>;
   }
 
+  // Renderizado de las tarjetas resumidas
   return (
     <div className="overflow-x-auto pt-6">
       <div className="flex justify-center flex-wrap gap-6 pb-4">
         {summaryData.map((stat, index) => (
           <Card key={index} className="w-64 flex-shrink-0">
-            <Flex alignItems="center" justifyContent="around" className="mb-4">
+            <Flex alignItems="center" justifyContent="between" className="mb-4">
               <Text className="font-bold text-2xl">{stat.social_network}</Text>
               {getIcon(stat.social_network)}
             </Flex>
