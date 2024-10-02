@@ -109,7 +109,7 @@ function getCookie(name) {
   return cookieValue;
 }
 
-export const signup = async (email, password, password2, firstName, lastName, identification, phone) => {
+export const signup = async (email, password, password2, firstName, lastName, organization, phone) => {
   try {
     const response = await api.post('/api/register/', {
       email,
@@ -117,7 +117,8 @@ export const signup = async (email, password, password2, firstName, lastName, id
       password2: password2,
       first_name: firstName,
       last_name: lastName,
-      identification: identification,
+      // identification: identification,
+      organization: organization,
       phone
     }, {
       withCredentials: true  // Importante para manejar cookies de sesión

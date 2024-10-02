@@ -16,6 +16,7 @@ const AuthAccess: React.FC = () => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
+    const [organization, setOrganization] = useState('');
     const [password1, setPassword1] = useState('');
     const [password2, setPassword2] = useState('');
     const [error, setError] = useState('');
@@ -49,7 +50,7 @@ const AuthAccess: React.FC = () => {
                     setError('Las contraseñas no coinciden');
                     return;
                 }
-                await signup(email, password1, password2, firstName, lastName, identification);
+                await signup(email, password1, password2, firstName, lastName, organization);
                 router.push('/pricing');
             }
         } catch (err) {
@@ -108,7 +109,7 @@ const AuthAccess: React.FC = () => {
                                             />
                                         </div>
                                     </div>
-                                    <div>
+                                    {/* <div>
                                         <label htmlFor="identification" className="block text-sm font-medium text-gray-700">Identificación</label>
                                         <input 
                                             type="number" 
@@ -119,6 +120,19 @@ const AuthAccess: React.FC = () => {
                                             value={identification}
                                             placeholder="Numero de Identificación"
                                             onChange={(e) => setIdentification(e.target.value)}
+                                        />
+                                    </div> */}
+                                    <div>
+                                        <label htmlFor="organization" className='block text-sm font-medium text-gray-700'>Organización</label>
+                                        <input 
+                                            type="text" 
+                                            name='organization'
+                                            id='organization'
+                                            className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-secondary focus:ring focus:ring-secondary  focus:ring-opacity-50'
+                                            required
+                                            value={organization}
+                                            placeholder='Organización o Empresa'
+                                            onChange={(e) => setOrganization(e.target.value)}
                                         />
                                     </div>
                                 </>
