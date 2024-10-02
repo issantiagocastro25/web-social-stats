@@ -38,48 +38,46 @@ export const checkAuthStatus = async () => {
   }
 };
 
-async function getCSRFToken() {
-  try {
-    const response = await api.get('/api/get-csrf-token/', {
-      credentials: 'include', // Importante para incluir las cookies
-    });
+// async function getCSRFToken() {
+//   try {
+//     const response = await api.get('/api/get-csrf-token/', {
+//       credentials: 'include', // Importante para incluir las cookies
+//     });
     
-    if (response.ok) {
-      const csrftoken = getCookie('csrftoken');
-      if (csrftoken) {
-        return csrftoken;
-      }
-    }
-    throw new Error('No se pudo obtener el token CSRF');
-  } catch (error) {
-    console.error('Error al obtener el token CSRF:', error);
-    throw error;
-  }
-}
+//     if (response.ok) {
+//       const csrftoken = getCookie('csrftoken');
+//       if (csrftoken) {
+//         return csrftoken;
+//       }
+//     }
+//     throw new Error('No se pudo obtener el token CSRF');
+//   } catch (error) {
+//     console.error('Error al obtener el token CSRF:', error);
+//     throw error;
+//   }
+// }
+
+export const getCSRFToken = async () => {
+  const response = await api.get('/api/getCsrf-token/');
+  return response.data.csrfToken;
+};
 
 export const logout = async () => {
   try {
-    // Obtener el token CSRF justo antes de hacer logout
-    const csrftoken = getCookie('csrftoken');
-
-    console.log('CSRF Token obtenido:', csrftoken); // Para depuración
+    const csrfToken = await getCSRFToken(); // Obtener el token CSRF
 
     const response = await api.post('/api/logout/', {}, {
       headers: {
-        'X-CSRFToken': csrftoken,
         'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken, // Incluir el token CSRF en el header
       },
-      withCredentials: true, // Importante para incluir las cookies en la solicitud
+      withCredentials: true, // Incluir las cookies
     });
 
     if (response.data.success) {
       console.log('Logout exitoso');
-      
-      // Limpia cualquier token o dato de sesión almacenado localmente
-      localStorage.removeItem('token');
       sessionStorage.clear();
       window.location.href = '/';
-      
       return { success: true, message: response.data.message };
     } else {
       return { success: false, error: response.data.message };
@@ -92,7 +90,6 @@ export const logout = async () => {
     };
   }
 };
-
 // Función auxiliar para obtener el valor de una cookie
 function getCookie(name) {
   let cookieValue = null;
