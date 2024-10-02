@@ -76,7 +76,7 @@ const DashboardNavbar = () => {
   }
 
   return (
-    <nav className="bg-red-600 shadow-md">
+    <nav className="bg-red-600 shadow-md z-50">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -108,13 +108,13 @@ const DashboardNavbar = () => {
                     </svg>
                   </button>
                   {isAdminDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
-                      <Link href="/administration/users" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                      <a href="/administration/users" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                         Usuarios
-                      </Link>
-                      <Link href="/administration/youtube" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                        YouTube
-                      </Link>
+                      </a>
+                      <a href="/administration/users" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        Youtube
+                      </a>
                     </div>
                   )}
                 </div>
@@ -140,7 +140,7 @@ const DashboardNavbar = () => {
                 </button>
                 {isMenuOpen && (
                   <div
-                    className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5"
+                    className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-50"
                     role="menu"
                     aria-orientation="vertical"
                     aria-labelledby="user-menu"
@@ -181,11 +181,26 @@ const DashboardNavbar = () => {
 
       {isMenuOpen && (
         <div className="sm:hidden">
-          <MobileNavLink href="/categories" currentPath={pathname}>Categorías</MobileNavLink>
+          <a href="/categories"
+            className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+              pathname.startsWith('/categories')
+                ? 'bg-red-700 border-yellow-400 text-white'
+                : 'border-transparent text-white hover:bg-red-700 hover:border-yellow-300 hover:text-yellow-300'
+            }`}>Categorías</a>
           {hasAdminRole && (
           <div className="pt-2 pb-3 space-y-1">
-            <MobileNavLink href="/administration/users" currentPath={pathname}>Administración - Usuarios</MobileNavLink>
-            <MobileNavLink href="/administration/youtube" currentPath={pathname}>Administración - YouTube</MobileNavLink>
+            <a href="/administration/users"
+              className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+                pathname.startsWith('/administration/users')
+                  ? 'bg-red-700 border-yellow-400 text-white'
+                  : 'border-transparent text-white hover:bg-red-700 hover:border-yellow-300 hover:text-yellow-300'
+              }`}>Administración - Usuarios</a>
+              <a href="/administration/youtube"
+              className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+                pathname.startsWith('/administration/youtube')
+                  ? 'bg-red-700 border-yellow-400 text-white'
+                  : 'border-transparent text-white hover:bg-red-700 hover:border-yellow-300 hover:text-yellow-300'
+              }`}>Administración - YouTube</a>
           </div>
           )}
           {user && (
