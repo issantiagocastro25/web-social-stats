@@ -221,29 +221,21 @@ const DashboardNavbar = () => {
 };
 
 const NavLink = ({ href, currentPath, children }) => (
-  <Link
-    href={href}
-    className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-      currentPath === href
-        ? 'border-yellow-400 text-white'
-        : 'border-transparent text-white hover:border-yellow-300 hover:text-yellow-300'
-    }`}
-  >
-    {children}
-  </Link>
+  <a href={href}
+  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+    currentPath === href
+      ? 'border-yellow-400 text-white'
+      : 'border-transparent text-white hover:border-yellow-300 hover:text-yellow-300'
+  }`}>{children}</a>
 );
 
 const MobileNavLink = ({ href, currentPath, children }) => (
-  <Link
-    href={href}
-    className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
-      currentPath === href
-        ? 'bg-red-700 border-yellow-400 text-white'
-        : 'border-transparent text-white hover:bg-red-700 hover:border-yellow-300 hover:text-yellow-300'
-    }`}
-  >
-    {children}
-  </Link>
+  <a href={href}
+  className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+    currentPath === href
+      ? 'bg-red-700 border-yellow-400 text-white'
+      : 'border-transparent text-white hover:bg-red-700 hover:border-yellow-300 hover:text-yellow-300'
+  }`}>{children}</a>
 );
 
 const UserMenuItem = ({ href, children }) => (
