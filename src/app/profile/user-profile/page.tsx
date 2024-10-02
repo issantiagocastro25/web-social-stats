@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { getUserDetail, updateUserProfile, changePassword } from '@/api/user';
 import { useAuthCheck } from '@/app/hooks/useAuthCheck';
 import LoadingProfile from '@/app/Components/Loadings/LoadingProfile';
+import BackButton from '@/app/Components/Buttons/BackButton';
 
 const UserProfile = () => {
     const [userDetail, setUserDetail] = useState(null);
@@ -78,6 +79,9 @@ const UserProfile = () => {
         <>
         <title>Profile</title>
         <div className="container mx-auto p-4">
+            <div className='w-full mb-4'>
+                <BackButton></BackButton>
+            </div>
             <h1 className="text-3xl font-bold mb-6">Perfil de Usuario</h1>
             
             {message && <div className="alert alert-success mb-4">{message}</div>}

@@ -147,7 +147,7 @@ const DashboardNavbar = () => {
                   >
                     <div className='my-2 px-4'>
                       <div className="text-sm font-medium text-slate-700">{user.first_name} {user.last_name}</div>
-                      <div className="text-sm font-medium text-slate-700/60">{user.email}</div>
+                      <div className="text-sm font-medium text-slate-700/60 truncate max-w-xs">{user.email}</div>
                     </div>
                     <UserMenuItem href="/profile/user-profile">Perfil</UserMenuItem>
                     <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
@@ -215,7 +215,7 @@ const DashboardNavbar = () => {
                 </div>
                 <div className="ml-3">
                   <div className="text-base font-medium text-white">{user.first_name} {user.last_name}</div>
-                  <div className="text-sm font-medium text-red-300">{user.email}</div>
+                  <div className="text-sm font-medium text-red-300 truncate max-w-xs">{user.email}</div>
                 </div>
               </div>
               <div className="mt-3 space-y-1">
