@@ -1,19 +1,17 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { getPaymentUrl } from '../../api/api_suscription/data-suscription.api'
-import { useAuth } from '@/app/contexts/AuthContext'; 
+import { getPaymentUrl, getTokenDetail } from '../../api/api_suscription/data-suscription.api';
 import { useAuthCheck } from '../hooks/useAuthCheck';
 import { getUserDetail } from '@/api/user';
+import BackButton from '../Components/Buttons/BackButton';
 
-// Datos de planes
 const plansData = {
     salud: { title: "Salud Colombia", price: 200000, suscripName: "salud" },
     compensacion: { title: "Cajas de Compensación de Colombia", price: 200000, suscripName: "caja_compensacion" },
     hospitales: { title: "Hospitales internacionales de referencia", price: 200000, suscripName: "hospitales_internacionales" }
 };
 
-// Función para formatear precios a pesos colombianos
 const formatPrice = (price) => {
     return price.toLocaleString('es-CO', { style: 'currency', currency: 'COP' });
 };
@@ -26,25 +24,41 @@ function PaymentGateway() {
     const [userDetail, setUserDetail] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
-
+    const [discountToken, setDiscountToken] = useState(null);
 
     useEffect(() => {
         const plan = searchParams.get('plan');
-        
-        if (isAuthenticated) {
+        const token = searchParams.get('token');
+
+        if (isAuthenticated && !loading) {
             fetchUserDetail();
         }
-        
-        if (plan && plansData[plan]) {
-            setSelectedPlans((prev) => {
-                if (!prev.find(p => p.title === plansData[plan].title)) {
-                    return [...prev, plansData[plan]];
-                }
-                return prev;
-            });
+
+        if (token) {
+            applyDiscountToken(token);
         }
-    }, [searchParams, isAuthenticated]);
+
+        if (plan && plansData[plan]) {
+            addPlanToSelection(plansData[plan]);
+        }
+    }, [searchParams, isAuthenticated, loading]);
+
+    const applyDiscountToken = async (token) => {
+        try {
+            const tokenData = await getTokenDetail(token);
+            setDiscountToken(tokenData);
+            
+            // Agregar planes del token si no están ya seleccionados
+            tokenData.subscription_plans.forEach(planName => {
+                const planData = Object.values(plansData).find(p => p.suscripName === planName);
+                if (planData) {
+                    addPlanToSelection(planData);
+                }
+            });
+        } catch (error) {
+            console.error('Error al aplicar el descuento:', error);
+        }
+    };
 
     const fetchUserDetail = async () => {
         try {
@@ -57,26 +71,41 @@ function PaymentGateway() {
         }
     };
 
-    const handleAddPlan = (planId) => {
-        if (!selectedPlans.find(plan => plan.title === plansData[planId].title)) {
-            setSelectedPlans([...selectedPlans, plansData[planId]]);
-        }
+    const addPlanToSelection = (planData) => {
+        setSelectedPlans(prevPlans => {
+            if (!prevPlans.find(p => p.suscripName === planData.suscripName)) {
+                return [...prevPlans, planData];
+            }
+            return prevPlans;
+        });
     };
 
-    const handleRemovePlan = (planTitle) => {
-        setSelectedPlans(selectedPlans.filter(plan => plan.title !== planTitle));
+    const handleAddPlan = (planId) => {
+        const planData = plansData[planId];
+        addPlanToSelection(planData);
+    };
+
+    const handleRemovePlan = (planSuscripName) => {
+        setSelectedPlans(prevPlans => prevPlans.filter(plan => plan.suscripName !== planSuscripName));
+    };
+
+    const calculateDiscountedPrice = (plan) => {
+        if (discountToken && discountToken.subscription_plans.includes(plan.suscripName)) {
+            return plan.price - (plan.price * (discountToken.discount / 100));
+        }
+        return plan.price;
     };
 
     const totalPrice = selectedPlans.reduce((total, plan) => total + plan.price, 0);
+    const totalWithDiscounts = selectedPlans.reduce((total, plan) => total + calculateDiscountedPrice(plan), 0);
 
     const handleProceedToPayment = async () => {
         if (selectedPlans.length === 0) {
             alert("No hay ningún producto seleccionado.");
             return;
         }
-        if (!isAuthenticated || !userDetail.id) {
+        if (!isAuthenticated || !userDetail?.id) {
             alert("Debes iniciar sesión para continuar.");
-            // Aquí podrías redirigir al usuario a la página de inicio de sesión
             return;
         }
         try {
@@ -92,27 +121,36 @@ function PaymentGateway() {
             console.error('Error al procesar el pago:', error);
             alert('Hubo un error al procesar el pago. Por favor, inténtelo de nuevo.');
         }
-        console.log("Redirigiendo a MercadoPago...");
     };
 
     return (
         <div className="max-w-7xl mx-auto p-6 bg-gray-50 min-h-screen">
+
+            <div className='w-full mb-4'>
+                <BackButton/>
+            </div>
             <h1 className="text-3xl font-semibold mb-6 text-gray-800 text-center">Pasarela de Pago</h1>
             
             <div className="flex flex-col md:flex-row gap-6">
-                {/* Contenido principal */}
                 <div className="flex-grow">
                     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
                         <h2 className="text-xl font-semibold mb-4">Planes Seleccionados</h2>
                         {selectedPlans.length > 0 ? (
                             <ul className="space-y-2">
-                                {selectedPlans.map((plan, index) => (
-                                    <li key={index} className="flex justify-between items-center py-2 border-b last:border-b-0">
+                                {selectedPlans.map((plan) => (
+                                    <li key={plan.suscripName} className="flex justify-between items-center py-2 border-b last:border-b-0">
                                         <span className="font-medium">{plan.title}</span>
                                         <div className="flex items-center">
-                                            <span className="mr-4">{formatPrice(plan.price)}</span>
+                                            <span className={`mr-4 ${calculateDiscountedPrice(plan) < plan.price ? 'line-through text-gray-400' : ''}`}>
+                                                {formatPrice(plan.price)}
+                                            </span>
+                                            {calculateDiscountedPrice(plan) < plan.price && (
+                                                <span className="mr-4 text-green-600 font-semibold">
+                                                    {formatPrice(calculateDiscountedPrice(plan))}
+                                                </span>
+                                            )}
                                             <button 
-                                                onClick={() => handleRemovePlan(plan.title)}
+                                                onClick={() => handleRemovePlan(plan.suscripName)}
                                                 className="text-red-600 hover:text-red-800 transition"
                                             >
                                                 Quitar
@@ -135,16 +173,14 @@ function PaymentGateway() {
                                     <p className="text-gray-600 mb-4">Precio: {formatPrice(plansData[planId].price)}</p>
                                     <button 
                                         onClick={() => handleAddPlan(planId)}
-                                        disabled={selectedPlans.find(plan => plan.title === plansData[planId].title)}
+                                        disabled={selectedPlans.find(plan => plan.suscripName === plansData[planId].suscripName)}
                                         className={`w-full py-2 px-4 rounded-md transition ${
-                                            selectedPlans.find(plan => plan.title === plansData[planId].title)
+                                            selectedPlans.find(plan => plan.suscripName === plansData[planId].suscripName)
                                                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                                 : 'bg-blue-500 text-white hover:bg-blue-600'
                                         }`}
                                     >
-                                        {selectedPlans.find(plan => plan.title === plansData[planId].title)
-                                            ? 'Ya en el carrito'
-                                            : 'Agregar'}
+                                        {selectedPlans.find(plan => plan.suscripName === plansData[planId].suscripName) ? 'Agregado' : 'Agregar'}
                                     </button>
                                 </div>
                             ))}
@@ -152,42 +188,43 @@ function PaymentGateway() {
                     </div>
                 </div>
 
-                {/* Resumen de facturación */}
-                <div className="w-full md:w-1/3">
-                    <div className="bg-white rounded-lg shadow-md p-6 sticky top-6">
-                        <h2 className="text-xl font-semibold mb-4">Resumen de Facturación</h2>
-                        <div className="space-y-4">
-                            {selectedPlans.map((plan, index) => (
-                                <div key={index} className="flex justify-between">
-                                    <span>{plan.title}</span>
-                                    <span>{formatPrice(plan.price)}</span>
-                                </div>
-                            ))}
-                            <div className="border-t pt-4 mt-4">
-                                <div className="flex justify-between font-semibold text-lg">
-                                    <span>Total a pagar:</span>
-                                    <span>{formatPrice(totalPrice)}</span>
-                                </div>
+                <div className="bg-white rounded-lg shadow-md p-6 w-full md:w-80">
+                    <h2 className="text-xl font-semibold mb-4">Resumen de Pago</h2>
+                    <div>
+                        <div className="flex justify-between font-semibold text-lg mb-2">
+                            <span>Subtotal:</span>
+                            <span>{formatPrice(totalPrice)}</span>
+                        </div>
+                        {discountToken && (
+                            <div className="flex justify-between font-semibold text-lg text-green-600">
+                                <span>Descuento ({discountToken.discount}%)</span>
+                                <span>{formatPrice(totalPrice - totalWithDiscounts)}</span>
+                            </div>
+                        )}
+                        <div className="border-t pt-4 mt-4">
+                            <div className="flex justify-between font-semibold text-lg">
+                                <span>Total a pagar:</span>
+                                <span>{formatPrice(totalWithDiscounts)}</span>
                             </div>
                         </div>
+                    </div>
 
-                        <div className="mt-6 space-y-4">
-                            <p className="text-sm text-gray-600">
-                                El pago se realizará a través de la plataforma segura de MercadoPago. 
-                                Al hacer clic en "Proceder al Pago", serás redirigido a MercadoPago para completar tu transacción.
-                            </p>
-                            <button 
-                                onClick={handleProceedToPayment} 
-                                className={`w-full py-3 px-4 rounded-md transition ${
-                                    selectedPlans.length === 0
-                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                        : 'bg-green-500 text-white hover:bg-green-600'
-                                }`}
-                                disabled={selectedPlans.length === 0}
-                            >
-                                Proceder al Pago
-                            </button>
-                        </div>
+                    <div className="mt-6 space-y-4">
+                        <p className="text-sm text-gray-600">
+                            El pago se realizará a través de la plataforma segura de MercadoPago. 
+                            Al hacer clic en "Proceder al Pago", serás redirigido a MercadoPago para completar tu transacción.
+                        </p>
+                        <button 
+                            onClick={handleProceedToPayment}
+                            disabled={selectedPlans.length === 0}
+                            className={`w-full py-2 px-4 rounded-md transition ${
+                                selectedPlans.length === 0
+                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                            }`}
+                        >
+                            Proceder al Pago
+                        </button>
                     </div>
                 </div>
             </div>
