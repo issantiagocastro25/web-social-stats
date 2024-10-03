@@ -150,11 +150,8 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
             </Flex>
             <Grid numCols={1} className="gap-4">
               <div>
-                <Text className="text-sm text-gray-500">Seguidores</Text>
-                <Text className="text-xl font-bold">{formatNumber(stat.total_followers)}</Text>
-                {isAllCategory && stat.unique_followers !== null && (
-                  <Text className="text-sm text-gray-400">Únicos: {formatNumber(stat.unique_followers)}</Text>
-                )}
+                <Text className="text-sm text-gray-500">Seguidores únicos</Text>
+                <Text className="text-xl font-bold">{formatNumber(stat.unique_followers)}</Text>
               </div>
               <div>
                 <Text className="text-sm text-gray-500">Publicaciones</Text>
