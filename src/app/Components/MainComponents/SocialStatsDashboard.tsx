@@ -5,10 +5,10 @@ import { FaSearch } from 'react-icons/fa';
 import { Grid } from '@tremor/react';
 import { 
   fetchSocialStats, 
-  fetchTemporalData, 
-  fetchCategories, 
   fetchSummaryAndUniqueFollowers, 
-  fetchAvailableDates 
+  fetchAvailableDates,
+  fetchCategories,
+  fetchPaginatedSocialStats
 } from '@/api/list/listData';
 import ImageNavbar from './ImageNavBar';
 import SummaryCards from './SummaryCards';
@@ -43,7 +43,6 @@ const SocialStatsDashboard: React.FC = () => {
   const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errors, setErrors] = useState<string[]>([]);
-  const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedInstitutions, setSelectedInstitutions] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [showTemporalAnalysis, setShowTemporalAnalysis] = useState<boolean>(false);
@@ -62,6 +61,11 @@ const SocialStatsDashboard: React.FC = () => {
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState<boolean>(true);
   const initialDataLoaded = useRef(false);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [totalItems, setTotalItems] = useState<number>(0);
+
 
 
 
@@ -99,34 +103,66 @@ const SocialStatsDashboard: React.FC = () => {
     }
   }, [addError, clearErrors]);
 
-  const loadData = useCallback(async (section: SectionType, category: string, categoryId: number | null, date: string) => {
+  const loadData = useCallback(async (section: SectionType, category: string, categoryId: number | null, date: string, page: number = 1, search: string = '') => {
     setIsLoading(true);
     clearErrors();
     try {
       const apiCategory = section === 'hospitales' ? 'latinoamerica' : section;
       const apiType = category === 'Todos' ? 'todos' : category.toLowerCase();
       
-      console.log('Loading data for:', { section, category, categoryId, date });
+      console.log('Loading data for:', { section, category, categoryId, date, page, search });
       
-      const [socialStatsResponse, summaryAndUniqueFollowersResponse] = await Promise.all([
-        fetchSocialStats({ 
+      let socialStatsResponse;
+      if (category === 'Todos' || search !== '') {
+        socialStatsResponse = await fetchPaginatedSocialStats({ 
+          category: apiCategory,
+          type: apiType,
+          date: date,
+          page: page,
+          pageSize: 10,
+          search: search
+        });
+      } else {
+        socialStatsResponse = await fetchSocialStats({
           category: apiCategory,
           type: apiType,
           date: date
-        }),
-        fetchSummaryAndUniqueFollowers({
-          category: apiCategory,
-          institutionId: category === 'Todos' ? null : categoryId,
-          date: date
-        })
-      ]);
-      
-      if (socialStatsResponse && socialStatsResponse.data && Array.isArray(socialStatsResponse.data.metrics)) {
-        setData(socialStatsResponse.data.metrics);
-        setFilteredData(socialStatsResponse.data.metrics);
-      } else {
-        throw new Error('Formato de respuesta inesperado');
+        });
       }
+
+      console.log('API Response:', socialStatsResponse); // Log the entire response
+
+      let metrics, totalPages, currentPage, totalItems;
+
+      if (socialStatsResponse && typeof socialStatsResponse === 'object') {
+        if (Array.isArray(socialStatsResponse)) {
+          // If the response is an array, assume it's the metrics
+          metrics = socialStatsResponse;
+          totalPages = 1;
+          currentPage = 1;
+          totalItems = metrics.length;
+        } else {
+          // If it's an object, try to extract the data
+          metrics = socialStatsResponse.metrics || socialStatsResponse.data?.metrics || [];
+          totalPages = socialStatsResponse.total_pages || socialStatsResponse.data?.total_pages || 1;
+          currentPage = socialStatsResponse.current_page || socialStatsResponse.data?.current_page || 1;
+          totalItems = socialStatsResponse.total_items || socialStatsResponse.data?.total_items || metrics.length;
+        }
+      } else {
+        throw new Error(`Respuesta de API inesperada: ${JSON.stringify(socialStatsResponse)}`);
+      }
+
+      setData(metrics);
+      setFilteredData(metrics);
+      setTotalPages(Math.max(totalPages, 1));
+      setCurrentPage(currentPage);
+      setTotalItems(totalItems);
+
+      const summaryAndUniqueFollowersResponse = await fetchSummaryAndUniqueFollowers({
+        category: apiCategory,
+        institutionId: category === 'Todos' ? null : categoryId,
+        date: date
+      });
 
       setSummaryCardsData(summaryAndUniqueFollowersResponse);
       setUniqueFollowers(summaryAndUniqueFollowersResponse.unique_followers);
@@ -142,6 +178,16 @@ const SocialStatsDashboard: React.FC = () => {
       setIsLoading(false);
     }
   }, [addError, clearErrors]);
+
+  const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const term = e.target.value;
+    setSearchTerm(term);
+  }, []);
+
+  const handlePageChange = (page: number) => {
+    loadData(currentSection, activeCategory, activeCategoryId, selectedDate, page, searchTerm);
+  };
+
 
   useEffect(() => {
     const fetchDates = async () => {
@@ -205,16 +251,6 @@ const SocialStatsDashboard: React.FC = () => {
     }
   }, [currentSection, categories, loadData, selectedDate]);
 
-  const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const term = e.target.value.toLowerCase();
-    setSearchTerm(term);
-    const filtered = data.filter((item: any) =>
-      item.Institucion.toLowerCase().includes(term) ||
-      (item.Ciudad && item.Ciudad.toLowerCase().includes(term)) ||
-      (item.Tipo && item.Tipo.toLowerCase().includes(term))
-    );
-    setFilteredData(filtered);
-  }, [data]);
 
   const handleInstitutionSelect = useCallback((institutions: any[]) => {
     setSelectedInstitutions(institutions);
@@ -371,30 +407,29 @@ const SocialStatsDashboard: React.FC = () => {
   
             
   
-            <Card className="mb-6 bg-white shadow-lg">
-              <h2 className="text-2xl font-bold mb-4 text-gray-900">
-                {currentSection === 'hospitales' 
-                  ? 'Hospitales de Latinoamérica' 
-                  : `Datos para la categoría: ${activeCategory}`}
-              </h2>
-              <TextInput
-                icon={FaSearch}
-                type="text"
-                placeholder="Buscar por institución, ciudad o tipo..."
-                value={searchTerm}
-                onChange={handleSearch}
-                className="border-gray-300 focus:border-secondary focus:ring-secondary"
-              />
-              <InteractiveDataTable 
-                data={filteredData}
-                onInstitutionSelect={handleInstitutionSelect}
-                onClearSelection={handleClearSelection}
-                selectedType={currentSection === 'hospitales' ? 'Hospitales' : activeCategory}
-                selectedDate={selectedDate}
-                selectedInstitutions={selectedInstitutions}
-                isLoading={isLoading}
-              />
-
+  <Card className="mb-6 bg-white shadow-lg">
+        <h2 className="text-2xl font-bold mb-4 text-gray-900">
+          {currentSection === 'hospitales' 
+            ? 'Hospitales de Latinoamérica' 
+            : `Datos para la categoría: ${activeCategory}`}
+        </h2>
+        <TextInput
+          icon={FaSearch}
+          type="text"
+          placeholder="Buscar por institución, ciudad o tipo..."
+          value={searchTerm}
+          onChange={handleSearch}
+          className="border-gray-300 focus:border-secondary focus:ring-secondary"
+        />
+        <InteractiveDataTable 
+          selectedType={currentSection === 'hospitales' ? 'Hospitales' : activeCategory}
+          selectedDate={selectedDate}
+          selectedInstitutions={selectedInstitutions}
+          onInstitutionSelect={handleInstitutionSelect}
+          onClearSelection={handleClearSelection}
+          searchTerm={searchTerm}
+          category={currentSection}
+          />
                   
               <div className="mb-6 flex space-x-4 items-center justify-end pt-3">
               

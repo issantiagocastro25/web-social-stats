@@ -12,6 +12,8 @@ export const fetchAvailableDates = async () => {
   }
 };
 
+
+// Existing fetchSocialStats function remains unchanged
 export const fetchSocialStats = async (options = {}) => {
   const { category = 'salud', type = 'todos', date = '2021-06-01' } = options;
 
@@ -25,6 +27,25 @@ export const fetchSocialStats = async (options = {}) => {
     throw error;
   }
 };
+
+// New function for paginated social stats
+export const fetchPaginatedSocialStats = async (options = {}) => {
+  const { category = 'salud', type = 'todos', date = '2021-06-01', page = 1, pageSize = 10, search = '' } = options;
+
+  try {
+    const response = await axios.get(`${API_URL}/api/social-metrics/`, {
+      params: { type, category, date, page, page_size: pageSize, search }
+    });
+    
+    console.log('API Response in fetchPaginatedSocialStats:', response.data); // Log the entire response for debugging
+    
+    return response.data; // Return the entire response data
+  } catch (error) {
+    console.error('Error fetching paginated social stats:', error);
+    throw error;
+  }
+};
+
 
 export const fetchTemporalData = async (institutions, dates, category) => {
   try {

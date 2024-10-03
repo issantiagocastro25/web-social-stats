@@ -1,28 +1,36 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { Checkbox, Button } from 'flowbite-react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Checkbox, Button, Pagination, Alert } from 'flowbite-react';
 import { FaFacebook, FaInstagram, FaYoutube, FaSort, FaSortUp, FaSortDown, FaTimes, FaTrash } from 'react-icons/fa';
 import { SiTiktok } from 'react-icons/si';
 import XIcon from './XIcon';
+import { fetchPaginatedSocialStats } from '@/api/list/listData';
+import debounce from 'lodash/debounce';
 
 interface InteractiveDataTableProps {
-  data: any[];
-  onInstitutionSelect: (institutions: any[]) => void;
-  onClearSelection: () => void;
   selectedType: string;
   selectedDate: string;
   selectedInstitutions: any[];
-  isLoading: boolean;
+  onInstitutionSelect: (institutions: any[]) => void;
+  onClearSelection: () => void;
+  searchTerm: string;
+  category: string;
 }
 
 const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({ 
-  data, 
-  onInstitutionSelect, 
-  onClearSelection,
   selectedType, 
   selectedDate, 
   selectedInstitutions,
-  isLoading
+  onInstitutionSelect, 
+  onClearSelection,
+  searchTerm,
+  category
 }) => {
+  const [data, setData] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [totalItems, setTotalItems] = useState<number>(0);
+  const [error, setError] = useState<string | null>(null);
   const [sortConfig, setSortConfig] = useState<{ key: string | null, direction: 'ascending' | 'descending' }>({ key: null, direction: 'ascending' });
   const [visibleNetworks, setVisibleNetworks] = useState({
     basic: true,
@@ -32,7 +40,8 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
     YouTube: true,
     TikTok: true
   });
-  const [columnWidths, setColumnWidths] = useState<{[key: string]: number}>({});
+
+  const itemsPerPage = 10;
 
   const columns = [
     { key: 'Institucion', label: 'Institución', network: 'basic' },
@@ -60,29 +69,103 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
     { key: 'social_networks.Tiktok.Average_views', label: 'TikTok Vistas Medias', network: 'TikTok' },
   ];
 
-  const visibleColumns = columns.filter(column => visibleNetworks[column.network]);
+  const visibleColumns = useMemo(() => columns.filter(column => visibleNetworks[column.network]), [visibleNetworks]);
+
+  const loadData = useCallback(async (search: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      let allData = [];
+      let currentPageData;
+      let page = 1;
+      do {
+        const response = await fetchPaginatedSocialStats({ 
+          category,
+          type: selectedType.toLowerCase(),
+          date: selectedDate,
+          page,
+          pageSize: 100, // Fetch more items per request
+          search
+        });
+        
+        if (response && typeof response === 'object') {
+          currentPageData = response.data?.metrics || response.metrics || [];
+          allData = [...allData, ...currentPageData];
+          page++;
+        } else {
+          throw new Error('Respuesta de API inesperada');
+        }
+      } while (currentPageData && currentPageData.length === 100);
+
+      setData(allData);
+      setTotalItems(allData.length);
+      setTotalPages(Math.ceil(allData.length / itemsPerPage));
+      setCurrentPage(1);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      setData([]);
+      setTotalPages(1);
+      setCurrentPage(1);
+      setTotalItems(0);
+      setError(`Error al cargar los datos: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [category, selectedType, selectedDate]);
+
+  const debouncedLoadData = useMemo(
+    () => debounce((search: string) => loadData(search), 300),
+    [loadData]
+  );
 
   useEffect(() => {
-    const widths = {};
-    visibleColumns.forEach(column => {
-      if (column.key === 'Institucion') {
-        widths[column.key] = 300; // Fixed width for Institution column
-      } else {
-        const maxLength = Math.max(
-          column.label.length,
-          ...data.map(item => {
-            const value = column.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : ''), item);
-            return String(value).length;
-          })
-        );
-        widths[column.key] = Math.min(Math.max(maxLength * 8, 100), 300);
-      }
-    });
-    setColumnWidths(widths);
-  }, [data, visibleColumns]);
+    setCurrentPage(1);
+    debouncedLoadData(searchTerm);
+    return () => {
+      debouncedLoadData.cancel();
+    };
+  }, [debouncedLoadData, searchTerm, selectedType, selectedDate, category]);
 
-  const sortedData = useMemo(() => {
+
+  const calculateRelevanceScore = useCallback((item: any, searchTerm: string) => {
+    if (!searchTerm) return 0;
+    const searchLower = searchTerm.toLowerCase();
+    let score = 0;
+
+    // Check Institucion
+    if (item.Institucion.toLowerCase().includes(searchLower)) {
+      score += 10;
+      if (item.Institucion.toLowerCase().startsWith(searchLower)) {
+        score += 5;
+      }
+    }
+
+    // Check Ciudad
+    if (item.Ciudad && item.Ciudad.toLowerCase().includes(searchLower)) {
+      score += 5;
+    }
+
+    // Check Tipo
+    if (item.Tipo && item.Tipo.toLowerCase().includes(searchLower)) {
+      score += 5;
+    }
+
+    return score;
+  }, []);
+
+  const sortedAndFilteredData = useMemo(() => {
     let sortableItems = [...data];
+
+    // First, sort by relevance if there's a search term
+    if (searchTerm) {
+      sortableItems.sort((a, b) => {
+        const scoreA = calculateRelevanceScore(a, searchTerm);
+        const scoreB = calculateRelevanceScore(b, searchTerm);
+        return scoreB - scoreA;
+      });
+    }
+
+    // Then, apply column sorting if specified
     if (sortConfig.key !== null) {
       sortableItems.sort((a, b) => {
         const getValue = (obj: any, path: string) => {
@@ -104,8 +187,14 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
         }
       });
     }
+
     return sortableItems;
-  }, [data, sortConfig]);
+  }, [data, searchTerm, sortConfig, calculateRelevanceScore]);
+
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return sortedAndFilteredData.slice(startIndex, startIndex + itemsPerPage);
+  }, [sortedAndFilteredData, currentPage]);
 
   const handleSort = useCallback((key: string) => {
     setSortConfig(prevConfig => {
@@ -115,6 +204,10 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
       return { key, direction: 'ascending' };
     });
   }, []);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const handleRowSelect = useCallback((institution: any) => {
     onInstitutionSelect(
@@ -171,6 +264,12 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
 
   return (
     <div>
+      {error && (
+        <Alert color="failure" className="mb-4">
+          {error}
+        </Alert>
+      )}
+      
       <div className="mb-4 flex flex-wrap justify-between items-center">
         <h2 className="text-xl font-bold mb-2">Datos de Instituciones</h2>
         <div className="flex flex-wrap gap-2 mb-2">
@@ -193,6 +292,7 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
           ))}
         </div>
       </div>
+
       {selectedInstitutions.length > 0 && (
         <div className="mb-4 p-4 bg-blue-100 rounded-lg">
           <div className="flex justify-between items-center">
@@ -221,15 +321,16 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
           </div>
         </div>
       )}
-       <div className="relative overflow-hidden shadow-md sm:rounded-lg" style={{ height: '500px' }}>
+
+      <div className="relative overflow-hidden shadow-md sm:rounded-lg" style={{ height: '500px' }}>
         <div className="overflow-auto" style={{ height: '100%', width: '100%' }}>
           <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0 z-20">
               <tr>
                 <th scope="col" className="p-4 sticky left-0 z-30 bg-gray-50 dark:bg-gray-700">
                   <Checkbox 
-                    checked={selectedInstitutions.length === sortedData.length}
-                    onChange={() => onInstitutionSelect(selectedInstitutions.length === sortedData.length ? [] : sortedData)}
+                    checked={selectedInstitutions.length === sortedAndFilteredData.length}
+                    onChange={() => onInstitutionSelect(selectedInstitutions.length === sortedAndFilteredData.length ? [] : sortedAndFilteredData)}
                   />
                 </th>
                 {visibleColumns.map((column, index) => (
@@ -240,7 +341,6 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
                       index === 0 ? 'sticky left-12 z-20 bg-gray-50 dark:bg-gray-700' : ''
                     }`}
                     onClick={() => handleSort(column.key)}
-                    style={{ width: `${columnWidths[column.key]}px` }}
                   >
                     <div className="flex items-center">
                       {column.label}
@@ -251,7 +351,7 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
               </tr>
             </thead>
             <tbody>
-              {sortedData.map((item) => (
+              {paginatedData.map((item) => (
                 <tr
                   key={item.Institucion}
                   className={`cursor-pointer ${
@@ -272,11 +372,6 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
                       className={`px-6 py-4 font-medium text-gray-900 dark:text-white ${
                         index === 0 ? 'sticky left-12 z-10 bg-inherit' : ''
                       } ${column.key === 'Institucion' ? 'whitespace-normal' : 'whitespace-nowrap'}`}
-                      style={{ 
-                        width: `${columnWidths[column.key]}px`,
-                        maxWidth: column.key === 'Institucion' ? '200px' : 'none',
-                        overflowWrap: column.key === 'Institucion' ? 'break-word' : 'normal'
-                      }}
                     >
                       {formatValue(
                         column.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : 'N/A'), item),
@@ -290,6 +385,24 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
           </table>
         </div>
       </div>
+      
+      {sortedAndFilteredData.length > 0 ? (
+        <div className="flex flex-col items-center justify-between mt-4 space-y-2 sm:flex-row sm:space-y-0">
+          <p className="text-sm text-gray-700">
+            Mostrando {(currentPage - 1) * itemsPerPage + 1} a {Math.min(currentPage * itemsPerPage, totalItems)} de {totalItems} resultados
+          </p>
+          {totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              showIcons={true}
+            />
+          )}
+        </div>
+      ) : (
+        <p className="text-center mt-4 text-gray-500">No se encontraron resultados.</p>
+      )}
     </div>
   );
 };
