@@ -28,7 +28,7 @@ interface SummaryCardsProps {
   } | null;
   isAllCategory: boolean;
   isLoading: boolean;
-  selectedInstitutionType?: string; // Nueva prop para la categoría seleccionada
+  selectedInstitutionType?: string;
 }
 
 const SummaryCards: React.FC<SummaryCardsProps> = ({
@@ -50,8 +50,9 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
     }
   };
 
-  // Función para formatear números según la localización 'es-ES'
-  const formatNumber = (num: number) => {
+  // Updated función para formatear números según la localización 'es-ES'
+  const formatNumber = (num: number | null | undefined) => {
+    if (num == null) return '0';
     return num.toLocaleString('es-ES');
   };
 
@@ -65,31 +66,24 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
     console.log('Datos recibidos:', data.stats);
     console.log('Categoría seleccionada:', selectedInstitutionType);
 
-    // Si no es "Todas las categorías", filtrar por el tipo de institución seleccionado
     if (!isAllCategory && selectedInstitutionType) {
       const filteredStats = data.stats.filter(
         stat => stat.type_institution.toLowerCase() === selectedInstitutionType.toLowerCase()
       );
       console.log('Datos filtrados por categoría:', filteredStats);
 
-      return filteredStats.map(stat => ({
-        ...stat,
-        unique_followers: null // Se puede ajustar según necesidad
-      }));
+      return filteredStats;
     }
 
-    // Para "Todas las categorías", agrupar por red social
     if (isAllCategory && data.unique_followers) {
       const groupedData = Object.entries(data.unique_followers).map(([network, uniqueFollowers]) => {
         const statsForNetwork = data.stats.filter(stat => stat.social_network.toLowerCase() === network.toLowerCase());
-        const totalFollowers = statsForNetwork.reduce((sum, stat) => sum + stat.total_followers, 0);
         const totalPublications = statsForNetwork.reduce((sum, stat) => sum + stat.total_publications, 0);
         const totalReactions = statsForNetwork.reduce((sum, stat) => sum + stat.total_reactions, 0);
         const averageViews = statsForNetwork.reduce((sum, stat) => sum + stat.average_views, 0) / (statsForNetwork.length || 1);
 
         return {
           social_network: network,
-          total_followers: totalFollowers,
           unique_followers: uniqueFollowers,
           total_publications: totalPublications,
           total_reactions: totalReactions,
@@ -100,13 +94,8 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
       console.log('Datos agrupados por red social:', groupedData);
       return groupedData;
     } else {
-      // Para categorías específicas o cuando unique_followers no está disponible
-      const mappedStats = data.stats.map(stat => ({
-        ...stat,
-        unique_followers: null
-      }));
-      console.log('Datos mapeados para categorías específicas:', mappedStats);
-      return mappedStats;
+      console.log('Datos mapeados para categorías específicas:', data.stats);
+      return data.stats;
     }
   }, [data, isAllCategory, selectedInstitutionType]);
 
@@ -150,8 +139,14 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
             </Flex>
             <Grid numCols={1} className="gap-4">
               <div>
-                <Text className="text-sm text-gray-500">Seguidores únicos</Text>
-                <Text className="text-xl font-bold">{formatNumber(stat.unique_followers)}</Text>
+                <Text className="text-sm text-gray-500">
+                  {isAllCategory ? "Seguidores únicos" : "Seguidores totales"}
+                </Text>
+                <Text className="text-xl font-bold">
+                  {isAllCategory
+                    ? formatNumber(stat.unique_followers)
+                    : formatNumber(stat.total_followers)}
+                </Text>
               </div>
               <div>
                 <Text className="text-sm text-gray-500">Publicaciones</Text>
