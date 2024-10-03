@@ -22,3 +22,17 @@ export const getPaymentUrl = async (user_id, plans) => {
     throw error;
   }
 };
+
+export const getTokenDetail = async (token) => {
+  try {
+    const response = await api.get(`/payment/tokens/${token}/`, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching token details:', error);
+    throw error;
+  }
+};
