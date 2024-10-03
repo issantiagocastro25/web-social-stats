@@ -4,6 +4,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { getPaymentUrl, getTokenDetail } from '../../api/api_suscription/data-suscription.api';
 import { useAuthCheck } from '../hooks/useAuthCheck';
 import { getUserDetail } from '@/api/user';
+import BackButton from '../Components/Buttons/BackButton';
 
 const plansData = {
     salud: { title: "Salud Colombia", price: 200000, suscripName: "salud" },
@@ -124,6 +125,10 @@ function PaymentGateway() {
 
     return (
         <div className="max-w-7xl mx-auto p-6 bg-gray-50 min-h-screen">
+
+            <div className='w-full mb-4'>
+                <BackButton/>
+            </div>
             <h1 className="text-3xl font-semibold mb-6 text-gray-800 text-center">Pasarela de Pago</h1>
             
             <div className="flex flex-col md:flex-row gap-6">
@@ -211,7 +216,12 @@ function PaymentGateway() {
                         </p>
                         <button 
                             onClick={handleProceedToPayment}
-                            className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                            disabled={selectedPlans.length === 0}
+                            className={`w-full py-2 px-4 rounded-md transition ${
+                                selectedPlans.length === 0
+                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                            }`}
                         >
                             Proceder al Pago
                         </button>
