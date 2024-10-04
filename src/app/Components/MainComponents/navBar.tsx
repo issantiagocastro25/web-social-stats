@@ -109,6 +109,9 @@ const DashboardNavbar = () => {
                   </button>
                   {isAdminDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                      <a href="/administration/panel" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        Panel
+                      </a>
                       <a href="/administration/users" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                         Usuarios
                       </a>

@@ -30,7 +30,7 @@ function PaymentGateway() {
         const plan = searchParams.get('plan');
         const token = searchParams.get('token');
 
-        if (isAuthenticated && !loading) {
+        if (isAuthenticated) {
             fetchUserDetail();
         }
 
