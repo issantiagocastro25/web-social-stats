@@ -81,7 +81,7 @@ const GroupSummaryTable: React.FC<GroupSummaryTableProps> = ({ summaryCardsData,
       const percentage = (value / total) * 100;
       return isNaN(percentage) ? '0%' : `${percentage.toFixed(2)}%`;
     }
-    return value.toLocaleString();
+    return value.toLocaleString('es-ES');
   };
 
   const requestSort = (key: string) => {
@@ -170,8 +170,8 @@ const GroupSummaryTable: React.FC<GroupSummaryTableProps> = ({ summaryCardsData,
             <TableHeaderCell onClick={() => requestSort('YouTube')} className="cursor-pointer">
               YouTube <SortIcon columnKey="YouTube" />
             </TableHeaderCell>
-            <TableHeaderCell onClick={() => requestSort('TikTok')} className="cursor-pointer">
-              TikTok <SortIcon columnKey="TikTok" />
+            <TableHeaderCell onClick={() => requestSort('Tiktok')} className="cursor-pointer">
+              TikTok <SortIcon columnKey="Tiktok" />
             </TableHeaderCell>
           </TableRow>
         </TableHead>
@@ -183,7 +183,7 @@ const GroupSummaryTable: React.FC<GroupSummaryTableProps> = ({ summaryCardsData,
               <TableCell>{formatValue(data.X, totals.X)}</TableCell>
               <TableCell>{formatValue(data.Instagram, totals.Instagram)}</TableCell>
               <TableCell>{formatValue(data.YouTube, totals.YouTube)}</TableCell>
-              <TableCell>{formatValue(data.TikTok, totals.TikTok)}</TableCell>
+              <TableCell>{formatValue(data.Tiktok, totals.Tiktok)}</TableCell>
             </TableRow>
           ))}
           {calculateTotalPercentage()}

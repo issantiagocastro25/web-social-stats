@@ -53,12 +53,12 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
     { key: 'social_networks.Facebook.Average_views', label: 'Facebook Vistas Medias', network: 'Facebook' },
     { key: 'social_networks.X.followers', label: 'X Seguidores', network: 'X' },
     { key: 'social_networks.X.publications', label: 'X Publicaciones', network: 'X' },
-    { key: 'social_networks.X.reactions', label: 'X Reacciones', network: 'X' },
-    { key: 'social_networks.X.Average_views', label: 'X Vistas Medias', network: 'X' },
+    // { key: 'social_networks.X.reactions', label: 'X Reacciones', network: 'X' },
+    // { key: 'social_networks.X.Average_views', label: 'X Vistas Medias', network: 'X' },
     { key: 'social_networks.Instagram.followers', label: 'Instagram Seguidores', network: 'Instagram' },
     { key: 'social_networks.Instagram.publications', label: 'Instagram Publicaciones', network: 'Instagram' },
-    { key: 'social_networks.Instagram.reactions', label: 'Instagram Reacciones', network: 'Instagram' },
-    { key: 'social_networks.Instagram.Average_views', label: 'Instagram Vistas Medias', network: 'Instagram' },
+    // { key: 'social_networks.Instagram.reactions', label: 'Instagram Reacciones', network: 'Instagram' },
+    // { key: 'social_networks.Instagram.Average_views', label: 'Instagram Vistas Medias', network: 'Instagram' },
     { key: 'social_networks.YouTube.followers', label: 'YouTube Suscriptores', network: 'YouTube' },
     { key: 'social_networks.YouTube.publications', label: 'YouTube Publicaciones', network: 'YouTube' },
     { key: 'social_networks.YouTube.reactions', label: 'YouTube Reacciones', network: 'YouTube' },
@@ -272,7 +272,7 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
       
       <div className="mb-4 flex flex-wrap justify-between items-center">
         <h2 className="text-xl font-bold mb-2">Datos de Instituciones</h2>
-        <div className="flex flex-wrap gap-2 mb-2">
+        <div className="flex flex-wrap gap-2 mb-2 ">
           {Object.entries(visibleNetworks).map(([network, isVisible]) => (
             network !== 'basic' && (
               <Button
@@ -322,7 +322,7 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
         </div>
       )}
 
-      <div className="relative overflow-hidden shadow-md sm:rounded-lg" style={{ height: '500px' }}>
+      <div className="relative overflow-hidden shadow-md sm:rounded-lg" style={{ height: '1130px' }}>
         <div className="overflow-auto" style={{ height: '100%', width: '100%' }}>
           <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0 z-20">
@@ -335,7 +335,7 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
                 </th>
                 {visibleColumns.map((column, index) => (
                   <th
-                    key={column.key}
+                    key={column.key} 
                     scope="col"
                     className={`px-6 py-3 cursor-pointer ${
                       index === 0 ? 'sticky left-12 z-20 bg-gray-50 dark:bg-gray-700' : ''
@@ -351,37 +351,40 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
               </tr>
             </thead>
             <tbody>
-              {paginatedData.map((item) => (
-                <tr
-                  key={item.Institucion}
-                  className={`cursor-pointer ${
-                    isRowSelected(item) ? 'bg-blue-100 dark:bg-blue-900' : 'bg-white dark:bg-gray-800'
-                  } hover:bg-gray-50 dark:hover:bg-gray-700`}
-                  onClick={() => handleRowSelect(item)}
-                >
-                  <td className="w-4 p-4 sticky left-0 z-10 bg-inherit">
-                    <Checkbox
-                      checked={isRowSelected(item)}
-                      onChange={() => handleRowSelect(item)}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </td>
-                  {visibleColumns.map((column, index) => (
-                    <td
-                      key={column.key}
-                      className={`px-6 py-4 font-medium text-gray-900 dark:text-white ${
-                        index === 0 ? 'sticky left-12 z-10 bg-inherit' : ''
-                      } ${column.key === 'Institucion' ? 'whitespace-normal' : 'whitespace-nowrap'}`}
-                    >
-                      {formatValue(
-                        column.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : 'N/A'), item),
-                        null // We don't have previous data in this context
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
+  {paginatedData.map((item) => {
+    console.log('Contenido de item:', item);  // Añadido console.log aquí
+    return (
+      <tr
+        key={item.Institucion}
+        className={`cursor-pointer ${
+          isRowSelected(item) ? 'bg-blue-100 dark:bg-blue-900' : 'bg-white dark:bg-gray-800'
+        } hover:bg-gray-50 dark:hover:bg-gray-700`}
+        onClick={() => handleRowSelect(item)}
+      >
+        <td className="w-4 p-4 sticky left-0 z-10 bg-inherit">
+          <Checkbox
+            checked={isRowSelected(item)}
+            onChange={() => handleRowSelect(item)}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </td>
+        {visibleColumns.map((column, index) => (
+          <td
+            key={column.key}
+            className={`px-6 py-4 font-medium text-gray-900 dark:text-white ${
+              index === 0 ? 'sticky left-12 z-10 bg-inherit' : ''
+            } ${column.key === 'Institucion' ? 'whitespace-normal' : 'whitespace-nowrap'}`}
+          >
+            {formatValue(
+              column.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : 'N/A'), item),
+              null // We don't have previous data in this context
+            )}
+          </td>
+        ))}
+      </tr>
+    );
+  })}
+</tbody>
           </table>
         </div>
       </div>

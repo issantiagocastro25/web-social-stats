@@ -390,106 +390,97 @@ const SocialStatsDashboard: React.FC = () => {
   selectedInstitutionType={activeCategory} // Pasando la categoría seleccionada
   className="mb-6"
 />
-
-
-  
-            {(activeCategory === 'Todos' || currentSection === 'hospitales') && summaryCardsData && (
-              <Card className="mb-6 bg-white shadow-md">
-                <GroupSummaryTable 
-                  summaryCardsData={summaryCardsData} 
-                  onTemporalAnalysis={handleGroupTemporalAnalysis}
-                  isLoading={isLoading}
-                />
-              </Card>
-            )}
-  
-            
-  
-            
+  {(activeCategory === 'Todos' || currentSection === 'hospitales') && summaryCardsData && (
+    <Card className="mb-6 bg-white shadow-md">
+      <GroupSummaryTable 
+        summaryCardsData={summaryCardsData} 
+        onTemporalAnalysis={handleGroupTemporalAnalysis}
+        isLoading={isLoading}
+      />
+    </Card>
+  )}
   
   <Card className="mb-6 bg-white shadow-lg">
-        <h2 className="text-2xl font-bold mb-4 text-gray-900">
-          {currentSection === 'hospitales' 
-            ? 'Hospitales de Latinoamérica' 
-            : `Datos para la categoría: ${activeCategory}`}
-        </h2>
-        <TextInput
-          icon={FaSearch}
-          type="text"
-          placeholder="Buscar por institución, ciudad o tipo..."
-          value={searchTerm}
-          onChange={handleSearch}
-          className="border-gray-300 focus:border-secondary focus:ring-secondary"
-        />
-        <InteractiveDataTable 
-          selectedType={currentSection === 'hospitales' ? 'Hospitales' : activeCategory}
-          selectedDate={selectedDate}
-          selectedInstitutions={selectedInstitutions}
-          onInstitutionSelect={handleInstitutionSelect}
-          onClearSelection={handleClearSelection}
-          searchTerm={searchTerm}
-          category={currentSection}
-          />
-                  
-              <div className="mb-6 flex space-x-4 items-center justify-end pt-3">
-              
-                      <Button 
-                        color="#5C00CE" 
-                        onClick={handleTemporalAnalysis}
-                        disabled={isLoadingTemporal || selectedInstitutions.length === 0}
-                        className="bg-secondary hover:bg-secondary-dark text-white transition-colors duration-200"
-                      >
-                        {isLoadingTemporal ? 'Analizando...' : 'Análisis Temporal'}
-                      </Button>
-              </div>
-                      {isLoadingTemporal && (
-                          <Card className="mb-6 bg-white shadow-md">
-                            <h2 className="text-xl font-bold mb-4 text-gray-900">Analizando datos temporales...</h2>
-                            <ProgressBar progress={temporalProgress} color="secondary" />
-                          </Card>
-                      )}
-            </Card>
+    <h2 className="text-2xl font-bold mb-4 text-gray-900">
+      {currentSection === 'hospitales' 
+        ? 'Hospitales de Latinoamérica' 
+        : `Datos para la categoría: ${activeCategory}`}
+    </h2>
+    <TextInput
+      icon={FaSearch}
+      type="text"
+      placeholder="Buscar por institución, ciudad o tipo..."
+      value={searchTerm}
+      onChange={handleSearch}
+      className="border-gray-300 focus:border-secondary focus:ring-secondary"
+    />
+    <InteractiveDataTable 
+      selectedType={currentSection === 'hospitales' ? 'Hospitales' : activeCategory}
+      selectedDate={selectedDate}
+      selectedInstitutions={selectedInstitutions}
+      onInstitutionSelect={handleInstitutionSelect}
+      onClearSelection={handleClearSelection}
+      searchTerm={searchTerm}
+      category={currentSection}
+    />
+    <div className="mb-6 flex space-x-4 items-center justify-end pt-3">  
+      <Button 
+        color="#5C00CE" 
+        onClick={handleTemporalAnalysis}
+        disabled={isLoadingTemporal || selectedInstitutions.length === 0}
+        className="bg-secondary hover:bg-secondary-dark text-white transition-colors duration-200"
+      >
+        {isLoadingTemporal ? 'Analizando...' : 'Análisis Temporal'}
+      </Button>
+    </div>
+    {isLoadingTemporal && (
+        <Card className="mb-6 bg-white shadow-md">
+          <h2 className="text-xl font-bold mb-4 text-gray-900">Analizando datos temporales...</h2>
+          <ProgressBar progress={temporalProgress} color="secondary" />
+        </Card>
+    )}
+  </Card>
   
-            {selectedInstitutions.length === 1 && (
-              <Card className="mt-6 bg-white shadow-md">
-                <InstitutionStats 
-                  institution={selectedInstitutions[0]}
-                  isLoading={isLoading}
-                />
-              </Card>
-            )}
+  {selectedInstitutions.length === 1 && (
+    <Card className="mt-6 bg-white shadow-md">
+      <InstitutionStats 
+        institution={selectedInstitutions[0]}
+        isLoading={isLoading}
+      />
+    </Card>
+  )}
   
-            {selectedInstitutions.length > 1 && (
-              <Grid numColsLg={2} className="gap-6 mt-6">
-                <ComparisonCharts 
-                  selectedInstitutions={selectedInstitutions}
-                  isLoading={isLoading}
-                />
-                <ComparisonTable 
-                  selectedInstitutions={selectedInstitutions}
-                  isLoading={isLoading}
-                />
-              </Grid>
-            )}
+  {selectedInstitutions.length > 1 && (
+    <Grid numColsLg={2} className="gap-6 mt-6">
+      <ComparisonCharts 
+        selectedInstitutions={selectedInstitutions}
+        isLoading={isLoading}
+      />
+      <ComparisonTable 
+        selectedInstitutions={selectedInstitutions}
+        isLoading={isLoading}
+      />
+    </Grid>
+  )}
   
-            {showTemporalAnalysis && temporalData.length > 0 && (
-              <TemporalAnalysisTable 
-                selectedInstitutions={selectedInstitutions}
-                temporalData={temporalData}
-                availableDates={availableDates}
-                isLoading={isLoadingTemporal}
-              />
-            )}
+  {showTemporalAnalysis && temporalData.length > 0 && (
+    <TemporalAnalysisTable 
+      selectedInstitutions={selectedInstitutions}
+      temporalData={temporalData}
+      availableDates={availableDates}
+      isLoading={isLoadingTemporal}
+    />
+  )}
   
-            {showGroupTemporalAnalysis && (
-              <GroupTemporalAnalysisTable 
-                temporalData={temporalData}
-                availableDates={availableDates}
-                onClose={() => setShowGroupTemporalAnalysis(false)}
-                isLoading={isLoadingTemporal}
-              />
-            )}
-          </>
+  {showGroupTemporalAnalysis && (
+    <GroupTemporalAnalysisTable 
+      temporalData={temporalData}
+      availableDates={availableDates}
+      onClose={() => setShowGroupTemporalAnalysis(false)}
+      isLoading={isLoadingTemporal}
+    />
+  )}
+  </>
         )}
   
         {errors.length > 0 && (
