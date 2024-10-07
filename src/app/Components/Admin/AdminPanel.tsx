@@ -5,6 +5,7 @@ import { getAllTokens, createToken, updateToken, deleteToken } from '@/api/api_s
 import { getAllSubscriptionPlans, createSubscriptionPlan, updateSubscriptionPlan, deleteSubscriptionPlan } from '@/api/api_suscription/tokens';
 import DeleteConfirmation from '../Alert/DialogConfirmDelete';
 import EditButton from '../Buttons/EditButton';
+import TokenCopyComponent from '../Buttons/CopyTokenButton';
 
 export default function AdminPanel() {
     const [tokens, setTokens] = useState([]);
@@ -130,11 +131,11 @@ export default function AdminPanel() {
     };
 
     const filteredTokens = tokens.filter(token =>
-        token.token.toLowerCase().includes(searchQuery.toLowerCase())
+        token.title.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     return (
-        <div className="max-w-6xl mx-auto p-6">
+        <div className="max-w-7xl mx-auto p-6">
             <h2 className="text-3xl font-light mb-8 text-center">Admin Panel</h2>
 
             <section className="mb-12">
@@ -158,6 +159,7 @@ export default function AdminPanel() {
                     <table className="w-full text-sm text-left text-gray-500">
                         <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                             <tr>
+                                <th className="px-6 py-3">Nombre</th>
                                 <th className="px-6 py-3">Token</th>
                                 <th className="px-6 py-3">Descuento</th>
                                 <th className="px-6 py-3">Fecha de Inicio</th>
@@ -168,7 +170,8 @@ export default function AdminPanel() {
                         <tbody>
                             {filteredTokens.map((token) => (
                                 <tr key={token.id} className="bg-white border-b">
-                                    <td className="px-6 py-4">{token.token}</td>
+                                    <td className="px-6 py-4">{token.title}</td>
+                                    <td className="px-6 py-4"><TokenCopyComponent token={token.token} /></td>
                                     <td className="px-6 py-4">{token.discount}%</td>
                                     <td className="px-6 py-4">{formatDate(token.start_date)}</td>
                                     <td className="px-6 py-4">{formatDate(token.end_date)}</td>
@@ -260,6 +263,17 @@ export default function AdminPanel() {
                         <form onSubmit={handleSubmit} className="space-y-4">
                             {isTokenModal ? (
                                 <>
+                                    <div>
+                                        <label className="block mb-1">Nombre</label>
+                                        <input 
+                                            type="text" 
+                                            className="w-full p-2 border border-gray-300 rounded" 
+                                            placeholder="Nombre del Token" 
+                                            value={currentItem?.title || ''}
+                                            onChange={(e) => setCurrentItem({...currentItem, name: e.target.value})}
+                                            required 
+                                        />
+                                    </div>
                                     <div>
                                         <label className="block mb-1">Descuento (%)</label>
                                         <input 
