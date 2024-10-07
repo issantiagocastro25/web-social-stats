@@ -18,6 +18,17 @@ const ComparisonCharts = ({ selectedInstitutions }) => {
   const reactionsData = prepareChartData('reactions');
   const engagementData = prepareChartData('engagement');
 
+  // Función para formatear números grandes
+  const formatNumber = (value: number) => {
+    if (value >= 1000000) {
+      return (value / 1000000).toFixed(1) + 'M';
+    } else if (value >= 1000) {
+      return (value / 1000).toFixed(1) + 'K';
+    } else {
+      return value.toString();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -28,11 +39,11 @@ const ComparisonCharts = ({ selectedInstitutions }) => {
           index="name"
           categories={["Facebook", "X", "Instagram", "YouTube", "TikTok"]}
           colors={["blue", "cyan", "pink", "red", "black"]}
-          yAxisWidth={48}
+          yAxisWidth={80}
           stack={false}
+          valueFormatter={formatNumber}
         />
       </Card>
-
 
       <Card>
         <Title>Comparación de Publicaciones por Red Social</Title>
@@ -42,7 +53,8 @@ const ComparisonCharts = ({ selectedInstitutions }) => {
           index="name"
           categories={["Facebook", "X", "Instagram", "YouTube", "TikTok"]}
           colors={["blue", "cyan", "pink", "red", "black"]}
-          yAxisWidth={48}
+          yAxisWidth={80}
+          valueFormatter={formatNumber}
         />
       </Card>
 
@@ -54,8 +66,9 @@ const ComparisonCharts = ({ selectedInstitutions }) => {
           index="name"
           categories={["Facebook", "X", "Instagram", "YouTube", "TikTok"]}
           colors={["blue", "cyan", "pink", "red", "black"]}
-          yAxisWidth={48}
-          stack={true}
+          yAxisWidth={80}
+          stack={false}
+          valueFormatter={formatNumber}
         />
       </Card>
 

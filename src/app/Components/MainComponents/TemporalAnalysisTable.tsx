@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Card, Title, Text, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Badge, Button , AreaChart} from '@tremor/react';
+import { Card, Title, Text, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Badge, Button, AreaChart } from '@tremor/react';
 import { Select } from 'flowbite-react';
 
 interface TemporalAnalysisTableProps {
@@ -20,7 +20,6 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
 
   const networks = ['Facebook', 'X', 'Instagram', 'YouTube', 'TikTok'];
 
-  // Ordenar availableDates de más antigua a más reciente
   const sortedDates = useMemo(() => [...availableDates].sort((a, b) => new Date(a).getTime() - new Date(b).getTime()), [availableDates]);
 
   const processedData = useMemo(() => {
@@ -45,7 +44,6 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
     });
   }, [selectedInstitutions, temporalData, sortedDates, networks]);
 
-  // Asegurarse de que selectedInstitutionIndex sea válido
   useEffect(() => {
     if (selectedInstitutionIndex >= selectedInstitutions.length) {
       setSelectedInstitutionIndex(0);
@@ -53,9 +51,18 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
   }, [selectedInstitutions, selectedInstitutionIndex]);
 
   const calculateGrowth = (current: number, previous: number) => {
-    if (current === 0) return 0;
-    if (previous === 0) return current > 0 ? 100 : 0;
+    if (previous === 0) return 0;
     return ((current - previous) / previous) * 100;
+  };
+
+  const formatNumber = (value: number) => {
+    if (value >= 1000000) {
+      return (value / 1000000).toFixed(1) + 'M';
+    } else if (value >= 1000) {
+      return (value / 1000).toFixed(1) + 'K';
+    } else {
+      return value.toString();
+    }
   };
 
   const renderTable = () => {
@@ -86,7 +93,7 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
                 return (
                   <TableCell key={network}>
                     <div className="flex items-center space-x-2">
-                      <Text>{currentValue.toLocaleString()}</Text>
+                      <Text>{formatNumber(currentValue)}</Text>
                       <Badge color={color}>
                         {growth > 0 ? '▲' : growth < 0 ? '▼' : '−'} {Math.abs(growth).toFixed(2)}%
                       </Badge>
@@ -113,19 +120,34 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
     <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
       {networks.map(network => (
         <Card key={network}>
-          <Title> Seguidores en {network} a lo largo del tiempo </Title>
+          <Title>Seguidores en {network} a lo largo del tiempo</Title>
           <AreaChart
             className="h-72 mt-4"
             data={processedData[selectedInstitutionIndex]?.data || []}
             index="date"
             categories={[network]}
             colors={[networkColors[network]]}
-            valueFormatter={(number: number) => Intl.NumberFormat("us").format(number).toString()}
-            yAxisWidth={60}
+            valueFormatter={formatNumber}
+            yAxisWidth={80}
           />
         </Card>
       ))}
     </div>
+  );
+
+  const renderGrowthChart = () => (
+    <Card className="mt-6">
+      <Title>Crecimiento Anual en Redes Sociales</Title>
+      <AreaChart
+        className="mt-4 h-80"
+        data={processedData[selectedInstitutionIndex]?.data || []}
+        index="date"
+        categories={networks}
+        colors={Object.values(networkColors)}
+        valueFormatter={(number: number) => `${number.toFixed(2)}%`}
+        yAxisWidth={80}
+      />
+    </Card>
   );
 
   const renderSkeleton = () => (
@@ -158,14 +180,19 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
             size="xs"
             variant="secondary"
             onClick={() => setShowCharts(!showCharts)}
-            className='bg-[#5521B5] rounded-md text-white hover:text-gray-800 px-2 '
+            className='bg-[#5521B5] rounded-md text-white hover:text-gray-800 px-2'
           >
             {showCharts ? 'Ver Tabla' : 'Ver Gráficas'}
           </Button>
         </div>
       </div>
 
-      {showCharts ? renderCharts() : renderTable()}
+      {showCharts ? (
+        <>
+          {renderCharts()}
+          {renderGrowthChart()}
+        </>
+      ) : renderTable()}
     </Card>
   );
 };

@@ -23,6 +23,7 @@ import ProgressBar from './ProgressBar';
 type SectionType = 'salud' | 'compensacion' | 'hospitales' | 'usa';
 
 const SocialStatsDashboard: React.FC = () => {
+  
   const pathname = usePathname();
   const [currentSection, setCurrentSection] = useState<SectionType>('salud');
   const [data, setData] = useState<any[]>([]);
@@ -177,14 +178,11 @@ const SocialStatsDashboard: React.FC = () => {
 
     setIsLoadingTemporal(true);
     setShowTemporalAnalysis(true);
-    setTemporalProgress(0);
     clearErrors();
     try {
       const institutionNames = selectedInstitutions.map(inst => inst.Institucion);
-      const totalSteps = availableDates.length;
-
       const temporalDataResult = await Promise.all(
-        availableDates.map(async (date, index) => {
+        availableDates.map(async (date) => {
           const result = await fetchPaginatedSocialStats({
             category: currentSection,
             type: 'todos',
@@ -193,7 +191,6 @@ const SocialStatsDashboard: React.FC = () => {
             pageSize: 100,
             search: institutionNames.join(',')
           });
-          setTemporalProgress(((index + 1) / totalSteps) * 100);
           return result.data.metrics.map(item => ({ ...item, date }));
         })
       );
@@ -204,9 +201,9 @@ const SocialStatsDashboard: React.FC = () => {
       addError(`Error en el análisis temporal: ${err.message}`);
     } finally {
       setIsLoadingTemporal(false);
-      setTemporalProgress(0);
     }
   };
+
 
   const handleGroupTemporalAnalysis = async () => {
     setIsLoadingTemporal(true);
@@ -330,23 +327,26 @@ const SocialStatsDashboard: React.FC = () => {
                 searchTerm={searchTerm}
                 category={currentSection}
               />
-              <div className="mb-6 flex space-x-4 items-center justify-end pt-3">  
-                <Button 
-                  color="#5C00CE" 
-                  onClick={handleTemporalAnalysis}
-                  disabled={isLoadingTemporal || selectedInstitutions.length === 0}
-                  className="bg-secondary hover:bg-secondary-dark text-white transition-colors duration-200"
-                >
-                  {isLoadingTemporal ? 'Analizando...' : 'Análisis Temporal'}
-                </Button>
-              </div>
-              {isLoadingTemporal && (
-                <Card className="mb-6 bg-white shadow-md">
-                  <h2 className="text-xl font-bold mb-4 text-gray-900">Analizando datos temporales...</h2>
-                  <ProgressBar progress={temporalProgress} color="secondary" />
-                </Card>
-              )}
-            </Card>
+             <div className="mb-6 flex space-x-4 items-center justify-end pt-3">  
+            <Button 
+              color="#5C00CE" 
+              onClick={handleTemporalAnalysis}
+              disabled={isLoadingTemporal || selectedInstitutions.length === 0}
+              className="bg-secondary hover:bg-secondary-dark text-white transition-colors duration-200"
+            >
+              {isLoadingTemporal ? 'Analizando...' : 'Análisis Temporal'}
+            </Button>
+          </div>
+        </Card>
+
+        {showTemporalAnalysis && temporalData.length > 0 && (
+          <TemporalAnalysisTable 
+            selectedInstitutions={selectedInstitutions}
+            temporalData={temporalData}
+            availableDates={availableDates}
+            isLoading={isLoadingTemporal}
+          />
+        )}
   
             {selectedInstitutions.length === 1 && (
               <Card className="mt-6 bg-white shadow-md">
@@ -370,7 +370,7 @@ const SocialStatsDashboard: React.FC = () => {
               </Grid>
             )}
   
-            {showTemporalAnalysis && temporalData.length > 0 && (
+            {/* {showTemporalAnalysis && temporalData.length > 0 && (
               <TemporalAnalysisTable 
                 selectedInstitutions={selectedInstitutions}
                 temporalData={temporalData}
@@ -386,7 +386,7 @@ const SocialStatsDashboard: React.FC = () => {
                 onClose={() => setShowGroupTemporalAnalysis(false)}
                 isLoading={isLoadingTemporal}
               />
-            )}
+            )} */}
           </>
         )}
   
