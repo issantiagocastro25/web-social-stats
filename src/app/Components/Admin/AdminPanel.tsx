@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { useAlert } from '@/app/contexts/AlertContext';
 import { getAllTokens, createToken, updateToken, deleteToken } from '@/api/api_suscription/data-suscription.api';
 import { getAllSubscriptionPlans, createSubscriptionPlan, updateSubscriptionPlan, deleteSubscriptionPlan } from '@/api/api_suscription/tokens';
 
@@ -10,6 +11,7 @@ export default function AdminPanel() {
     const [currentItem, setCurrentItem] = useState(null);
     const [isTokenModal, setIsTokenModal] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const { showAlert } = useAlert();
 
     useEffect(() => {
         fetchTokens();
@@ -61,11 +63,21 @@ export default function AdminPanel() {
     const handleDelete = async (id, isToken) => {
         try {
             if (isToken) {
-                await deleteToken(id);
-                await fetchTokens();
+                try {
+                    const response = await deleteToken(id);
+                    showAlert('Se ha eliminado el token', 'success');
+                    await fetchTokens();
+                } catch (error) {
+                    showAlert('Ups, Error al eliminar el token', 'error');
+                }
             } else {
-                await deleteSubscriptionPlan(id);
-                await fetchPlans();
+                try {
+                    await deleteSubscriptionPlan(id);
+                    showAlert('Se ha eliminado el plan', 'success');
+                    await fetchPlans();
+                } catch (error) {
+                    showAlert('Ups, Error al eliminar el plan', 'error');
+                }
             }
         } catch (error) {
             console.error('Error deleting item:', error);
