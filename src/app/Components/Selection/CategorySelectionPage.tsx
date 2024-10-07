@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthAndSubscriptions } from '@/app/hooks/useAuthAndSubscriptions';
 import { getPricing } from '@/api/api_suscription/data-suscription.api'; 
 import Spinner from '@/app/Components/Loadings/LoadingSpinner';
+import { useSubscriptionCheck } from '@/app/hooks/useSubscriptionCheck';
 
 interface Category {
   name: string;
@@ -23,7 +23,7 @@ const categoryRoutes: { [key: string]: string } = {
 
 const CategorySelectionMockup: React.FC = () => {
   const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading, subscriptions } = useAuthAndSubscriptions();
+  const { subscriptions, isLoading: subLoading, getAccessibleRoutes } = useSubscriptionCheck(); // Usamos tu hook aquí
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,12 +47,11 @@ const CategorySelectionMockup: React.FC = () => {
 
   const handleCategoryClick = (name: string) => {
     const route = categoryRoutes[name] || '/';
-    window.location.href = route;
-    // router.push(route);
+    router.push(route);
   };
 
-  // Mostrar Skeleton Loader mientras se cargan los datos
-  if (authLoading || isLoading) {
+  // Mostrar Spinner mientras se cargan los datos de categorías o suscripciones
+  if (subLoading || isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <Spinner />
@@ -64,15 +63,12 @@ const CategorySelectionMockup: React.FC = () => {
     return <div className="flex items-center justify-center h-screen text-red-500">{error}</div>;
   }
 
-  if (!isAuthenticated) {
-    return <div className="flex items-center justify-center h-screen">Por favor, inicia sesión para ver las categorías disponibles.</div>;
-  }
-
-  const userSubscriptions = subscriptions.map(sub => sub.plan);
-  const accessibleCategories = categories.filter(category => userSubscriptions.includes(category.name));
+  const userSubscribedPlans = subscriptions.map(sub => sub.plan);
+  const accessibleCategories = categories.filter(category => userSubscribedPlans.includes(category.name));
 
   if (accessibleCategories.length === 0) {
-    return window.location.href = '/pricing';
+    router.push('/pricing'); // Redirigir a /pricing si no tiene suscripciones válidas
+    return null; // Evitar renderizado adicional
   }
 
   const gridCols = accessibleCategories.length === 1 ? 'grid-cols-1' : 
