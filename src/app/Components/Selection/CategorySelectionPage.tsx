@@ -47,7 +47,8 @@ const CategorySelectionMockup: React.FC = () => {
 
   const handleCategoryClick = (name: string) => {
     const route = categoryRoutes[name] || '/';
-    router.push(route);
+    window.location.href = route;
+    // router.push(route);
   };
 
   // Mostrar Skeleton Loader mientras se cargan los datos
@@ -71,7 +72,7 @@ const CategorySelectionMockup: React.FC = () => {
   const accessibleCategories = categories.filter(category => userSubscriptions.includes(category.name));
 
   if (accessibleCategories.length === 0) {
-    return <div className="flex items-center justify-center h-screen">No tienes acceso a ninguna categoría en este momento.</div>;
+    return window.location.href = '/pricing';
   }
 
   const gridCols = accessibleCategories.length === 1 ? 'grid-cols-1' : 
