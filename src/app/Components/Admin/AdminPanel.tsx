@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useAlert } from '@/app/contexts/AlertContext';
 import { getAllTokens, createToken, updateToken, deleteToken } from '@/api/api_suscription/data-suscription.api';
 import { getAllSubscriptionPlans, createSubscriptionPlan, updateSubscriptionPlan, deleteSubscriptionPlan } from '@/api/api_suscription/tokens';
+import DeleteConfirmation from '../Alert/DialogConfirmDelete';
+import EditButton from '../Buttons/EditButton';
 
 export default function AdminPanel() {
     const [tokens, setTokens] = useState([]);
@@ -170,19 +172,24 @@ export default function AdminPanel() {
                                     <td className="px-6 py-4">{token.discount}%</td>
                                     <td className="px-6 py-4">{formatDate(token.start_date)}</td>
                                     <td className="px-6 py-4">{formatDate(token.end_date)}</td>
-                                    <td className="px-6 py-4">
-                                        <button 
+                                    <td className="px-6 py-4 w-52 flex">
+                                        {/* <button 
                                             onClick={() => openModal(token, true)} 
                                             className="text-blue-500 hover:underline mr-4"
                                         >
                                             Editar
-                                        </button>
-                                        <button 
+                                        </button> */}
+                                        {/* <button 
                                             onClick={() => handleDelete(token.id, true)} 
                                             className="text-red-500 hover:underline"
                                         >
                                             Eliminar
-                                        </button>
+                                        </button> */}
+                                        <EditButton onClick={() => openModal(token, true)} />
+                                        <DeleteConfirmation 
+                                            onDelete={() => handleDelete(token.id, true)} 
+                                            itemName={'token'}
+                                        />
                                     </td>
                                 </tr>
                             ))}
@@ -219,8 +226,8 @@ export default function AdminPanel() {
                                     <td className="px-6 py-4">{plan.title}</td>
                                     <td className="px-6 py-4">${plan.price}</td>
                                     <td className="px-6 py-4">{plan.duration_days} días</td>
-                                    <td className="px-6 py-4">
-                                        <button 
+                                    <td className="px-6 py-4 w-52 flex">
+                                        {/* <button 
                                             onClick={() => openModal(plan, false)} 
                                             className="text-blue-500 hover:underline mr-4"
                                         >
@@ -231,7 +238,13 @@ export default function AdminPanel() {
                                             className="text-red-500 hover:underline"
                                         >
                                             Eliminar
-                                        </button>
+                                        </button> */}
+
+                                        <EditButton onClick={() => openModal(plan, false)} />
+                                        <DeleteConfirmation 
+                                            onDelete={() => handleDelete(plan.id, false)} 
+                                            itemName={'plan'}
+                                        />
                                     </td>
                                 </tr>
                             ))}
