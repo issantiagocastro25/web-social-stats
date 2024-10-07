@@ -247,7 +247,7 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
         </div>
       );
     }
-    return currentValue?.toLocaleString('es-ES', { maximumFractionDigits: 2 }) || 'N/A';
+    return currentValue?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   }, []);
 
   const renderSkeleton = () => (

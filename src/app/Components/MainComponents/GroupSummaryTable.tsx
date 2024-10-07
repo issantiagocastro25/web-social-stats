@@ -81,7 +81,8 @@ const GroupSummaryTable: React.FC<GroupSummaryTableProps> = ({ summaryCardsData,
       const percentage = (value / total) * 100;
       return isNaN(percentage) ? '0%' : `${percentage.toFixed(2)}%`;
     }
-    return value.toLocaleString('es-ES');
+    // return value.toLocaleString('es-ES');
+    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
 
   const requestSort = (key: string) => {
