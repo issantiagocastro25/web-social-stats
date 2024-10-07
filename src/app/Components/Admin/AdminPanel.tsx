@@ -72,8 +72,40 @@ export default function AdminPanel() {
         }
     };
 
+    const handlePlanSelection = (planId) => {
+        setCurrentItem((prevState) => {
+            const selectedPlans = prevState.plan_ids || [];
+            if (selectedPlans.includes(planId)) {
+                return { ...prevState, plan_ids: selectedPlans.filter(id => id !== planId) };
+            } else {
+                return { ...prevState, plan_ids: [...selectedPlans, planId] };
+            }
+        });
+    };
+
     const openModal = (item, isToken) => {
-        setCurrentItem(item || (isToken ? { token: '', discount: '', start_date: '', end_date: '' } : { name: '', title: '', imageCover: '', description: '', price: '', duration_days: '' }));
+        const initialItem = item || (isToken ? { token: '', discount: '', start_date: '', end_date: '', plan_ids: [] } : { name: '', title: '', imageCover: '', description: '', price: '', duration_days: '' });
+    
+        if (isToken && item) {
+            // Mapea los nombres de los planes en el array subscription_plans a los IDs de los planes correspondientes
+            const selectedPlans = plans
+                .filter(plan => item.subscription_plans.includes(plan.name))
+                .map(plan => plan.id);
+    
+            // Asegúrate de formatear las fechas a 'YYYY-MM-DD'
+            const formattedStartDate = item.start_date.split('T')[0]; // Esto extrae solo la parte de la fecha
+            const formattedEndDate = item.end_date.split('T')[0];
+    
+            setCurrentItem({
+                ...initialItem,
+                plan_ids: selectedPlans, // Almacena los IDs de los planes seleccionados
+                start_date: formattedStartDate, // Formato correcto para el input de fecha
+                end_date: formattedEndDate,    // Formato correcto para el input de fecha
+            });
+        } else {
+            setCurrentItem(initialItem);
+        }
+        
         setIsTokenModal(isToken);
         setIsModalOpen(true);
     };
@@ -96,7 +128,7 @@ export default function AdminPanel() {
                     <h3 className="text-2xl font-light">Tokens de Descuento</h3>
                     <button 
                         onClick={() => openModal(null, true)}
-                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                        className='mt-4 px-5 py-2 rounded-md bg-red-600/90 text-white hover:bg-red-700/90 focus:ring-4 focus:ring-red-300 transition-shadow shadow-md'
                     >
                         Crear Nuevo Token
                     </button>
@@ -152,7 +184,7 @@ export default function AdminPanel() {
                     <h3 className="text-2xl font-light">Planes de Suscripción</h3>
                     <button 
                         onClick={() => openModal(null, false)}
-                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                        className='mt-4 px-5 py-2 rounded-md bg-red-600/90 text-white hover:bg-red-700/90 focus:ring-4 focus:ring-red-300 transition-shadow shadow-md'
                     >
                         Crear Nuevo Plan
                     </button>
@@ -204,17 +236,6 @@ export default function AdminPanel() {
                             {isTokenModal ? (
                                 <>
                                     <div>
-                                        <label className="block mb-1">Token</label>
-                                        <input 
-                                            type="text" 
-                                            className="w-full p-2 border border-gray-300 rounded" 
-                                            placeholder="Token" 
-                                            value={currentItem?.token || ''}
-                                            onChange={(e) => setCurrentItem({...currentItem, token: e.target.value})}
-                                            required 
-                                        />
-                                    </div>
-                                    <div>
                                         <label className="block mb-1">Descuento (%)</label>
                                         <input 
                                             type="number" 
@@ -244,6 +265,20 @@ export default function AdminPanel() {
                                             onChange={(e) => setCurrentItem({...currentItem, end_date: e.target.value})}
                                             required 
                                         />
+                                    </div>
+                                    <div>
+                                        <label className="block mb-1">Selecciona los Planes</label>
+                                        {plans.map(plan => (
+                                            <div key={plan.id} className="flex items-center mb-2">
+                                                <input 
+                                                    type="checkbox" 
+                                                    id={`plan-${plan.id}`} 
+                                                    checked={currentItem?.plan_ids?.includes(plan.id)} 
+                                                    onChange={() => handlePlanSelection(plan.id)} 
+                                                />
+                                                <label htmlFor={`plan-${plan.id}`} className="ml-2">{plan.name}</label>
+                                            </div>
+                                        ))}
                                     </div>
                                 </>
                             ) : (
