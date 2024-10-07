@@ -30,18 +30,43 @@ export const fetchSocialStats = async (options = {}) => {
 
 // New function for paginated social stats
 export const fetchPaginatedSocialStats = async (options = {}) => {
-  const { category = 'salud', type = 'todos', date = '2021-06-01', page = 1, pageSize = 10, search = '' } = options;
+  const { 
+    category = 'salud', 
+    type = 'todos', 
+    date = '2024-08-31', 
+    page = 1, 
+    pageSize = 100, 
+    search = '' 
+  } = options;
+
+  console.log('fetchPaginatedSocialStats called with options:', options);
 
   try {
     const response = await axios.get(`${API_URL}/api/social-metrics/`, {
-      params: { type, category, date, page, page_size: pageSize, search }
+      params: { 
+        type, 
+        category, 
+        date, 
+        page, 
+        page_size: pageSize, 
+        search 
+      }
     });
     
-    console.log('API Response in fetchPaginatedSocialStats:', response.data); // Log the entire response for debugging
+    console.log('API Response:', response.data);
     
-    return response.data; // Return the entire response data
+    if (response.data && response.data.data && Array.isArray(response.data.data.metrics)) {
+      return response.data;
+    } else {
+      console.error('Unexpected API response structure:', response.data);
+      throw new Error('Respuesta de API inesperada');
+    }
   } catch (error) {
     console.error('Error fetching paginated social stats:', error);
+    if (error.response) {
+      console.error('Error response:', error.response.data);
+      console.error('Error status:', error.response.status);
+    }
     throw error;
   }
 };
@@ -63,22 +88,26 @@ export const fetchTemporalData = async (institutions, dates, category) => {
 };
 
 export const fetchSummaryAndUniqueFollowers = async (options = {}) => {
-  const { category = 'salud', institutionId = null, date = '2021-06-01' } = options;
+  const { category = 'salud', date = '2024-08-31' } = options;
+
+  console.log('Fetching summary and unique followers with options:', options);
 
   try {
     const response = await axios.get(`${API_URL}/api/social-metrics/stats`, {
       params: {
         category,
-        type_institution_id: institutionId,
         stats_date: date
       }
     });
+    
+    console.log('Summary and unique followers API Response:', response.data);
+    
     return response.data;
   } catch (error) {
-    console.error('Error fetching summary and unique followers data:', error);
+    console.error('Error fetching summary and unique followers:', error);
     throw error;
   }
-};
+}
 
 export const fetchCategories = async (category, date) => {
   try {

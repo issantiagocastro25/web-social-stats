@@ -1,0 +1,227 @@
+{
+  "data": [
+    {
+			"Institucion": "Centros de Educación en Salud (Cedes)",
+			"Ciudad": "Nacional",
+			"Tipo": "Org. Profesionales",
+			"social_networks": {
+				"Facebook": {
+					"followers": 3201,
+					"publications": 1,
+					"reactions": 131,
+					"engagement": null
+				},
+				"Instagram": {
+					"followers": 3236,
+					"publications": 0,
+					"reactions": 0,
+					"engagement": null
+				},
+				"Tiktok": {
+					"followers": 3236,
+					"publications": 0,
+					"reactions": 0,
+					"engagement": null
+				},
+				"X": {
+					"followers": 0,
+					"publications": 0,
+					"reactions": 131,
+					"engagement": null
+				},
+				"YouTube": {
+					"followers": 0,
+					"publications": 0,
+					"reactions": 0,
+					"engagement": null
+				}
+			}
+		},
+		{
+			"Institucion": "Consultor Salud",
+			"Ciudad": "Nacional",
+			"Tipo": "Org. Profesionales",
+			"social_networks": {
+				"Facebook": {
+					"followers": 64416,
+					"publications": 22,
+					"reactions": 25285,
+					"engagement": null
+				},
+				"Instagram": {
+					"followers": 4314,
+					"publications": 0,
+					"reactions": 0,
+					"engagement": null
+				},
+				"Tiktok": {
+					"followers": 4314,
+					"publications": 0,
+					"reactions": 0,
+					"engagement": null
+				},
+				"X": {
+					"followers": 7305,
+					"publications": 0,
+					"reactions": 25285,
+					"engagement": null
+				},
+				"YouTube": {
+					"followers": 999,
+					"publications": 148,
+					"reactions": 147774,
+					"engagement": null
+				}
+			}
+		},
+		{
+			"Institucion": "Escuela Colombiana de Salud",
+			"Ciudad": "Nacional",
+			"Tipo": "Org. Profesionales",
+			"social_networks": {
+				"Facebook": {
+					"followers": 2480,
+					"publications": 0,
+					"reactions": 0,
+					"engagement": null
+				},
+				"Instagram": {
+					"followers": 28,
+					"publications": 0,
+					"reactions": 0,
+					"engagement": null
+				},
+				"Tiktok": {
+					"followers": 28,
+					"publications": 0,
+					"reactions": 0,
+					"engagement": null
+				},
+				"X": {
+					"followers": 0,
+					"publications": 0,
+					"reactions": 0,
+					"engagement": null
+				},
+				"YouTube": {
+					"followers": 1,
+					"publications": 1,
+					"reactions": 144,
+					"engagement": null
+				}
+			}
+		},
+		{
+			"Institucion": "Escuela de Salud del Cauca",
+			"Ciudad": "Nacional",
+			"Tipo": "Org. Profesionales",
+			"social_networks": {
+				"Facebook": {
+					"followers": 7285,
+					"publications": 1,
+					"reactions": 233,
+					"engagement": null
+				},
+				"Instagram": {
+					"followers": 0,
+					"publications": 0,
+					"reactions": 0,
+					"engagement": null
+				},
+				"Tiktok": {
+					"followers": 0,
+					"publications": 0,
+					"reactions": 0,
+					"engagement": null
+				},
+				"X": {
+					"followers": 0,
+					"publications": 0,
+					"reactions": 233,
+					"engagement": null
+				},
+				"YouTube": {
+					"followers": 114,
+					"publications": 12,
+					"reactions": 11850,
+					"engagement": null
+				}
+			}
+		},
+		{
+			"Institucion": "Escuela de Salud Sur Colombiana",
+			"Ciudad": "Nacional",
+			"Tipo": "Org. Profesionales",
+			"social_networks": {
+				"Facebook": {
+					"followers": 4074,
+					"publications": 0,
+					"reactions": 919,
+					"engagement": null
+				},
+				"Instagram": {
+					"followers": 538,
+					"publications": 0,
+					"reactions": 0,
+					"engagement": null
+				},
+				"Tiktok": {
+					"followers": 538,
+					"publications": 0,
+					"reactions": 0,
+					"engagement": null
+				},
+				"X": {
+					"followers": 0,
+					"publications": 0,
+					"reactions": 919,
+					"engagement": null
+				},
+				"YouTube": {
+					"followers": 0,
+					"publications": 0,
+					"reactions": 0,
+					"engagement": null
+				}
+			}
+		},
+		{
+			"Institucion": "Asociación Colombiana de Facultades de Medicina (Ascofame)",
+			"Ciudad": "Nacional",
+			"Tipo": "Org. Profesionales",
+			"social_networks": {
+				"Facebook": {
+					"followers": 12781,
+					"publications": 1,
+					"reactions": 2129,
+					"engagement": null
+				},
+				"Instagram": {
+					"followers": 0,
+					"publications": 0,
+					"reactions": 0,
+					"engagement": null
+				},
+				"Tiktok": {
+					"followers": 0,
+					"publications": 0,
+					"reactions": 0,
+					"engagement": null
+				},
+				"X": {
+					"followers": 4383,
+					"publications": 0,
+					"reactions": 2129,
+					"engagement": null
+				},
+				"YouTube": {
+					"followers": 3420,
+					"publications": 123,
+					"reactions": 57031,
+					"engagement": null
+				}
+			}
+		}
+    
+  ]
+}
