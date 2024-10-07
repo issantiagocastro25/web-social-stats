@@ -70,7 +70,8 @@ export const updateToken = async (tokenId, tokenData) => {
 
 export const deleteToken = async (tokenId) => {
   try {
-    await api.delete(`/payment/tokens/${tokenId}/`);
+    const response = await api.delete(`/payment/tokens/delete/${tokenId}/`);
+    return response;
   } catch (error) {
     console.error('Error deleting token:', error);
     throw error;
