@@ -38,9 +38,9 @@ function PaymentGateway() {
             applyDiscountToken(token);
         }
 
-        if (plan && plansData[plan]) {
-            addPlanToSelection(plansData[plan]);
-        }
+        // if (plan && plansData[plan]) {
+        //     addPlanToSelection(plansData[plan]);
+        // }
     }, [searchParams, isAuthenticated, loading]);
 
     const applyDiscountToken = async (token) => {
@@ -48,10 +48,10 @@ function PaymentGateway() {
             const tokenData = await getTokenDetail(token);
             setDiscountToken(tokenData);
             
-            // Agregar planes del token si no están ya seleccionados
+            // Agregar planes del token si no están ya seleccionados y el usuario no los tiene
             tokenData.subscription_plans.forEach(planName => {
                 const planData = Object.values(plansData).find(p => p.suscripName === planName);
-                if (planData) {
+                if (planData && !userHasPlan(planData.suscripName)) {
                     addPlanToSelection(planData);
                 }
             });
@@ -71,9 +71,13 @@ function PaymentGateway() {
         }
     };
 
+    const userHasPlan = (planName) => {
+        return userDetail?.subscriptions_info.some(sub => sub.plan === planName && sub.status === 'approved');
+    };
+
     const addPlanToSelection = (planData) => {
         setSelectedPlans(prevPlans => {
-            if (!prevPlans.find(p => p.suscripName === planData.suscripName)) {
+            if (!prevPlans.find(p => p.suscripName === planData.suscripName) && !userHasPlan(planData.suscripName)) {
                 return [...prevPlans, planData];
             }
             return prevPlans;
@@ -82,7 +86,9 @@ function PaymentGateway() {
 
     const handleAddPlan = (planId) => {
         const planData = plansData[planId];
-        addPlanToSelection(planData);
+        if (!userHasPlan(planData.suscripName)) {
+            addPlanToSelection(planData);
+        }
     };
 
     const handleRemovePlan = (planSuscripName) => {
@@ -125,7 +131,6 @@ function PaymentGateway() {
 
     return (
         <div className="max-w-7xl mx-auto p-6 bg-gray-50 min-h-screen">
-
             <div className='w-full mb-4'>
                 <BackButton/>
             </div>
@@ -160,30 +165,39 @@ function PaymentGateway() {
                                 ))}
                             </ul>
                         ) : (
-                            <p className="text-gray-600 text-center">No tienes planes seleccionados.</p>
+                            <p className="text-gray-600 text-center">No tienes planes seleccionados. Por favor, selecciona un plan para continuar.</p>
                         )}
                     </div>
 
                     <div className="bg-white rounded-lg shadow-md p-6">
                         <h2 className="text-xl font-semibold mb-4">Planes Disponibles</h2>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {Object.keys(plansData).map((planId) => (
-                                <div key={planId} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                                    <h3 className="text-lg font-semibold mb-2">{plansData[planId].title}</h3>
-                                    <p className="text-gray-600 mb-4">Precio: {formatPrice(plansData[planId].price)}</p>
-                                    <button 
-                                        onClick={() => handleAddPlan(planId)}
-                                        disabled={selectedPlans.find(plan => plan.suscripName === plansData[planId].suscripName)}
-                                        className={`w-full py-2 px-4 rounded-md transition ${
-                                            selectedPlans.find(plan => plan.suscripName === plansData[planId].suscripName)
-                                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                                : 'bg-blue-500 text-white hover:bg-blue-600'
-                                        }`}
-                                    >
-                                        {selectedPlans.find(plan => plan.suscripName === plansData[planId].suscripName) ? 'Agregado' : 'Agregar'}
-                                    </button>
-                                </div>
-                            ))}
+                            {Object.keys(plansData).map((planId) => {
+                                const plan = plansData[planId];
+                                const isSelected = selectedPlans.find(p => p.suscripName === plan.suscripName);
+                                const userHasThisPlan = userHasPlan(plan.suscripName);
+                                return (
+                                    <div key={planId} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                        <h3 className="text-lg font-semibold mb-2">{plan.title}</h3>
+                                        <p className="text-gray-600 mb-4">Precio: {formatPrice(plan.price)}</p>
+                                        {userHasThisPlan ? (
+                                            <p className="text-green-600 font-semibold">Ya tienes este plan</p>
+                                        ) : (
+                                            <button 
+                                                onClick={() => handleAddPlan(planId)}
+                                                disabled={isSelected}
+                                                className={`w-full py-2 px-4 rounded-md transition ${
+                                                    isSelected
+                                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                                        : 'bg-blue-500 text-white hover:bg-blue-600'
+                                                }`}
+                                            >
+                                                {isSelected ? 'Agregado' : 'Agregar'}
+                                            </button>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
