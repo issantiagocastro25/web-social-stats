@@ -18,7 +18,7 @@ interface ImageNavbarProps {
   onCategorySelect: (category: string) => void;
   activeCategory: string;
   categories: Category[];
-  currentSection: 'salud' | 'compensacion' | 'hospitales';
+  currentSection: 'salud' | 'compensacion' | 'hospitales' | 'usa';
 }
 
 const NextArrow = (props: any) => {
@@ -45,9 +45,23 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
     onCategorySelect(categoryName);
   };
 
-  const filteredCategories = useMemo(() => {
-    return currentSection === 'salud' ? categories : [];
+  const allCategories = useMemo(() => {
+    const todosCategory: Category = {
+      id: 0,
+      name: 'Todos',
+      institution_count: categories.reduce((sum, cat) => sum + cat.institution_count, 0),
+      url: 'https://mediaweb.sfo3.cdn.digitaloceanspaces.com/social-media-stats-assets/todos.png',
+      ordering: -1,
+      category: currentSection,
+      date_collection: categories[0]?.date_collection || ''
+    };
+
+    return [todosCategory, ...categories];
   }, [categories, currentSection]);
+
+  const filteredCategories = useMemo(() => {
+    return currentSection === 'salud' ? allCategories : [];
+  }, [allCategories, currentSection]);
 
   const slidesToShow = useMemo(() => {
     const maxSlides = 5;
@@ -105,9 +119,7 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
               onClick={() => handleCategorySelect(category.name)}
             >
               <img
-                src={category.name === 'Todos' 
-                  ? 'https://mediaweb.sfo3.cdn.digitaloceanspaces.com/social-media-stats-assets/todos.png' 
-                  : category.url}
+                src={category.url}
                 alt={category.name}
                 className="w-40 h-40 object-cover rounded-xl mb-4"
               />

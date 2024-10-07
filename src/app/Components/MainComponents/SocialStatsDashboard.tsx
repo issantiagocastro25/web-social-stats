@@ -313,14 +313,14 @@ const SocialStatsDashboard: React.FC = () => {
               <h2 className="text-2xl font-bold mb-4 text-gray-900">
                 {`Datos para la categoría: ${activeCategory}`}
               </h2>
-              <TextInput
+              {/* <TextInput
                 icon={FaSearch}
                 type="text"
                 placeholder="Buscar por institución, ciudad o tipo..."
                 value={searchTerm}
                 onChange={handleSearch}
                 className="border-gray-300 focus:border-secondary focus:ring-secondary"
-              />
+              /> */}
               <InteractiveDataTable 
                 selectedType={activeCategory}
                 selectedDate={selectedDate}

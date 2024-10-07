@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Checkbox, Button, Pagination, Alert } from 'flowbite-react';
-import { FaFacebook, FaInstagram, FaYoutube, FaSort, FaSortUp, FaSortDown, FaTimes, FaTrash } from 'react-icons/fa';
+import { Checkbox, Button, Pagination, Alert, TextInput } from 'flowbite-react';
+import { FaFacebook, FaInstagram, FaYoutube, FaSort, FaSortUp, FaSortDown, FaTimes, FaTrash, FaSearch } from 'react-icons/fa';
 import { SiTiktok } from 'react-icons/si';
 import XIcon from './XIcon';
 import { fetchPaginatedSocialStats } from '@/api/list/listData';
@@ -22,10 +22,11 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
   selectedInstitutions,
   onInstitutionSelect, 
   onClearSelection,
-  searchTerm,
+  searchTerm: externalSearchTerm,
   category
 }) => {
   const [data, setData] = useState<any[]>([]);
+  const [filteredData, setFilteredData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -40,8 +41,9 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
     YouTube: true,
     TikTok: true
   });
+  const [internalSearchTerm, setInternalSearchTerm] = useState(externalSearchTerm);
 
-  const itemsPerPage = 30;
+  const itemsPerPage = 10;
 
   const columns = [
     { key: 'Institucion', label: 'Institución', network: 'basic' },
@@ -67,66 +69,74 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
 
   const visibleColumns = useMemo(() => columns.filter(column => visibleNetworks[column.network]), [visibleNetworks]);
 
-  const loadData = useCallback(async (page: number, search: string) => {
+  const loadData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      console.log('LoadData called with:', { category, selectedType, selectedDate, page, search });
-      
-      const params = { 
+      const response = await fetchPaginatedSocialStats({ 
         category,
         type: selectedType.toLowerCase(),
         date: selectedDate,
-        page,
-        pageSize: itemsPerPage,
-        search
-      };
+        page: 1,
+        pageSize: 1000, // Load more data at once
+        search: ''
+      });
       
-      console.log('Params for API call:', params);
-      
-      const response = await fetchPaginatedSocialStats(params);
-      
-      console.log('API Response:', response);
-
       if (response && response.data && Array.isArray(response.data.metrics)) {
-        const { metrics, total_pages, current_page, total_items } = response.data;
-        console.log('Metrics received:', metrics);
-        console.log('Total pages:', total_pages);
-        console.log('Current page:', current_page);
-        console.log('Total items:', total_items);
-        
-        setData(metrics);
-        setTotalPages(Math.max(total_pages, 1));
-        setCurrentPage(current_page);
-        setTotalItems(total_items);
+        setData(response.data.metrics);
+        setFilteredData(response.data.metrics);
+        setTotalItems(response.data.metrics.length);
+        setTotalPages(Math.ceil(response.data.metrics.length / itemsPerPage));
       } else {
-        throw new Error('Respuesta de API inesperada o sin datos');
+        throw new Error('Respuesta de API inesperada');
       }
     } catch (error) {
       console.error('Error loading data:', error);
-      setData([]);
-      setTotalPages(1);
-      setCurrentPage(1);
-      setTotalItems(0);
       setError(`Error al cargar los datos: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
-  }, [category, selectedType, selectedDate, itemsPerPage]);
+  }, [category, selectedType, selectedDate]);
 
-  const debouncedLoadData = useMemo(
-    () => debounce((page: number, search: string) => loadData(page, search), 300),
-    [loadData]
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleSearch = useCallback((searchTerm: string) => {
+    const trimmedSearchTerm = searchTerm.trim().toLowerCase();
+    if (trimmedSearchTerm === '') {
+      setFilteredData(data);
+    } else {
+      const searchTerms = trimmedSearchTerm.split(/\s+/);
+      const filtered = data.filter(item => {
+        return searchTerms.every(term => 
+          Object.values(item).some(value => 
+            value && value.toString().toLowerCase().includes(term)
+          )
+        );
+      });
+      setFilteredData(filtered);
+    }
+    setCurrentPage(1);
+  }, [data]);
+
+
+  const debouncedHandleSearch = useMemo(
+    () => debounce(handleSearch, 300),
+    [handleSearch]
   );
 
   useEffect(() => {
-    console.log('Effect triggered. Current state:', { category, selectedType, selectedDate, searchTerm });
-    setCurrentPage(1);
-    debouncedLoadData(1, searchTerm);
+    debouncedHandleSearch(internalSearchTerm);
     return () => {
-      debouncedLoadData.cancel();
+      debouncedHandleSearch.cancel();
     };
-  }, [debouncedLoadData, searchTerm, selectedType, selectedDate, category]);
+  }, [internalSearchTerm, debouncedHandleSearch]);
+
+  useEffect(() => {
+    setTotalItems(filteredData.length);
+    setTotalPages(Math.ceil(filteredData.length / itemsPerPage));
+  }, [filteredData, itemsPerPage]);
 
   const handleSort = useCallback((key: string) => {
     setSortConfig(prevConfig => {
@@ -136,11 +146,6 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
       return { key, direction: 'ascending' };
     });
   }, []);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    loadData(page, searchTerm);
-  };
 
   const handleRowSelect = useCallback((institution: any) => {
     onInstitutionSelect(
@@ -158,22 +163,52 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
     setVisibleNetworks(prev => ({ ...prev, [network]: !prev[network] }));
   }, []);
 
+  const formatValue = useCallback((currentValue: any, previousValue: any) => {
+    if (typeof currentValue === 'number' && typeof previousValue === 'number' && previousValue !== 0) {
+      const percentageChange = ((currentValue - previousValue) / previousValue) * 100;
+      const formattedValue = currentValue.toLocaleString('es-ES', { maximumFractionDigits: 2 });
+      const formattedPercentage = percentageChange.toFixed(2);
+      const color = percentageChange > 0 ? 'text-green-500' : percentageChange < 0 ? 'text-red-500' : 'text-gray-500';
+      return (
+        <div>
+          <span>{formattedValue}</span>
+          <span className={`ml-2 ${color}`}>
+            ({formattedPercentage}%)
+          </span>
+        </div>
+      );
+    }
+    return currentValue?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }, []);
+
+  const sortedData = useMemo(() => {
+    if (sortConfig.key !== null) {
+      return [...filteredData].sort((a, b) => {
+        const aValue = sortConfig.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : null), a);
+        const bValue = sortConfig.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : null), b);
+        if (aValue === bValue) return 0;
+        if (aValue === null) return 1;
+        if (bValue === null) return -1;
+        if (typeof aValue === 'string') {
+          return sortConfig.direction === 'ascending' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+        }
+        return sortConfig.direction === 'ascending' ? aValue - bValue : bValue - aValue;
+      });
+    }
+    return filteredData;
+  }, [filteredData, sortConfig]);
+
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return sortedData.slice(startIndex, startIndex + itemsPerPage);
+  }, [sortedData, currentPage]);
+
   const SortIcon: React.FC<{ column: string }> = ({ column }) => {
     if (sortConfig.key !== column) {
       return <FaSort className="ml-1 text-gray-400" />;
     }
     return sortConfig.direction === 'ascending' ? <FaSortUp className="ml-1 text-blue-500" /> : <FaSortDown className="ml-1 text-blue-500" />;
   };
-
-  const formatValue = useCallback((currentValue: any, previousValue: any) => {
-    if (currentValue === null || currentValue === undefined) {
-      return 'N/A';
-    }
-    if (typeof currentValue === 'number') {
-      return currentValue.toLocaleString('es-ES');
-    }
-    return currentValue.toString();
-  }, []);
 
   const renderSkeleton = () => (
     <div className="animate-pulse">
@@ -183,70 +218,9 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
     </div>
   );
 
-  const tableHeader = useMemo(() => (
-    <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0 z-20">
-      <tr>
-        <th scope="col" className="p-4 sticky left-0 z-30 bg-gray-50 dark:bg-gray-700">
-          <Checkbox 
-            checked={data.length > 0 && selectedInstitutions.length === data.length}
-            onChange={() => onInstitutionSelect(selectedInstitutions.length === data.length ? [] : data)}
-          />
-        </th>
-        {visibleColumns.map((column, index) => (
-          <th
-            key={column.key} 
-            scope="col"
-            className={`px-6 py-3 cursor-pointer ${
-              index === 0 ? 'sticky left-12 z-20 bg-gray-50 dark:bg-gray-700' : ''
-            }`}
-            onClick={() => handleSort(column.key)}
-          >
-            <div className="flex items-center">
-              {column.label}
-              <SortIcon column={column.key} />
-            </div>
-          </th>
-        ))}
-      </tr>
-    </thead>
-  ), [data.length, selectedInstitutions.length, visibleColumns, onInstitutionSelect, handleSort]);
-
-  const tableBody = useMemo(() => (
-    <tbody>
-      {data.map((item, index) => (
-        <tr
-          key={item.Institucion || index}
-          className={`cursor-pointer ${
-            isRowSelected(item) ? 'bg-blue-100 dark:bg-blue-900' : 'bg-white dark:bg-gray-800'
-          } hover:bg-gray-50 dark:hover:bg-gray-700`}
-          onClick={() => handleRowSelect(item)}
-        >
-          <td className="w-4 p-4 sticky left-0 z-10 bg-inherit">
-            <Checkbox
-              checked={isRowSelected(item)}
-              onChange={() => handleRowSelect(item)}
-              onClick={(e) => e.stopPropagation()}
-            />
-          </td>
-          {visibleColumns.map((column, colIndex) => {
-            const value = column.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : 'N/A'), item);
-            return (
-              <td
-                key={`${item.Institucion || index}-${column.key}`}
-                className={`px-6 py-4 font-medium text-gray-900 dark:text-white ${
-                  colIndex === 0 ? 'sticky left-12 z-10 bg-inherit' : ''
-                } ${column.key === 'Institucion' ? 'whitespace-normal' : 'whitespace-nowrap'}`}
-              >
-                {formatValue(value, null)}
-              </td>
-            );
-          })}
-        </tr>
-      ))}
-    </tbody>
-  ), [data, visibleColumns, isRowSelected, handleRowSelect, formatValue]);
-
-  console.log('Data to be rendered:', data);
+  if (isLoading) {
+    return renderSkeleton();
+  }
 
   return (
     <div>
@@ -258,6 +232,14 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
       
       <div className="mb-4 flex flex-wrap justify-between items-center">
         <h2 className="text-xl font-bold mb-2">Datos de Instituciones</h2>
+        <TextInput
+          icon={FaSearch}
+          type="text"
+          placeholder="Buscar por institución, ciudad o tipo..."
+          value={internalSearchTerm}
+          onChange={(e) => setInternalSearchTerm(e.target.value)}
+          className="border-gray-300 focus:border-secondary focus:ring-secondary"
+        />
         <div className="flex flex-wrap gap-2 mb-2 ">
           {Object.entries(visibleNetworks).map(([network, isVisible]) => (
             network !== 'basic' && (
@@ -311,21 +293,68 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
       <div className="relative overflow-hidden shadow-md sm:rounded-lg" style={{ height: '600px' }}>
         <div className="overflow-auto" style={{ height: '100%', width: '100%' }}>
           <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-            {tableHeader}
-            {!isLoading && data.length > 0 ? tableBody : (
-              <tbody>
-                <tr>
-                  <td colSpan={visibleColumns.length + 1} className="px-6 py-4 text-center">
-                    {isLoading ? 'Cargando datos...' : 'No se encontraron resultados.'}
+            <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0 z-20">
+              <tr>
+                <th scope="col" className="p-4 sticky left-0 z-30 bg-gray-50 dark:bg-gray-700">
+                  <Checkbox 
+                    checked={selectedInstitutions.length === paginatedData.length}
+                    onChange={() => onInstitutionSelect(selectedInstitutions.length === paginatedData.length ? [] : paginatedData)}
+                  />
+                </th>
+                {visibleColumns.map((column, index) => (
+                  <th
+                    key={column.key} 
+                    scope="col"
+                    className={`px-6 py-3 cursor-pointer ${
+                      index === 0 ? 'sticky left-12 z-20 bg-gray-50 dark:bg-gray-700' : ''
+                    }`}
+                    onClick={() => handleSort(column.key)}
+                  >
+                    <div className="flex items-center">
+                      {column.label}
+                      <SortIcon column={column.key} />
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {paginatedData.map((item) => (
+                <tr
+                  key={item.Institucion}
+                  className={`cursor-pointer ${
+                    isRowSelected(item) ? 'bg-blue-100 dark:bg-blue-900' : 'bg-white dark:bg-gray-800'
+                  } hover:bg-gray-50 dark:hover:bg-gray-700`}
+                  onClick={() => handleRowSelect(item)}
+                >
+                  <td className="w-4 p-4 sticky left-0 z-10 bg-inherit">
+                    <Checkbox
+                      checked={isRowSelected(item)}
+                      onChange={() => handleRowSelect(item)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
                   </td>
+                  {visibleColumns.map((column, index) => (
+                    <td
+                      key={`${item.Institucion}-${column.key}`}
+                      className={`px-6 py-4 font-medium text-gray-900 dark:text-white ${
+                        index === 0 ? 'sticky left-12 z-10 bg-inherit' : ''
+                      } ${column.key === 'Institucion' ? 'whitespace-normal' : 'whitespace-nowrap'}`}
+                    >
+                      {formatValue(
+                        column.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : 'N/A'), item),
+                        null // We don't have previous data in this context
+                      )}
+                    </td>
+                  ))}
                 </tr>
-              </tbody>
-            )}
+              ))}
+            </tbody>
           </table>
         </div>
       </div>
       
-      {data.length > 0 ? (
+      {filteredData.length > 0 ? (
         <div className="flex flex-col items-center justify-between mt-4 space-y-2 sm:flex-row sm:space-y-0">
           <p className="text-sm text-gray-700">
             Mostrando {(currentPage - 1) * itemsPerPage + 1} a {Math.min(currentPage * itemsPerPage, totalItems)} de {totalItems} resultados
@@ -334,7 +363,7 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
-              onPageChange={handlePageChange}
+              onPageChange={setCurrentPage}
               showIcons={true}
             />
           )}

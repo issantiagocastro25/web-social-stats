@@ -45,8 +45,11 @@ const GroupSummaryTable: React.FC<GroupSummaryTableProps> = ({ summaryCardsData,
           };
         }
 
-        groups[item.type_institution][item.social_network] = item.total_followers;
-        totals[item.social_network] += item.total_followers;
+        // Normalizar el nombre de la red social
+        const normalizedNetwork = item.social_network === 'Tiktok' ? 'TikTok' : item.social_network;
+
+        groups[item.type_institution][normalizedNetwork] = item.total_followers;
+        totals[normalizedNetwork] += item.total_followers;
       });
     }
 
@@ -81,7 +84,6 @@ const GroupSummaryTable: React.FC<GroupSummaryTableProps> = ({ summaryCardsData,
       const percentage = (value / total) * 100;
       return isNaN(percentage) ? '0%' : `${percentage.toFixed(2)}%`;
     }
-    // return value.toLocaleString('es-ES');
     return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
 
@@ -151,7 +153,7 @@ const GroupSummaryTable: React.FC<GroupSummaryTableProps> = ({ summaryCardsData,
     <Card>
       <div className="flex justify-between items-center mb-4">
         <Title>Resumen por Grupos ({summaryCardsData.stats_date})</Title>
-        <Button onClick={toggleView} className=' bg-[#5C00CE] rounded-md hover:bg-purple-800'>
+        <Button onClick={toggleView} className='bg-[#5C00CE] rounded-md hover:bg-purple-800'>
           {showPercentages ? 'Mostrar Números' : 'Mostrar Porcentajes'}
         </Button>
       </div>
@@ -171,8 +173,8 @@ const GroupSummaryTable: React.FC<GroupSummaryTableProps> = ({ summaryCardsData,
             <TableHeaderCell onClick={() => requestSort('YouTube')} className="cursor-pointer">
               YouTube <SortIcon columnKey="YouTube" />
             </TableHeaderCell>
-            <TableHeaderCell onClick={() => requestSort('Tiktok')} className="cursor-pointer">
-              TikTok <SortIcon columnKey="Tiktok" />
+            <TableHeaderCell onClick={() => requestSort('TikTok')} className="cursor-pointer">
+              TikTok <SortIcon columnKey="TikTok" />
             </TableHeaderCell>
           </TableRow>
         </TableHead>
@@ -184,7 +186,7 @@ const GroupSummaryTable: React.FC<GroupSummaryTableProps> = ({ summaryCardsData,
               <TableCell>{formatValue(data.X, totals.X)}</TableCell>
               <TableCell>{formatValue(data.Instagram, totals.Instagram)}</TableCell>
               <TableCell>{formatValue(data.YouTube, totals.YouTube)}</TableCell>
-              <TableCell>{formatValue(data.Tiktok, totals.Tiktok)}</TableCell>
+              <TableCell>{formatValue(data.TikTok, totals.TikTok)}</TableCell>
             </TableRow>
           ))}
           {calculateTotalPercentage()}
