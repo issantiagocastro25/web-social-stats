@@ -26,48 +26,34 @@ const InstitutionStats = ({ institution }) => {
     { year: '2023', Facebook: 8, X: 6, Instagram: 15, YouTube: 18, TikTok: 30 },
   ];
 
+  const formatNumber = (value: number) => {
+    if (value >= 1000000) {
+      return (value / 1000000).toFixed(1) + 'M';
+    } else if (value >= 1000) {
+      return (value / 1000).toFixed(1) + 'K';
+    } else {
+      return value.toString();
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row gap-6">
-        <Card className="flex-1">
-          <Title className="mb-4 text-xl text-center">Datos de {institution.Institucion}</Title>
-          <div className="space-y-4">
-            <div>
-              <Text className='text-xl text-center'><strong>Ciudad:</strong> {institution.Ciudad || 'N/A'}</Text>
-              <Text className='text-xl text-center'><strong>Tipo:</strong> {institution.Tipo || 'Sin clasificar'}</Text>
-            </div>
-            <div>
-              {Object.entries(institution.social_networks).map(([network, data]) => (
-                <Text key={network} className='text-xl text-center'>
-                  <strong>{network}:</strong> {data.followers || 0} seguidores
-                </Text>
-              ))}
-            </div>
+      <Card>
+        <Title className="mb-4 text-xl text-center">Datos de {institution.Institucion}</Title>
+        <Grid numColsLg={2} className="gap-4">
+          <div>
+            <Text className='text-xl text-center'><strong>Ciudad:</strong> {institution.Ciudad || 'N/A'}</Text>
+            <Text className='text-xl text-center'><strong>Tipo:</strong> {institution.Tipo || 'Sin clasificar'}</Text>
           </div>
-        </Card>
-
-        <Card className="flex-1">
-          <Title className='text-xl text-center'>Estadísticas de YouTube</Title>
-          <div className="mt-4">
-            <DonutChart
-              className="h-48"
-              data={youtubeData}
-              category="value"
-              index="name"
-              colors={["red", "orange", "yellow"]}
-              showLabel={true}
-            />
-            <div className="mt-4">
-              {youtubeData.map((item, index) => (
-                <div key={index} className="flex justify-between items-center mt-2">
-                  <Text>{item.name}</Text>
-                  <Metric>{item.value.toLocaleString()}</Metric>
-                </div>
-              ))}
-            </div>
+          <div>
+            {Object.entries(institution.social_networks).map(([network, data]) => (
+              <Text key={network} className='text-xl text-center'>
+                <strong>{network}:</strong> {formatNumber(data.followers || 0)} seguidores
+              </Text>
+            ))}
           </div>
-        </Card>
-      </div>
+        </Grid>
+      </Card>
 
       <Card>
         <Title>Estadísticas de Redes Sociales</Title>
@@ -77,12 +63,36 @@ const InstitutionStats = ({ institution }) => {
           index="name"
           categories={["value"]}
           colors={["blue", "cyan", "pink", "red", "black"]}
-          yAxisWidth={48}
+          yAxisWidth={80}
           showLegend={false}
+          valueFormatter={formatNumber}
         />
       </Card>
 
-      {/* <Card>
+      <Card>
+        <Title className='text-xl text-center'>Estadísticas de YouTube</Title>
+        <Grid numColsLg={2} className="gap-4 mt-4">
+          <DonutChart
+            className="h-60"
+            data={youtubeData}
+            category="value"
+            index="name"
+            colors={["red", "orange", "yellow"]}
+            showLabel={true}
+            valueFormatter={formatNumber}
+          />
+          <div>
+            {youtubeData.map((item, index) => (
+              <div key={index} className="flex justify-center space-x-6 items-center mt-2">
+                <Text>{item.name}</Text>
+                <Metric>{formatNumber(item.value)}</Metric>
+              </div>
+            ))}
+          </div>
+        </Grid>
+      </Card>
+
+      <Card>
         <Title>Crecimiento Anual en Redes Sociales</Title>
         <AreaChart
           className="mt-4 h-80"
@@ -91,6 +101,7 @@ const InstitutionStats = ({ institution }) => {
           categories={["Facebook", "X", "Instagram", "YouTube", "TikTok"]}
           colors={["blue", "cyan", "pink", "red", "black"]}
           valueFormatter={(number) => `${number}%`}
+          yAxisWidth={80}
         />
         <div className="mt-4 flex justify-center space-x-4">
           {socialMediaData.map((network) => (
@@ -100,7 +111,7 @@ const InstitutionStats = ({ institution }) => {
             </div>
           ))}
         </div>
-      </Card> */}
+      </Card>
     </div>
   );
 };
