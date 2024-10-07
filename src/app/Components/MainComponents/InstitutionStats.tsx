@@ -28,22 +28,46 @@ const InstitutionStats = ({ institution }) => {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <Title className="mb-4 text-xl text-center">Datos de {institution.Institucion}</Title>
-        <Grid numColsLg={2} className="gap-4">
-          <div>
-            <Text className='text-xl text-center'><strong>Ciudad:</strong> {institution.Ciudad || 'N/A'}</Text>
-            <Text className='text-xl text-center'><strong>Tipo:</strong> {institution.Tipo || 'Sin clasificar'}</Text>
+      <div className="flex flex-col md:flex-row gap-6">
+        <Card className="flex-1">
+          <Title className="mb-4 text-xl text-center">Datos de {institution.Institucion}</Title>
+          <div className="space-y-4">
+            <div>
+              <Text className='text-xl text-center'><strong>Ciudad:</strong> {institution.Ciudad || 'N/A'}</Text>
+              <Text className='text-xl text-center'><strong>Tipo:</strong> {institution.Tipo || 'Sin clasificar'}</Text>
+            </div>
+            <div>
+              {Object.entries(institution.social_networks).map(([network, data]) => (
+                <Text key={network} className='text-xl text-center'>
+                  <strong>{network}:</strong> {data.followers || 0} seguidores
+                </Text>
+              ))}
+            </div>
           </div>
-          <div>
-            {Object.entries(institution.social_networks).map(([network, data]) => (
-              <Text key={network} className='text-xl text-center'>
-                <strong>{network}:</strong> {data.followers || 0} seguidores
-              </Text>
-            ))}
+        </Card>
+
+        <Card className="flex-1">
+          <Title className='text-xl text-center'>Estadísticas de YouTube</Title>
+          <div className="mt-4">
+            <DonutChart
+              className="h-48"
+              data={youtubeData}
+              category="value"
+              index="name"
+              colors={["red", "orange", "yellow"]}
+              showLabel={true}
+            />
+            <div className="mt-4">
+              {youtubeData.map((item, index) => (
+                <div key={index} className="flex justify-between items-center mt-2">
+                  <Text>{item.name}</Text>
+                  <Metric>{item.value.toLocaleString()}</Metric>
+                </div>
+              ))}
+            </div>
           </div>
-        </Grid>
-      </Card>
+        </Card>
+      </div>
 
       <Card>
         <Title>Estadísticas de Redes Sociales</Title>
@@ -58,29 +82,7 @@ const InstitutionStats = ({ institution }) => {
         />
       </Card>
 
-      <Card>
-        <Title className='text-xl text-center'>Estadísticas de YouTube</Title>
-        <Grid numColsLg={2} className="gap-4 mt-4">
-          <DonutChart
-            className="h-60"
-            data={youtubeData}
-            category="value"
-            index="name"
-            colors={["red", "orange", "yellow"]}
-            showLabel={true}
-          />
-          <div>
-            {youtubeData.map((item, index) => (
-              <div key={index} className="flex justify-center space-x-6 items-center mt-2">
-                <Text>{item.name}</Text>
-                <Metric>{item.value.toLocaleString()}</Metric>
-              </div>
-            ))}
-          </div>
-        </Grid>
-      </Card>
-
-      <Card>
+      {/* <Card>
         <Title>Crecimiento Anual en Redes Sociales</Title>
         <AreaChart
           className="mt-4 h-80"
@@ -98,7 +100,7 @@ const InstitutionStats = ({ institution }) => {
             </div>
           ))}
         </div>
-      </Card>
+      </Card> */}
     </div>
   );
 };
