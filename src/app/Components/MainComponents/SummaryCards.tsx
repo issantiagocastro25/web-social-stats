@@ -8,7 +8,7 @@ interface UniqueFollowers {
   X: number;
   Instagram: number;
   YouTube: number;
-  Tiktok: number;
+  TikTok: number;
 }
 
 interface Stat {
@@ -38,7 +38,6 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
   selectedInstitutionType
 }) => {
   
-  // Función para obtener el ícono correspondiente a cada red social
   const getIcon = (network: string) => {
     switch (network.toLowerCase()) {
       case 'facebook': return <FaFacebook className="text-blue-600 text-2xl" />;
@@ -50,13 +49,11 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
     }
   };
 
-  // Updated función para formatear números según la localización 'es-ES'
   const formatNumber = (num: number | null | undefined) => {
     if (num == null) return '0';
     return num.toLocaleString('es-ES');
   };
 
-  // Memoización para calcular los datos resumidos
   const summaryData = useMemo(() => {
     if (!data || !data.stats) {
       console.log('No data available');
@@ -99,7 +96,6 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
     }
   }, [data, isAllCategory, selectedInstitutionType]);
 
-  // Renderizado mientras se cargan los datos
   if (isLoading) {
     return (
       <div className="overflow-x-auto">
@@ -121,13 +117,11 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
     );
   }
 
-  // Renderizado cuando no hay datos disponibles
   if (!data || summaryData.length === 0) {
     console.log('No hay datos disponibles');
     return <div className="text-center text-gray-500">No hay datos disponibles</div>;
   }
 
-  // Renderizado de las tarjetas resumidas
   return (
     <div className="overflow-x-auto pt-6">
       <div className="flex justify-center flex-wrap gap-6 pb-4">
