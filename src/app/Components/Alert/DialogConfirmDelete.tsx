@@ -27,7 +27,7 @@ const DeleteConfirmation = ({ onDelete, itemName = 'registro' }) => {
             <div className="flex justify-end space-x-2">
               <button
                 onClick={() => setIsOpen(false)}
-                className="bg-gray-300 hover:bg-gray-400 text-black font-bold py-2 px-4 rounded"
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
               >
                 Cancelar
               </button>

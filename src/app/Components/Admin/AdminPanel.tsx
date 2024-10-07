@@ -226,8 +226,8 @@ export default function AdminPanel() {
                                     <td className="px-6 py-4">{plan.title}</td>
                                     <td className="px-6 py-4">${plan.price}</td>
                                     <td className="px-6 py-4">{plan.duration_days} días</td>
-                                    <td className="px-6 py-4">
-                                        <button 
+                                    <td className="px-6 py-4 w-52 flex">
+                                        {/* <button 
                                             onClick={() => openModal(plan, false)} 
                                             className="text-blue-500 hover:underline mr-4"
                                         >
@@ -238,7 +238,13 @@ export default function AdminPanel() {
                                             className="text-red-500 hover:underline"
                                         >
                                             Eliminar
-                                        </button>
+                                        </button> */}
+
+                                        <EditButton onClick={() => openModal(plan, false)} />
+                                        <DeleteConfirmation 
+                                            onDelete={() => handleDelete(plan.id, false)} 
+                                            itemName={'plan'}
+                                        />
                                     </td>
                                 </tr>
                             ))}
