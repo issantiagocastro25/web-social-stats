@@ -70,7 +70,7 @@ const AuthAccess: React.FC = () => {
     };
 
     return (
-        <div className="flex justify-center items-center min-h-screen bg-gray-50 p-4">
+        <div className="flex justify-center min-h-screen items-center bg-[url('https://mediaweb.sfo3.cdn.digitaloceanspaces.com/social-media-stats-assets/assets/bg-login.jpg')] ">
             <Card className="w-full max-w-4xl overflow-hidden">
                 <div className="flex flex-col md:flex-row">
                     {/* Sección de formularios */}
