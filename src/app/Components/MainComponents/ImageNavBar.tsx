@@ -49,10 +49,10 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
     const orderMap = {
       "Todos": 0,
       "IPS privadas": 1,
-      "IPS Públicas": 2,
-      "EPS y Seguros": 3,
-      "Org. admin": 4,
-      "Org. Profesionales": 5,
+      "IPS públicas": 2,
+      "EPS y seguros": 3,
+      "Org. administrativas": 4,
+      "Profesionales": 5,
       "Educación": 6,
       "Farmacias": 7
     };
@@ -79,7 +79,7 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
   }, [categories, currentSection]);
 
   const filteredCategories = useMemo(() => {
-    return currentSection === 'salud' ? orderedCategories : [];
+    return ['salud', 'hospitales', 'usa'].includes(currentSection) ? orderedCategories : [];
   }, [orderedCategories, currentSection]);
 
   const slidesToShow = useMemo(() => {
@@ -120,7 +120,7 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
     ]
   }), [filteredCategories, slidesToShow]);
 
-  if (currentSection !== 'salud' || filteredCategories.length === 0) {
+  if (!['salud', 'hospitales', 'usa'].includes(currentSection) || filteredCategories.length === 0) {
     return null;
   }
 
