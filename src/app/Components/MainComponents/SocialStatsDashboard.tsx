@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { usePathname } from 'next/navigation';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Card, Select, Button, TextInput, Alert } from 'flowbite-react';
 import { FaSearch } from 'react-icons/fa';
 import { Grid } from '@tremor/react';
@@ -19,17 +19,27 @@ import TemporalAnalysisTable from './TemporalAnalysisTable';
 import GroupSummaryTable from './GroupSummaryTable';
 import GroupTemporalAnalysisTable from './GroupTemporalAnalysisTable';
 import ProgressBar from './ProgressBar';
+import PopulationCard from './PopulationCard';
 
 type SectionType = 'salud' | 'compensacion' | 'hospitales' | 'usa';
 
-const SocialStatsDashboard: React.FC = () => {
-  
+interface SocialStatsDashboardProps {
+  section: SectionType;
+  isLoading: boolean;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({ 
+  section, 
+  isLoading, 
+  setIsLoading 
+}) => {
   const pathname = usePathname();
-  const [currentSection, setCurrentSection] = useState<SectionType>('salud');
+  const [currentSection, setCurrentSection] = useState<SectionType>(section);
   const [data, setData] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('Todos');
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [selectedInstitutions, setSelectedInstitutions] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>('');
@@ -40,6 +50,12 @@ const SocialStatsDashboard: React.FC = () => {
   const [categories, setCategories] = useState<any[]>([]);
   const [summaryCardsData, setSummaryCardsData] = useState<any>(null);
   const [showGroupTemporalAnalysis, setShowGroupTemporalAnalysis] = useState<boolean>(false);
+  const [uniqueFollowers, setUniqueFollowers] = useState<any>(null);
+  const [populationData, setPopulationData] = useState({
+    population: 0,
+    uniqueFollowers: 0,
+    penetrationRate: 0,
+  });
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState<boolean>(true);
   const initialDataLoaded = useRef(false);
@@ -60,7 +76,8 @@ const SocialStatsDashboard: React.FC = () => {
     setIsLoadingCategories(true);
     clearErrors();
     try {
-      const fetchedCategories = await fetchCategories(section, date);
+      const apiCategory = section;
+      const fetchedCategories = await fetchCategories(apiCategory, date);
       setCategories(fetchedCategories);
     } catch (err: any) {
       console.error('Error loading categories:', err);
@@ -74,14 +91,19 @@ const SocialStatsDashboard: React.FC = () => {
     setIsLoading(true);
     clearErrors();
     try {
-      console.log('Loading data for section:', section);
+      console.log('Loading data for:', { section, category, date, page, search });
       
       const summaryResponse = await fetchSummaryAndUniqueFollowers({
         category: section,
         date: date
       });
-      console.log('Summary response:', summaryResponse);
       setSummaryCardsData(summaryResponse);
+      setUniqueFollowers(summaryResponse.unique_followers);
+      setPopulationData({
+        population: summaryResponse.population || 0,
+        uniqueFollowers: summaryResponse.unique_followers?.total || 0,
+        penetrationRate: summaryResponse.penetration_rate || 0,
+      });
 
       const socialStatsResponse = await fetchPaginatedSocialStats({ 
         category: section,
@@ -91,6 +113,8 @@ const SocialStatsDashboard: React.FC = () => {
         pageSize: 100,
         search: search
       });
+
+      console.log('API Response:', socialStatsResponse);
 
       if (socialStatsResponse && socialStatsResponse.data) {
         const { metrics, total_pages, current_page, total_items } = socialStatsResponse.data;
@@ -102,7 +126,6 @@ const SocialStatsDashboard: React.FC = () => {
       } else {
         throw new Error('Respuesta de API inesperada para los datos paginados');
       }
-
     } catch (err: any) {
       console.error('Error loading data:', err);
       addError(`Error al cargar los datos: ${err.message}`);
@@ -130,17 +153,21 @@ const SocialStatsDashboard: React.FC = () => {
   }, [addError]);
 
   useEffect(() => {
+    if (selectedDate && currentSection) {
+      loadCategories(currentSection, selectedDate);
+      loadData(currentSection, 'Todos', selectedDate);
+    }
+  }, [selectedDate, currentSection, loadCategories, loadData]);
+
+  useEffect(() => {
     const newSection = pathname ? pathname.split('/')[1] as SectionType : 'salud';
-    console.log('Current pathname:', pathname);
-    console.log('New section:', newSection);
     if (['salud', 'compensacion', 'hospitales', 'usa'].includes(newSection) && selectedDate && !initialDataLoaded.current) {
-      console.log('Setting current section to:', newSection);
       setCurrentSection(newSection);
       loadCategories(newSection, selectedDate);
       loadData(newSection, 'Todos', selectedDate);
       initialDataLoaded.current = true;
     }
-  }, [pathname, selectedDate, loadCategories, loadData]);
+  }, [pathname, loadCategories, loadData, selectedDate]);
 
   const handleDateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newDate = e.target.value;
@@ -151,13 +178,17 @@ const SocialStatsDashboard: React.FC = () => {
 
   const handleCategorySelect = useCallback((categoryName: string) => {
     console.log('Category selected:', categoryName);
-    setActiveCategory(categoryName);
-    setSelectedInstitutions([]);
-    setShowTemporalAnalysis(false);
-    setTemporalData([]);
-    setShowGroupTemporalAnalysis(false);
-    loadData(currentSection, categoryName, selectedDate);
-  }, [currentSection, selectedDate, loadData]);
+    const category = categories.find(cat => cat.name === categoryName);
+    if (category) {
+      setActiveCategory(category.name);
+      setActiveCategoryId(category.id);
+      setSelectedInstitutions([]);
+      setShowTemporalAnalysis(false);
+      setTemporalData([]);
+      setShowGroupTemporalAnalysis(false);
+      loadData(currentSection, category.name, selectedDate);
+    }
+  }, [currentSection, categories, loadData, selectedDate]);
 
   const handleInstitutionSelect = useCallback((institutions: any[]) => {
     setSelectedInstitutions(institutions);
@@ -178,11 +209,14 @@ const SocialStatsDashboard: React.FC = () => {
 
     setIsLoadingTemporal(true);
     setShowTemporalAnalysis(true);
+    setTemporalProgress(0);
     clearErrors();
     try {
       const institutionNames = selectedInstitutions.map(inst => inst.Institucion);
+      const totalSteps = availableDates.length;
+
       const temporalDataResult = await Promise.all(
-        availableDates.map(async (date) => {
+        availableDates.map(async (date, index) => {
           const result = await fetchPaginatedSocialStats({
             category: currentSection,
             type: 'todos',
@@ -191,6 +225,7 @@ const SocialStatsDashboard: React.FC = () => {
             pageSize: 100,
             search: institutionNames.join(',')
           });
+          setTemporalProgress(((index + 1) / totalSteps) * 100);
           return result.data.metrics.map(item => ({ ...item, date }));
         })
       );
@@ -201,9 +236,9 @@ const SocialStatsDashboard: React.FC = () => {
       addError(`Error en el análisis temporal: ${err.message}`);
     } finally {
       setIsLoadingTemporal(false);
+      setTemporalProgress(0);
     }
   };
-
 
   const handleGroupTemporalAnalysis = async () => {
     setIsLoadingTemporal(true);
@@ -240,6 +275,16 @@ const SocialStatsDashboard: React.FC = () => {
     setSearchTerm(term);
     loadData(currentSection, activeCategory, selectedDate, 1, term);
   }, [currentSection, activeCategory, selectedDate, loadData]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    loadData(currentSection, activeCategory, selectedDate, page, searchTerm);
+  };
+
+  const showCategories = useMemo(() => 
+    categories.length > 0 && !isLoadingCategories, 
+    [categories, isLoadingCategories]
+  );
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
@@ -280,12 +325,14 @@ const SocialStatsDashboard: React.FC = () => {
                 <div className="h-40 bg-gray-200 rounded"></div>
               </div>
             ) : (
-              <ImageNavbar 
-                onCategorySelect={handleCategorySelect} 
-                activeCategory={activeCategory} 
-                categories={categories}
-                currentSection={currentSection}
-              />
+              showCategories && (
+                <ImageNavbar 
+                  onCategorySelect={handleCategorySelect} 
+                  activeCategory={activeCategory} 
+                  categories={categories}
+                  currentSection={currentSection}
+                />
+              )
             )}
   
             <SummaryCards 
@@ -295,8 +342,14 @@ const SocialStatsDashboard: React.FC = () => {
               selectedInstitutionType={activeCategory}
               className="mb-6"
             />
+
+            <PopulationCard
+              selectedDate={selectedDate}
+              category={currentSection}
+              availableDates={availableDates}
+            />
   
-            {currentSection === 'salud' && (activeCategory === 'Todos') && summaryCardsData && (
+            {(activeCategory === 'Todos') && summaryCardsData && (
               <Card className="mb-6 bg-white shadow-md">
                 <GroupSummaryTable 
                   summaryCardsData={summaryCardsData} 
@@ -305,19 +358,18 @@ const SocialStatsDashboard: React.FC = () => {
                 />
               </Card>
             )}
-  
             <Card className="mb-6 bg-white shadow-lg">
               <h2 className="text-2xl font-bold mb-4 text-gray-900">
                 {`Datos para la categoría: ${activeCategory}`}
               </h2>
-              {/* <TextInput
+              <TextInput
                 icon={FaSearch}
                 type="text"
                 placeholder="Buscar por institución, ciudad o tipo..."
                 value={searchTerm}
                 onChange={handleSearch}
                 className="border-gray-300 focus:border-secondary focus:ring-secondary"
-              /> */}
+              />
               <InteractiveDataTable 
                 selectedType={activeCategory}
                 selectedDate={selectedDate}
@@ -327,26 +379,23 @@ const SocialStatsDashboard: React.FC = () => {
                 searchTerm={searchTerm}
                 category={currentSection}
               />
-             <div className="mb-6 flex space-x-4 items-center justify-end pt-3">  
-            <Button 
-              color="#5C00CE" 
-              onClick={handleTemporalAnalysis}
-              disabled={isLoadingTemporal || selectedInstitutions.length === 0}
-              className="bg-secondary hover:bg-secondary-dark text-white transition-colors duration-200"
-            >
-              {isLoadingTemporal ? 'Analizando...' : 'Análisis Temporal'}
-            </Button>
-          </div>
-        </Card>
-
-        {showTemporalAnalysis && temporalData.length > 0 && (
-          <TemporalAnalysisTable 
-            selectedInstitutions={selectedInstitutions}
-            temporalData={temporalData}
-            availableDates={availableDates}
-            isLoading={isLoadingTemporal}
-          />
-        )}
+              <div className="mb-6 flex space-x-4 items-center justify-end pt-3">  
+                <Button 
+                  color="#5C00CE" 
+                  onClick={handleTemporalAnalysis}
+                  disabled={isLoadingTemporal || selectedInstitutions.length === 0}
+                  className="bg-secondary hover:bg-secondary-dark text-white transition-colors duration-200"
+                >
+                  {isLoadingTemporal ? 'Analizando...' : 'Análisis Temporal'}
+                </Button>
+              </div>
+              {isLoadingTemporal && (
+                <Card className="mb-6 bg-white shadow-md">
+                  <h2 className="text-xl font-bold mb-4 text-gray-900">Analizando datos temporales...</h2>
+                  <ProgressBar progress={temporalProgress} color="secondary" />
+                </Card>
+              )}
+            </Card>
   
             {selectedInstitutions.length === 1 && (
               <Card className="mt-6 bg-white shadow-md">
@@ -370,7 +419,7 @@ const SocialStatsDashboard: React.FC = () => {
               </Grid>
             )}
   
-            {/* {showTemporalAnalysis && temporalData.length > 0 && (
+            {showTemporalAnalysis && temporalData.length > 0 && (
               <TemporalAnalysisTable 
                 selectedInstitutions={selectedInstitutions}
                 temporalData={temporalData}
@@ -386,7 +435,7 @@ const SocialStatsDashboard: React.FC = () => {
                 onClose={() => setShowGroupTemporalAnalysis(false)}
                 isLoading={isLoadingTemporal}
               />
-            )} */}
+            )}
           </>
         )}
   
