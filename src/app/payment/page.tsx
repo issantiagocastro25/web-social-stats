@@ -7,9 +7,9 @@ import { getUserDetail } from '@/api/user';
 import BackButton from '../Components/Buttons/BackButton';
 
 const plansData = {
-    salud: { title: "Salud Colombia", price: 200000, suscripName: "salud" },
+    salud: { title: "Salud Colombia", price: 250000, suscripName: "salud" },
     compensacion: { title: "Cajas de Compensación de Colombia", price: 200000, suscripName: "caja_compensacion" },
-    hospitales: { title: "Hospitales internacionales de referencia", price: 200000, suscripName: "hospitales_internacionales" }
+    hospitales: { title: "Hospitales internacionales de referencia", price: 100000, suscripName: "hospitales_internacionales" }
 };
 
 const formatPrice = (price) => {
@@ -102,8 +102,14 @@ function PaymentGateway() {
         return plan.price;
     };
 
+    const calculateSemesterPrice = (price) => price * 6;
+
+
     const totalPrice = selectedPlans.reduce((total, plan) => total + plan.price, 0);
     const totalWithDiscounts = selectedPlans.reduce((total, plan) => total + calculateDiscountedPrice(plan), 0);
+
+    const monthlyTotal = selectedPlans.reduce((total, plan) => total + calculateDiscountedPrice(plan), 0);
+    const semesterTotal = calculateSemesterPrice(monthlyTotal);
 
     const handleProceedToPayment = async () => {
         if (selectedPlans.length === 0) {
@@ -206,27 +212,32 @@ function PaymentGateway() {
                     <h2 className="text-xl font-semibold mb-4">Resumen de Pago</h2>
                     <div>
                         <div className="flex justify-between font-semibold text-lg mb-2">
-                            <span>Subtotal:</span>
-                            <span>{formatPrice(totalPrice)}</span>
+                            <span>Subtotal mensual:</span>
+                            <span>{formatPrice(monthlyTotal)}</span>
                         </div>
                         {discountToken && (
                             <div className="flex justify-between font-semibold text-lg text-green-600">
-                                <span>Descuento ({discountToken.discount}%)</span>
-                                <span>{formatPrice(totalPrice - totalWithDiscounts)}</span>
+                                <span>Descuento aplicado ({discountToken.discount}%)</span>
+                                <span>-{formatPrice((totalPrice - monthlyTotal) / 6)}/mes</span>
                             </div>
                         )}
                         <div className="border-t pt-4 mt-4">
                             <div className="flex justify-between font-semibold text-lg">
-                                <span>Total a pagar:</span>
-                                <span>{formatPrice(totalWithDiscounts)}</span>
+                                <span>Total mensual:</span>
+                                <span>{formatPrice(monthlyTotal)}</span>
+                            </div>
+                            <div className="flex justify-between font-semibold text-xl mt-2 text-blue-600">
+                                <span>Total a pagar (semestral):</span>
+                                <span>{formatPrice(semesterTotal)}</span>
                             </div>
                         </div>
                     </div>
 
                     <div className="mt-6 space-y-4">
                         <p className="text-sm text-gray-600">
-                            El pago se realizará a través de la plataforma segura de MercadoPago. 
-                            Al hacer clic en "Proceder al Pago", serás redirigido a MercadoPago para completar tu transacción.
+                            Los precios mostrados son mensuales. El pago se realizará por un período semestral (6 meses) 
+                            a través de la plataforma segura de MercadoPago. Al hacer clic en "Proceder al Pago", 
+                            serás redirigido a MercadoPago para completar tu transacción por el monto semestral.
                         </p>
                         <button 
                             onClick={handleProceedToPayment}
@@ -237,7 +248,7 @@ function PaymentGateway() {
                                     : 'bg-blue-600 text-white hover:bg-blue-700'
                             }`}
                         >
-                            Proceder al Pago
+                            Proceder al Pago Semestral
                         </button>
                     </div>
                 </div>
