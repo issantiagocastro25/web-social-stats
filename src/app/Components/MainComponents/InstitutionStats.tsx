@@ -69,7 +69,7 @@ const InstitutionStats = ({ institution }) => {
         />
       </Card>
 
-      <Card>
+      {/* <Card>
         <Title className='text-xl text-center'>Estadísticas de YouTube</Title>
         <Grid numColsLg={2} className="gap-4 mt-4">
           <DonutChart
@@ -90,8 +90,8 @@ const InstitutionStats = ({ institution }) => {
             ))}
           </div>
         </Grid>
-      </Card>
-
+      </Card> */}
+{/* 
       <Card>
         <Title>Crecimiento Anual en Redes Sociales</Title>
         <AreaChart
@@ -111,7 +111,7 @@ const InstitutionStats = ({ institution }) => {
             </div>
           ))}
         </div>
-      </Card>
+      </Card> */}
     </div>
   );
 };
