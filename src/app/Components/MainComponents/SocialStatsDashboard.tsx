@@ -396,6 +396,24 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
                 </Card>
               )}
             </Card>
+
+            {showTemporalAnalysis && temporalData.length > 0 && (
+              <TemporalAnalysisTable 
+                selectedInstitutions={selectedInstitutions}
+                temporalData={temporalData}
+                availableDates={availableDates}
+                isLoading={isLoadingTemporal}
+              />
+            )}
+  
+            {showGroupTemporalAnalysis && (
+              <GroupTemporalAnalysisTable 
+                temporalData={temporalData}
+                availableDates={availableDates}
+                onClose={() => setShowGroupTemporalAnalysis(false)}
+                isLoading={isLoadingTemporal}
+              />
+            )}
   
             {selectedInstitutions.length === 1 && (
               <Card className="mt-6 bg-white shadow-md">
@@ -419,23 +437,7 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
               </Grid>
             )}
   
-            {showTemporalAnalysis && temporalData.length > 0 && (
-              <TemporalAnalysisTable 
-                selectedInstitutions={selectedInstitutions}
-                temporalData={temporalData}
-                availableDates={availableDates}
-                isLoading={isLoadingTemporal}
-              />
-            )}
-  
-            {showGroupTemporalAnalysis && (
-              <GroupTemporalAnalysisTable 
-                temporalData={temporalData}
-                availableDates={availableDates}
-                onClose={() => setShowGroupTemporalAnalysis(false)}
-                isLoading={isLoadingTemporal}
-              />
-            )}
+            
           </>
         )}
   
