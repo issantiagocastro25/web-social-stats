@@ -61,7 +61,7 @@ const DashboardNavbar = () => {
   return (
     <nav className="bg-red-600 shadow-md z-50">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+        <div className="flex items-center justify-start h-16">
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0">
@@ -74,7 +74,7 @@ const DashboardNavbar = () => {
           </div>
 
           {/* Desktop Menu */}
-          <div className="hidden sm:flex sm:items-center sm:space-x-8">
+          <div className="hidden sm:flex sm:items-center sm:space-x-8 ml-8">
             <NavLink href="/categories" currentPath={pathname}>
               Categorías
             </NavLink>
@@ -111,7 +111,7 @@ const DashboardNavbar = () => {
           </div>
 
           {/* User Profile */}
-          <div className="hidden sm:flex sm:items-center">
+          <div className="hidden sm:flex sm:items-center ml-auto">
             {user && (
               <div className="relative">
                 <button
@@ -142,40 +142,41 @@ const DashboardNavbar = () => {
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="flex items-center sm:hidden">
-            <button
-              onClick={toggleMenu}
-              className="text-white hover:text-yellow-300 focus:outline-none"
-            >
-              {!isMenuOpen ? (
-                <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              ) : (
-                <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              )}
-            </button>
-          </div>
+<div className="flex items-center ml-auto sm:hidden">
+  <button
+    onClick={toggleMenu}
+    className="text-white hover:text-yellow-300 focus:outline-none"
+  >
+    {!isMenuOpen ? (
+      <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    ) : (
+      <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    )}
+  </button>
+</div>
+
         </div>
       </div>
 
       {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="sm:hidden">
-          <Link href="/categories" className="block px-4 py-2 text-white hover:bg-red-700 hover:text-yellow-300">
+          <Link href="/categories" className="block px-4 py-2 text-white hover:bg-red-700 hover:text-yellow-300 text-left">
             Categorías
           </Link>
           {hasAdminRole && (
             <div className="py-2">
-              <Link href="/administration/panel" className="block px-4 py-2 text-white hover:bg-red-700 hover:text-yellow-300">
+              <Link href="/administration/panel" className="block px-4 py-2 text-white hover:bg-red-700 hover:text-yellow-300 text-left">
                 Administración - Panel
               </Link>
-              <Link href="/administration/users" className="block px-4 py-2 text-white hover:bg-red-700 hover:text-yellow-300">
+              <Link href="/administration/users" className="block px-4 py-2 text-white hover:bg-red-700 hover:text-yellow-300 text-left">
                 Administración - Usuarios
               </Link>
-              <Link href="/administration/youtube" className="block px-4 py-2 text-white hover:bg-red-700 hover:text-yellow-300">
+              <Link href="/administration/youtube" className="block px-4 py-2 text-white hover:bg-red-700 hover:text-yellow-300 text-left">
                 Administración - YouTube
               </Link>
             </div>
@@ -189,7 +190,7 @@ const DashboardNavbar = () => {
                   <p className="text-sm text-red-300">{user.email}</p>
                 </div>
               </div>
-              <Link href="/profile/user-profile" className="block px-4 py-2 text-white hover:bg-red-700 hover:text-yellow-300">
+              <Link href="/profile/user-profile" className="block px-4 py-2 text-white hover:bg-red-700 hover:text-yellow-300 text-left">
                 Perfil
               </Link>
               <button
@@ -208,7 +209,7 @@ const DashboardNavbar = () => {
 
 // Componente NavLink para manejar el estado activo de la ruta
 const NavLink = ({ href, currentPath, children }) => (
-  <Link href={href} className={`px-3 py-2 rounded-md text-sm font-medium ${
+  <Link href={href} className={`px-3 py-2 rounded-md text-sm font-medium text-left ${
     currentPath === href ? 'text-yellow-300' : 'text-white hover:bg-red-700 hover:text-yellow-300'
   }`}>
     {children}
