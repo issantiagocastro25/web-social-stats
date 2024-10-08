@@ -45,7 +45,26 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
     onCategorySelect(categoryName);
   };
 
-  const allCategories = useMemo(() => {
+  const orderCategories = (categories: Category[]): Category[] => {
+    const orderMap = {
+      "Todos": 0,
+      "IPS privadas": 1,
+      "IPS públicas": 2,
+      "EPS y seguros": 3,
+      "Org. administrativas": 4,
+      "Profesionales": 5,
+      "Educación": 6,
+      "Farmacias": 7
+    };
+
+    return categories.sort((a, b) => {
+      if (a.name === "Todos") return -1;
+      if (b.name === "Todos") return 1;
+      return (orderMap[a.name] || 999) - (orderMap[b.name] || 999);
+    });
+  };
+
+  const orderedCategories = useMemo(() => {
     const todosCategory: Category = {
       id: 0,
       name: 'Todos',
@@ -56,12 +75,12 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
       date_collection: categories[0]?.date_collection || ''
     };
 
-    return [todosCategory, ...categories];
+    return orderCategories([todosCategory, ...categories]);
   }, [categories, currentSection]);
 
   const filteredCategories = useMemo(() => {
-    return currentSection === 'salud' ? allCategories : [];
-  }, [allCategories, currentSection]);
+    return ['salud', 'hospitales', 'usa'].includes(currentSection) ? orderedCategories : [];
+  }, [orderedCategories, currentSection]);
 
   const slidesToShow = useMemo(() => {
     const maxSlides = 5;
@@ -101,7 +120,7 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
     ]
   }), [filteredCategories, slidesToShow]);
 
-  if (currentSection !== 'salud' || filteredCategories.length === 0) {
+  if (!['salud', 'hospitales', 'usa'].includes(currentSection) || filteredCategories.length === 0) {
     return null;
   }
 

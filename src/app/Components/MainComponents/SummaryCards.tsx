@@ -132,24 +132,30 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
               {getIcon(stat.social_network)}
             </Flex>
             <Grid numCols={1} className="gap-4">
-              <div>
-                <Text className="text-sm text-gray-500">
-                  {isAllCategory ? "Seguidores únicos" : "Seguidores totales"}
-                </Text>
-                <Text className="text-xl font-bold">
-                  {isAllCategory
-                    ? formatNumber(stat.unique_followers)
-                    : formatNumber(stat.total_followers)}
-                </Text>
-              </div>
-              <div>
-                <Text className="text-sm text-gray-500">Publicaciones</Text>
-                <Text className="text-xl font-bold">{formatNumber(stat.total_publications)}</Text>
-              </div>
-              <div>
-                <Text className="text-sm text-gray-500">Reacciones</Text>
-                <Text className="text-xl font-bold">{formatNumber(stat.total_reactions)}</Text>
-              </div>
+              {(isAllCategory ? stat.unique_followers : stat.total_followers) > 0 && (
+                <div>
+                  <Text className="text-sm text-gray-500">
+                    {isAllCategory ? "Seguidores únicos" : "Seguidores totales"}
+                  </Text>
+                  <Text className="text-xl font-bold">
+                    {isAllCategory
+                      ? formatNumber(stat.unique_followers)
+                      : formatNumber(stat.total_followers)}
+                  </Text>
+                </div>
+              )}
+              {stat.total_publications > 0 && (
+                <div>
+                  <Text className="text-sm text-gray-500">Publicaciones</Text>
+                  <Text className="text-xl font-bold">{formatNumber(stat.total_publications)}</Text>
+                </div>
+              )}
+              {stat.total_reactions > 0 && (
+                <div>
+                  <Text className="text-sm text-gray-500">Reacciones</Text>
+                  <Text className="text-xl font-bold">{formatNumber(stat.total_reactions)}</Text>
+                </div>
+              )}
               {stat.average_views > 0 && (
                 <div>
                   <Text className="text-sm text-gray-500">Vistas promedio</Text>
