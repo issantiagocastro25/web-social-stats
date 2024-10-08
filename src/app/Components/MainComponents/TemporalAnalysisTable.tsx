@@ -24,17 +24,25 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
 
   const processedData = useMemo(() => {
     return selectedInstitutions.map(institution => {
+      let lastValidValues = networks.reduce((acc, network) => ({ ...acc, [network]: 0 }), {});
       const institutionData = sortedDates.map(date => {
         const dataForDate = temporalData.find(
           item => item.Institucion === institution.Institucion && item.date === date
         );
-        return {
+        const result = {
           date,
-          ...networks.reduce((acc, network) => ({
-            ...acc,
-            [network]: dataForDate?.social_networks?.[network]?.followers || 0
-          }), {})
+          ...networks.reduce((acc, network) => {
+            const currentValue = dataForDate?.social_networks?.[network]?.followers || 0;
+            if (currentValue !== 0) {
+              lastValidValues[network] = currentValue;
+            }
+            return {
+              ...acc,
+              [network]: currentValue !== 0 ? currentValue : lastValidValues[network]
+            };
+          }, {})
         };
+        return result;
       });
 
       return {
@@ -51,6 +59,7 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
   }, [selectedInstitutions, selectedInstitutionIndex]);
 
   const calculateGrowth = (current: number, previous: number) => {
+    if (previous === 0 && current > 0) return 100;
     if (previous === 0) return 0;
     return ((current - previous) / previous) * 100;
   };
@@ -129,6 +138,15 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
             colors={[networkColors[network]]}
             valueFormatter={formatNumber}
             yAxisWidth={80}
+            showLegend={false}
+            showXAxis={true}
+            showYAxis={true}
+            showGridLines={false}
+            startEndOnly={true}
+            showAnimation={true}
+            showTooltip={true}
+            autoMinValue={true}
+            minValue={0}
           />
         </Card>
       ))}
@@ -137,15 +155,24 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
 
   const renderGrowthChart = () => (
     <Card className="mt-6">
-      <Title>Crecimiento Anual en Redes Sociales</Title>
+      <Title>Crecimiento Acumulado en Redes Sociales</Title>
       <AreaChart
         className="mt-4 h-80"
         data={processedData[selectedInstitutionIndex]?.data || []}
         index="date"
         categories={networks}
         colors={Object.values(networkColors)}
-        valueFormatter={(number: number) => `${number.toFixed(2)}%`}
+        valueFormatter={formatNumber}
         yAxisWidth={80}
+        showLegend={true}
+        showXAxis={true}
+        showYAxis={true}
+        showGridLines={false}
+        startEndOnly={true}
+        showAnimation={true}
+        showTooltip={true}
+        autoMinValue={true}
+        minValue={0}
       />
     </Card>
   );
