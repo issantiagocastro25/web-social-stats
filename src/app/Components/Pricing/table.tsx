@@ -15,7 +15,7 @@ function TablePricing() {
         {
             title: "Salud Colombia",
             description: "Estadísticas del sector salud nacional.",
-            price: 200000,
+            price: 250000,
             features: [
                 "399 organizaciones de salud agrupadas en 6 submercados:",
                 "IPS privadas, IPS públicas, EPS y seguros, Organizaciones administrativas, públicas y de interés general, Organizaciones profesionales, Farmacias, Instituciones educativas, Datos históricos con gráficas de evolución.",
@@ -40,7 +40,7 @@ function TablePricing() {
         {
             title: "Hospitales internacionales de referencia",
             description: "Datos de los 15 mejores hospitales internacionales.",
-            price: 75000,
+            price: 100000,
             features: [
                 "15 hospitales de referencia de Latinoamérica de 10 países: México, Argentina, Chile, Brasil, Perú, Panamá, Costa Rica.",
                 "6 principales hospitales de Estados Unidos.",

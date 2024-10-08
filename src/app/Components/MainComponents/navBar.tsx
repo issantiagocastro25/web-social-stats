@@ -124,7 +124,7 @@ const DashboardNavbar = () => {
                   <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
                     <div className="px-4 py-2">
                       <p className="text-sm font-medium text-gray-700">{user.first_name} {user.last_name}</p>
-                      <p className="text-sm text-gray-500">{user.email}</p>
+                      <p className="text-sm text-gray-500 truncate max-w-xs">{user.email}</p>
                     </div>
                     <Link href="/profile/user-profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                       Perfil
@@ -187,7 +187,7 @@ const DashboardNavbar = () => {
                 <img className="h-10 w-10 rounded-full" src={user.profile_picture || "/assets/imgs/profile_photo.png"} alt="User" />
                 <div className="ml-3">
                   <p className="text-white">{user.first_name} {user.last_name}</p>
-                  <p className="text-sm text-red-300">{user.email}</p>
+                  <p className="text-sm text-red-300 truncate max-w-xs">{user.email}</p>
                 </div>
               </div>
               <Link href="/profile/user-profile" className="block px-4 py-2 text-white hover:bg-red-700 hover:text-yellow-300 text-left">
