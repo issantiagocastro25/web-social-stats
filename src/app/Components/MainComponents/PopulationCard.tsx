@@ -112,7 +112,7 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
         </Card>
         <Card decoration="top" decorationColor="green" className="w-[48%]">
           <Text>Tasa de penetración</Text>
-          <Metric>{currentData.percentage_penetration.toFixed(2)}%</Metric>
+          <Metric>{currentData.percentage_penetration.toFixed()}%</Metric>
         </Card>
       </Flex>
       

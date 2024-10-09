@@ -39,7 +39,7 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
     X: true,
     Instagram: true,
     YouTube: true,
-    TikTok: true
+    Tiktok: true
   });
   const [internalSearchTerm, setInternalSearchTerm] = useState(externalSearchTerm);
 
@@ -61,10 +61,10 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
     { key: 'social_networks.YouTube.publications', label: 'YouTube Publicaciones', network: 'YouTube' },
     { key: 'social_networks.YouTube.reactions', label: 'YouTube Reacciones', network: 'YouTube' },
     { key: 'social_networks.YouTube.Average_views', label: 'YouTube Vistas Medias', network: 'YouTube' },
-    { key: 'social_networks.TikTok.followers', label: 'TikTok Seguidores', network: 'TikTok' },
-    { key: 'social_networks.TikTok.publications', label: 'TikTok Publicaciones', network: 'TikTok' },
-    { key: 'social_networks.TikTok.reactions', label: 'TikTok Reacciones', network: 'TikTok' },
-    { key: 'social_networks.TikTok.Average_views', label: 'TikTok Vistas Medias', network: 'TikTok' },
+    { key: 'social_networks.Tiktok.followers', label: 'TikTok Seguidores', network: 'Tiktok' },
+    { key: 'social_networks.Tiktok.publications', label: 'TikTok Publicaciones', network: 'Tiktok' },
+    { key: 'social_networks.Tiktok.reactions', label: 'TikTok Reacciones', network: 'Tiktok' },
+    { key: 'social_networks.Tiktok.Average_views', label: 'TikTok Vistas Medias', network: 'Tiktok' },
   ];
 
   const visibleColumns = useMemo(() => columns.filter(column => visibleNetworks[column.network]), [visibleNetworks]);
