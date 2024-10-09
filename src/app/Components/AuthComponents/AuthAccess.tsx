@@ -70,7 +70,10 @@ const AuthAccess: React.FC = () => {
     };
 
     return (
-        <div className="flex justify-center min-h-screen items-center bg-[url('https://mediaweb.sfo3.cdn.digitaloceanspaces.com/social-media-stats-assets/assets/bg-login.jpg')] ">
+        <div className="flex justify-center min-h-screen items-center bg-[url('https://mediaweb.sfo3.cdn.digitaloceanspaces.com/social-media-stats-assets/assets/bg-login.jpg')] bg-cover bg-center">
+            <div className="absolute inset-0 bg-gray-800 bg-opacity-60 backdrop-filter backdrop-blur-sm"></div>
+
+            <div className=' relative z-10'>
             <Card className="w-full max-w-4xl overflow-hidden">
                 <div className="flex flex-col md:flex-row">
                     {/* Sección de formularios */}
@@ -238,6 +241,8 @@ const AuthAccess: React.FC = () => {
                     </div>
                 </div>
             </Card>
+            </div>
+            
 
             {/* Modal de Términos y Condiciones */}
             <Modal show={showModal} size="3xl" popup={true} onClose={handleDeclineTerms}>

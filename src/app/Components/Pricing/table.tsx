@@ -17,7 +17,7 @@ function TablePricing() {
             description: "Estadísticas del sector salud nacional.",
             price: 250000,
             features: [
-                "417 organizaciones de salud agrupadas en 6 submercados:",
+                "417 organizaciones de salud agrupadas en 7 submercados:",
                 "IPS privadas, IPS públicas, EPS y seguros, Organizaciones administrativas, públicas y de interés general, Organizaciones profesionales, Farmacias, Instituciones educativas, Datos históricos con gráficas de evolución.",
                 "Posibilidad de hacer comparativas y cruces.",
                 "Actualización de datos: cuatrimestral."
