@@ -48,11 +48,11 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
   const orderCategories = (categories: Category[]): Category[] => {
     const orderMap = {
       "Todos": 0,
-      "IPS privadas": 1,
-      "IPS públicas": 2,
-      "EPS y seguros": 3,
-      "Org. administrativas": 4,
-      "Profesionales": 5,
+      "IPS Privadas": 1,
+      "IPS Públicas": 2,
+      "EPS y Seguros": 3,
+      "Org. admin": 4,
+      "Org. Profesionales": 5,
       "Educación": 6,
       "Farmacias": 7
     };
