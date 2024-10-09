@@ -17,7 +17,7 @@ function TablePricing() {
             description: "Estadísticas del sector salud nacional.",
             price: 250000,
             features: [
-                "399 organizaciones de salud agrupadas en 6 submercados:",
+                "417 organizaciones de salud agrupadas en 6 submercados:",
                 "IPS privadas, IPS públicas, EPS y seguros, Organizaciones administrativas, públicas y de interés general, Organizaciones profesionales, Farmacias, Instituciones educativas, Datos históricos con gráficas de evolución.",
                 "Posibilidad de hacer comparativas y cruces.",
                 "Actualización de datos: cuatrimestral."
@@ -30,7 +30,7 @@ function TablePricing() {
             description: "Estadísticas sobre cajas de compensación.",
             price: 200000,
             features: [
-                "53 Cajas de compensación colombianas.",
+                "47 Cajas de compensación colombianas.",
                 "Datos históricos con gráficas de evolución.",
                 "Posibilidad de hacer comparativas y cruces.",
                 "Actualización de datos: cuatrimestral."
@@ -56,10 +56,10 @@ function TablePricing() {
             <div className="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6">
                 <div className="mx-auto max-w-screen-md text-center mb-8 lg:mb-12">
                     <h2 className="mb-4 text-4xl tracking-tight font-extrabold text-[#8A2BE2]">
-                        Datos y Estadísticas del Sector Salud
+                        Datos y Estadísticas de los Mercados Auditados
                     </h2>
                     <p className="mb-5 font-light text-gray-600 sm:text-xl">
-                        Accede a información detallada y actualizada sobre el sector salud.
+                        Accede a información detallada y actualizada sobre cada sector.
                     </p>
                 </div>
                 <div className="space-y-8 lg:grid lg:grid-cols-3 sm:gap-6 xl:gap-10 lg:space-y-0 ">
