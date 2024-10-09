@@ -1,13 +1,18 @@
 "use client";
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { getAllUsers, updateUser } from '@/api/users/users.api'; // Asume que existe updateUser
+import { getAllUsers, updateUser } from '@/api/users/users.api';
+import { getPricing } from '@/api/api_suscription/data-suscription.api';
 
 export default function TableUsers() {
     const [users, setUsers] = useState([]);
     const [selectedUser, setSelectedUser] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [usersPerPage] = useState(10);
+    const [searchTerm, setSearchTerm] = useState('');
     const modalRef = useRef(null);
+    const [subscriptionPlans, setSubscriptionPlans] = useState([]);
 
     const UserStatus = ({ isActive }) => (
         <div className="flex items-center">
@@ -17,6 +22,78 @@ export default function TableUsers() {
             </span>
         </div>
     );
+
+    useEffect(() => {
+        const fetchInitialData = async () => {
+            try {
+                const [users, plans] = await Promise.all([
+                    getAllUsers(),
+                    getPricing()
+                ]);
+                setUsers(users);
+                setSubscriptionPlans(plans);
+            } catch (err) {
+                setError(err.message || 'Error loading initial data');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchInitialData();
+    }, []);
+
+    const handleEditClick = (user) => {
+        setSelectedUser({
+            ...user,
+            subscriptions: user.subscriptions.map(sub => sub.plan)
+        });
+        setTimeout(() => {
+            modalRef.current.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+    };
+
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+
+        if (name === 'is_active') {
+            setSelectedUser(prev => ({ ...prev, [name]: value === 'true' }));
+        } else if (name === 'role') {
+            setSelectedUser(prev => ({
+                ...prev,
+                user_roles: [{ role: { identifier: value }}]
+            }));
+        } else if (name.startsWith('subscription_')) {
+            const planId = parseInt(name.split('_')[1], 10);
+            setSelectedUser(prev => ({
+                ...prev,
+                subscriptions: checked
+                    ? [...prev.subscriptions, planId]
+                    : prev.subscriptions.filter(id => id !== planId)
+            }));
+        } else {
+            setSelectedUser(prev => ({ ...prev, [name]: value }));
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const updatedUser = {
+                ...selectedUser,
+                subscriptions: selectedUser.subscriptions.map(planId => {
+                    const existingSub = selectedUser.subscriptions.find(sub => sub.plan === planId);
+                    return existingSub || { plan: planId };
+                })
+            };
+            await updateUser(selectedUser.id, updatedUser);
+            alert('Usuario actualizado correctamente');
+            loadUsers();
+            setSelectedUser(null);
+        } catch (err) {
+            console.error('Error actualizando usuario:', err);
+            alert('Error al actualizar el usuario');
+        }
+    };
 
     const loadUsers = useCallback(async () => {
         try {
@@ -31,44 +108,43 @@ export default function TableUsers() {
         }
     }, []);
 
-    useEffect(() => {
-        loadUsers();
-    }, [loadUsers]);
+    // Calcular usuarios a mostrar en la página actual
+    const indexOfLastUser = currentPage * usersPerPage;
+    const indexOfFirstUser = indexOfLastUser - usersPerPage;
 
-    const handleEditClick = (user) => {
-        setSelectedUser(user);
-        setTimeout(() => {
-            modalRef.current.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
-    };
+    // Filtrar usuarios por el término de búsqueda
+    const filteredUsers = users.filter(user => 
+        user.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.last_name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-    const handleChange = (e) => {
-        setSelectedUser({ ...selectedUser, [e.target.name]: e.target.value });
-    };
+    const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            await updateUser(selectedUser.id, selectedUser);
-            alert('Usuario actualizado correctamente');
-            loadUsers();
-            setSelectedUser(null); // Cerrar el modal después de la actualización
-        } catch (err) {
-            console.error('Error actualizando usuario:', err);
-            alert('Error al actualizar el usuario');
-        }
-    };
+    // Cambiar de página
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+    // Calcular el número total de páginas
+    const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
 
     return (
         <>
             <div className='content'>
                 <div className='container-table overflow-x-auto shadow-md sm:rounded-lg'>
+                    {/* Campo de búsqueda */}
+                    <div className="mb-4">
+                        <input 
+                            type="text" 
+                            placeholder="Buscar por nombre o apellido"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-300 focus:border-red-300 block w-full p-2.5"
+                        />
+                    </div>
                     <table className='table-auto w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400'>
                         <thead className='text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400'>
                             <tr>
                                 <th className='px-4 py-3'>Id</th>
                                 <th className='px-4 py-3'>Nombre</th>
-                                {/* <th className='px-4 py-3'>Identificación</th> */}
                                 <th className='px-4 py-3'>Organización</th>
                                 <th className='px-4 py-3'>Rol</th>
                                 <th className='px-4 py-3'>Estado</th>
@@ -77,11 +153,10 @@ export default function TableUsers() {
                             </tr>
                         </thead>
                         <tbody>
-                            {users.map((user) => (
+                            {currentUsers.map((user) => (
                                 <tr key={user.id} className='odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700'>
                                     <td className="px-4 py-4">{user.id}</td>
                                     <td className="px-4 py-4">{`${user.first_name} ${user.last_name}`}</td>
-                                    {/* <td className="px-4 py-4">{user.identification || 'N/A'}</td> */}
                                     <td className="px-4 py-4">{user.organization || 'N/A'}</td>
                                     <td className="px-4 py-4">
                                         {user.user_roles && user.user_roles.length > 0
@@ -108,7 +183,7 @@ export default function TableUsers() {
                                         </h3>
                                         <button type="button" className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" onClick={() => setSelectedUser(null)}>
                                             <svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                                                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
                                             </svg>
                                             <span className="sr-only">Cerrar modal</span>
                                         </button>
@@ -136,26 +211,6 @@ export default function TableUsers() {
                                                 />
                                             </div>
                                             <div className="col-span-6 sm:col-span-3">
-                                                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Email</label>
-                                                <input
-                                                    type="email"
-                                                    name="email"
-                                                    value={selectedUser.email}
-                                                    onChange={handleChange}
-                                                    className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                                />
-                                            </div>
-                                            {/* <div className="col-span-6 sm:col-span-3">
-                                                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Identificación</label>
-                                                <input
-                                                    type="text"
-                                                    name="identification"
-                                                    value={selectedUser.identification || ''}
-                                                    onChange={handleChange}
-                                                    className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                                />
-                                            </div> */}
-                                            <div className="col-span-6 sm:col-span-3">
                                                 <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Organización</label>
                                                 <input
                                                     type="text"
@@ -166,41 +221,91 @@ export default function TableUsers() {
                                                 />
                                             </div>
                                             <div className="col-span-6 sm:col-span-3">
-                                                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Rol</label>
-                                                <input
-                                                    type="text"
-                                                    name="user_roles"
-                                                    value={selectedUser.user_roles.map(userRole => userRole.role.title).join(", ")}
-                                                    onChange={handleChange}
-                                                    className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                                />
-                                            </div>
-                                            <div className="col-span-6 sm:col-span-3">
                                                 <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Estado</label>
                                                 <select
                                                     name="is_active"
-                                                    value={selectedUser.is_active}
+                                                    value={selectedUser.is_active ? 'true' : 'false'}
                                                     onChange={handleChange}
                                                     className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                                                 >
-                                                    <option value={true}>Activo</option>
-                                                    <option value={false}>Inactivo</option>
+                                                    <option value="true">Activo</option>
+                                                    <option value="false">No Activo</option>
                                                 </select>
+                                            </div>
+                                            <div className="col-span-6 sm:col-span-3">
+                                                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Rol</label>
+                                                <select
+                                                    name="role"
+                                                    value={selectedUser.user_roles.length > 0 ? selectedUser.user_roles[0].role.identifier : ''}
+                                                    onChange={handleChange}
+                                                    className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                                >
+                                                    <option value="">Selecciona un rol</option>
+                                                    <option value="=805MHj0">Usuario General</option>
+                                                    <option value="8np49Ab#">Administrador</option>
+                                                    {/* Agrega más roles según sea necesario */}
+                                                </select>
+                                            </div>
+                                            <div className="col-span-6 sm:col-span-3">
+                                                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Planes de Suscripción</label>
+                                                <div className="space-y-2">
+                                                    {subscriptionPlans.map(plan => (
+                                                        <div key={plan.id} className="flex items-center">
+                                                            <input
+                                                                type="checkbox"
+                                                                id={`subscription_${plan.id}`}
+                                                                name={`subscription_${plan.id}`}
+                                                                checked={selectedUser.subscriptions.includes(plan.id)}
+                                                                onChange={handleChange}
+                                                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                                                            />
+                                                            <label htmlFor={`subscription_${plan.id}`} className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                                                                {plan.title}
+                                                            </label>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                    {/* <div className="p-6 border-t border-gray-200 dark:border-gray-600">
-                                        <button
-                                            type="submit"
-                                            className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                        >
-                                            Guardar cambios
-                                        </button>
-                                    </div> */}
+                                    <div className="flex items-center justify-end p-6 border-t border-gray-200 rounded-b dark:border-gray-600">
+                                        <button type="button" className="text-gray-500 hover:bg-gray-100 hover:text-gray-900 rounded-lg text-sm px-5 py-2.5 mr-2" onClick={() => setSelectedUser(null)}>Cancelar</button>
+                                        <button type="submit" className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg text-sm px-5 py-2.5">Actualizar</button>
+                                    </div>
                                 </form>
                             </div>
                         </div>
                     )}
+
+                    {loading && <p>Cargando usuarios...</p>}
+                    {error && <p className="text-red-600">{error}</p>}
+                </div>
+                
+                {/* Paginación */}
+                <div className="flex justify-center mt-4">
+                    <button 
+                        onClick={() => paginate(currentPage - 1)} 
+                        disabled={currentPage === 1}
+                        className={`px-4 py-2 mx-1 bg-red-600/90 text-white hover:bg-red-700/90 focus:ring-4 focus:ring-red-300 transition-shadow shadow-md rounded ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        Anterior
+                    </button>
+                    {Array.from({ length: totalPages }, (_, index) => (
+                        <button
+                            key={index + 1}
+                            onClick={() => paginate(index + 1)}
+                            className={`px-4 py-2 mx-1 bg-red-600/90 text-white hover:bg-red-700/90 focus:ring-4 focus:ring-red-300 transition-shadow shadow-md rounded ${currentPage === index + 1 ? 'bg-blue-700' : ''}`}
+                        >
+                            {index + 1}
+                        </button>
+                    ))}
+                    <button 
+                        onClick={() => paginate(currentPage + 1)} 
+                        disabled={currentPage === totalPages}
+                        className={`px-4 py-2 mx-1 bg-red-600/90 text-white hover:bg-red-700/90 focus:ring-4 focus:ring-red-300 transition-shadow shadow-md rounded ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        Siguiente
+                    </button>
                 </div>
             </div>
         </>
