@@ -270,7 +270,7 @@ export default function AdminPanel() {
                                             className="w-full p-2 border border-gray-300 rounded" 
                                             placeholder="Nombre del Token" 
                                             value={currentItem?.title || ''}
-                                            onChange={(e) => setCurrentItem({...currentItem, name: e.target.value})}
+                                            onChange={(e) => setCurrentItem({...currentItem, title: e.target.value})}
                                             required 
                                         />
                                     </div>
