@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, Title, Text, Metric, AreaChart, Flex } from '@tremor/react';
 import axios from 'axios';
 
@@ -62,7 +62,16 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
           .map(result => result.data)
           .sort((a, b) => a.date_stat - b.date_stat);
         
-        setChartData(sortedData);
+        // Filtrar para tener solo un registro por año
+        const filteredData = sortedData.reduce((acc, current) => {
+          const year = current.date_stat.toString().slice(0, 4);
+          if (!acc[year]) {
+            acc[year] = current;
+          }
+          return acc;
+        }, {});
+        
+        setChartData(Object.values(filteredData));
       } catch (error) {
         console.error('Error fetching historical data:', error);
       }
@@ -70,10 +79,6 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
 
     fetchHistoricalData();
   }, [availableDates, selectedDate, category]);
-
-  if (!currentData) {
-    return <Card className="mt-6"><Text>Cargando datos...</Text></Card>;
-  }
 
   const formatLargeNumber = (num: number) => {
     if (num >= 1000000) {
@@ -83,6 +88,10 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
     }
     return num.toString();
   };
+
+  if (!currentData) {
+    return <Card className="mt-6"><Text>Cargando datos...</Text></Card>;
+  }
 
   return (
     <Card className="mt-6 p-6">
@@ -123,15 +132,16 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
         showTooltip={true}
         autoMinValue={true}
         minValue={0}
-        maxValue={100}
-        tickGap={10}
+        maxValue={25}
+        tickGap={5}
         customTooltip={({ payload }) => {
           if (payload && payload.length > 0) {
-            const { date_stat, percentage_penetration } = payload[0].payload;
+            const { date_stat, percentage_penetration, unique_followers } = payload[0].payload;
             return (
               <div className="bg-white p-2 border border-gray-200 rounded shadow-md">
                 <p className="font-semibold">{date_stat}</p>
-                <p>{percentage_penetration.toFixed(2)}%</p>
+                <p>Tasa de penetración: {percentage_penetration.toFixed(2)}%</p>
+                <p>Seguidores únicos: {formatLargeNumber(unique_followers)}</p>
               </div>
             );
           }

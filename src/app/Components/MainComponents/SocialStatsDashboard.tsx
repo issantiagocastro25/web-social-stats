@@ -64,6 +64,8 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
 
+  console.log('SocialStatsDashboard render - section:', section, 'isLoading:', isLoading);
+
   const addError = useCallback((error: string) => {
     setErrors(prevErrors => [...prevErrors, error]);
   }, []);
@@ -135,29 +137,27 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
   }, [addError, clearErrors]);
 
   useEffect(() => {
-    const fetchDates = async () => {
+    console.log('SocialStatsDashboard effect - Loading initial data');
+    const loadInitialData = async () => {
       try {
         const dates = await fetchAvailableDates();
         const sortedDates = dates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
         setAvailableDates(sortedDates);
         if (sortedDates.length > 0) {
           setSelectedDate(sortedDates[0]);
+          await loadCategories(currentSection, sortedDates[0]);
+          await loadData(currentSection, 'Todos', sortedDates[0]);
         }
       } catch (error) {
-        console.error('Error fetching available dates:', error);
-        addError('Error al cargar las fechas disponibles');
+        console.error('Error loading initial data:', error);
+        addError('Error al cargar los datos iniciales');
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchDates();
-  }, [addError]);
-
-  useEffect(() => {
-    if (selectedDate && currentSection) {
-      loadCategories(currentSection, selectedDate);
-      loadData(currentSection, 'Todos', selectedDate);
-    }
-  }, [selectedDate, currentSection, loadCategories, loadData]);
+    loadInitialData();
+  }, [currentSection, loadCategories, loadData, addError]);
 
   useEffect(() => {
     const newSection = pathname ? pathname.split('/')[1] as SectionType : 'salud';
@@ -349,27 +349,28 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
               availableDates={availableDates}
             />
   
-            {(activeCategory === 'Todos') && summaryCardsData && (
-              <Card className="mb-6 bg-white shadow-md">
-                <GroupSummaryTable 
-                  summaryCardsData={summaryCardsData} 
-                  onTemporalAnalysis={handleGroupTemporalAnalysis}
-                  isLoading={isLoading}
-                />
-              </Card>
-            )}
+  
+            {currentSection === 'salud' && activeCategory === 'Todos' && summaryCardsData && (
+            <Card className="mb-6 bg-white shadow-md">
+              <GroupSummaryTable 
+                summaryCardsData={summaryCardsData} 
+                onTemporalAnalysis={handleGroupTemporalAnalysis}
+                isLoading={isLoading}
+              />
+            </Card>
+          )}
             <Card className="mb-6 bg-white shadow-lg">
               <h2 className="text-2xl font-bold mb-4 text-gray-900">
                 {`Datos para la categoría: ${activeCategory}`}
               </h2>
-              <TextInput
+              {/* <TextInput
                 icon={FaSearch}
                 type="text"
                 placeholder="Buscar por institución, ciudad o tipo..."
                 value={searchTerm}
                 onChange={handleSearch}
                 className="border-gray-300 focus:border-secondary focus:ring-secondary"
-              />
+              /> */}
               <InteractiveDataTable 
                 selectedType={activeCategory}
                 selectedDate={selectedDate}

@@ -46,21 +46,10 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
   };
 
   const orderCategories = (categories: Category[]): Category[] => {
-    const orderMap = {
-      "Todos": 0,
-      "IPS Privadas": 1,
-      "IPS Públicas": 2,
-      "EPS y Seguros": 3,
-      "Org. admin": 4,
-      "Org. Profesionales": 5,
-      "Educación": 6,
-      "Farmacias": 7
-    };
-
     return categories.sort((a, b) => {
       if (a.name === "Todos") return -1;
       if (b.name === "Todos") return 1;
-      return (orderMap[a.name] || 999) - (orderMap[b.name] || 999);
+      return a.ordering - b.ordering;
     });
   };
 

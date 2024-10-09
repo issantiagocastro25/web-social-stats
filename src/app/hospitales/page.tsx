@@ -14,8 +14,8 @@ const MainPage = () => {
   const isLoading = authLoading || subLoading || isDashboardLoading;
 
   useEffect(() => {
+    console.log('MainPage effect - Auth loading:', authLoading, 'Sub loading:', subLoading);
     if (!authLoading && !subLoading) {
-      // Simula un tiempo de carga mínimo para el dashboard
       const timer = setTimeout(() => {
         setIsDashboardLoading(false);
       }, 1000);
@@ -24,13 +24,21 @@ const MainPage = () => {
     }
   }, [authLoading, subLoading]);
 
-  if (!isAuthenticated || !hasSubscription('hospitales')) {
-    return null; // El hook se encargará de la redirección si es necesario
+  console.log('MainPage render - isAuthenticated:', isAuthenticated, 'hasSubscription:', hasSubscription('hospitales_internacionales'));
+
+  if (!isAuthenticated && !authLoading) {
+    console.log('User not authenticated');
+    return null;
+  }
+
+  if (!hasSubscription('hospitales_internacionales') && !subLoading) {
+    console.log('User does not have subscription');
+    return null;
   }
 
   return (
     <>
-      <title>Social</title>
+      <title>Hospitales - Social</title>
       <LoadingModal isLoading={isLoading} />
       <SocialStatsDashboard 
         section="hospitales"
