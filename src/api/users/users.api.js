@@ -16,3 +16,13 @@ export const getAllUsers = async () => {
       throw error;
     }
   };
+
+export const updateUser = async (userId, dataUpdate) => {
+  try {
+    const response = await api.put(`/api/user/update-user/${userId}/`, dataUpdate);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating token:', error);
+    throw error;
+  }
+};
