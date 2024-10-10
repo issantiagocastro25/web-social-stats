@@ -26,6 +26,7 @@ interface PopulationData {
   }
 }
 
+
 const socialNetworks = ['Facebook', 'X', 'Instagram', 'Youtube', 'Tiktok'];
 
 const PopulationCard: React.FC<PopulationCardProps> = ({
@@ -122,58 +123,56 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
     return <Card className="mt-6"><Text>Cargando datos...</Text></Card>;
   }
 
-  const renderSocialNetworkData = () => (
-    <div className="mt-4">
-      <Title>Datos de Redes Sociales</Title>
-      <Select value={selectedNetwork} onValueChange={setSelectedNetwork as any}>
-        <SelectItem value="all">Todas las redes</SelectItem>
-        {socialNetworks.map(network => (
-          <SelectItem key={network} value={network}>{network}</SelectItem>
-        ))}
-      </Select>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-        {socialNetworks.map(network => {
-          const networkData = currentData.social_networks?.[network] || {};
-          return (
-            <Card key={network} className="mt-2">
-              <Title>{network}</Title>
-              <Flex justifyContent="between" className="mt-2">
-                <Text>Seguidores:</Text>
-                <Metric>{formatLargeNumber(networkData.followers)}</Metric>
-              </Flex>
-              <Flex justifyContent="between" className="mt-2">
-                <Text>Tasa Penetración:</Text>
-                <Metric>{networkData.penetration_rate?.toFixed(2) || 'N/A'}%</Metric>
-              </Flex>
-            </Card>
-          );
-        })}
-      </div>
-    </div>
-  );
-
   const renderSocialNetworkChart = () => {
     const validChartData = chartData.filter(data => data.social_networks);
     const categories = selectedNetwork === 'all' ? socialNetworks : [selectedNetwork];
     
+    const processedData = validChartData.map(data => ({
+      year: data.date_stat.toString().slice(0, 4), // Extraer solo el año
+      "Tasa de Penetración": data.percentage_penetration,
+      ...socialNetworks.reduce((acc, network) => ({
+        ...acc,
+        [network]: data.social_networks?.[network]?.penetration_rate
+      }), {})
+    }));
+
     return (
       <Card className="mt-6">
         <Title>Evolución de la Tasa de Penetración por Red Social</Title>
-        {validChartData.length > 0 ? (
+        {processedData.length > 0 ? (
           <AreaChart
             className="h-80 mt-4"
-            data={validChartData.map(data => ({
-              date_stat: data.date_stat,
-              ...socialNetworks.reduce((acc, network) => ({
-                ...acc,
-                [network]: data.social_networks?.[network]?.penetration_rate
-              }), {})
-            }))}
-            index="date_stat"
-            categories={categories}
-            colors={["blue", "cyan", "pink", "red", "green"]}
-            valueFormatter={(number) => `${number?.toFixed(2) || 'N/A'}%`}
-            yAxisWidth={40}
+            data={processedData}
+            index="year"
+            categories={selectedNetwork === 'all' ? ["Tasa de Penetración", ...categories] : categories}
+            colors={["blue", "cyan", "pink", "red", "green", "orange"]}
+            valueFormatter={(number) => `${number?.toFixed() || 'N/A'}%`}
+            yAxisWidth={56}
+            showYAxis={true}
+            showLegend={true}
+            showGridLines={true}
+            showAnimation={true}
+            autoMinValue={true}
+            minValue={0}
+            maxValue={100}
+            curveType="monotone"
+            customTooltip={({ payload, active }) => {
+              if (!active || !payload) return null;
+              return (
+                <div className="w-64 rounded-tremor-default text-tremor-default bg-tremor-background p-2 shadow-tremor-dropdown border border-tremor-border">
+                  <div className="font-medium text-tremor-content-emphasis">{`Año: ${payload[0].payload.year}`}</div>
+                  {payload.map((entry: any, index: number) => (
+                    <div key={`item-${index}`} className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`h-3 w-3 rounded-tremor-full`} style={{backgroundColor: entry.color}} />
+                        <span className="text-tremor-content">{entry.name}:</span>
+                      </div>
+                      <span className="font-medium text-tremor-content-emphasis">{entry.value?.toFixed()}%</span>
+                    </div>
+                  ))}
+                </div>
+              );
+            }}
           />
         ) : (
           <Text>No hay datos suficientes para mostrar la gráfica</Text>
@@ -202,24 +201,40 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
           </Card>
           <Card decoration="top" decorationColor="green" className="w-[48%]">
             <Text>Tasa de penetración</Text>
-            <Metric>{currentData.percentage_penetration?.toFixed(2) || 'N/A'}%</Metric>
+            <Metric>{currentData.percentage_penetration?.toFixed() || 'N/A'}%</Metric>
           </Card>
         </Flex>
         
         <Text className="mt-6 mb-2">Evolución de la Tasa de Penetración General</Text>
         <AreaChart
           className="h-64"
-          data={chartData}
-          index="date_stat"
-          categories={["percentage_penetration"]}
+          data={chartData.map(data => ({
+            year: data.date_stat.toString().slice(0, 4), // Extraer solo el año
+            "Tasa de Penetración": data.percentage_penetration
+          }))}
+          index="year"
+          categories={["Tasa de Penetración"]}
           colors={["blue"]}
-          valueFormatter={(number) => `${number?.toFixed(2) || 'N/A'}%`}
-          yAxisWidth={40}
+          valueFormatter={(number) => `${number?.toFixed() || 'N/A'}%`}
+          yAxisWidth={56}
+          showYAxis={true}
+          showLegend={false}
+          showGridLines={true}
+          showAnimation={true}
+          autoMinValue={true}
+          minValue={0}
+          maxValue={100}
+          curveType="monotone"
         />
       </Card>
 
       <Card className="p-6">
-        {renderSocialNetworkData()}
+        <Select value={selectedNetwork} onValueChange={setSelectedNetwork as any}>
+          <SelectItem value="all">Todas las redes</SelectItem>
+          {socialNetworks.map(network => (
+            <SelectItem key={network} value={network}>{network}</SelectItem>
+          ))}
+        </Select>
         {renderSocialNetworkChart()}
       </Card>
     </div>
