@@ -8,8 +8,8 @@ interface PopulationCardProps {
 }
 
 interface SocialNetworkData {
-  followers?: number;
-  penetration_rate?: number;
+  unique_followers: number;
+  percentage_penetration: number;
 }
 
 interface PopulationData {
@@ -17,17 +17,16 @@ interface PopulationData {
   poblation: number;
   unique_followers: number;
   percentage_penetration: number;
-  social_networks?: {
-    Facebook?: SocialNetworkData;
-    Instagram?: SocialNetworkData;
-    X?: SocialNetworkData;
-    Youtube?: SocialNetworkData;
-    Tiktok?: SocialNetworkData;
+  social_networks: {
+    Facebook: SocialNetworkData;
+    X: SocialNetworkData;
+    Instagram: SocialNetworkData;
+    YouTube: SocialNetworkData;
+    TikTok: SocialNetworkData;
   }
 }
 
-
-const socialNetworks = ['Facebook', 'X', 'Instagram', 'Youtube', 'Tiktok'];
+const socialNetworks = ['Facebook', 'X', 'Instagram', 'YouTube', 'TikTok'];
 
 const PopulationCard: React.FC<PopulationCardProps> = ({
   selectedDate,
@@ -60,44 +59,32 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
     fetchData();
   }, [selectedDate, API_URL]);
 
-
   useEffect(() => {
     const fetchHistoricalData = async () => {
       try {
-        const selectedYear = parseInt(selectedDate.split('-')[0]);
-        
-        const historicalDataPromises = availableDates
-          .filter(date => parseInt(date.split('-')[0]) <= selectedYear)
-          .map(date => 
-            axios.get(`${API_URL}/api/social-metrics/followers`, {
-              params: {
-                category: 'salud',
-                stats_date: date
-              }
-            })
-          );
+        const historicalDataPromises = availableDates.map(date => 
+          axios.get(`${API_URL}/api/social-metrics/followers`, {
+            params: {
+              category: 'salud',
+              stats_date: date
+            }
+          })
+        );
         
         const results = await Promise.all(historicalDataPromises);
         const sortedData = results
           .map(result => result.data)
           .sort((a, b) => a.date_stat - b.date_stat);
         
-        const filteredData = sortedData.reduce((acc, current) => {
-          const year = current.date_stat.toString().slice(0, 4);
-          if (!acc[year] || current.date_stat > acc[year].date_stat) {
-            acc[year] = current;
-          }
-          return acc;
-        }, {});
-        
-        setChartData(Object.values(filteredData));
+        setChartData(sortedData);
       } catch (error) {
         console.error('Error fetching historical data:', error);
+        setError('Error al cargar los datos históricos');
       }
     };
 
     fetchHistoricalData();
-  }, [availableDates, selectedDate, API_URL]);
+  }, [availableDates, API_URL]);
 
   const formatLargeNumber = (num?: number) => {
     if (num === undefined) return 'N/A';
@@ -109,12 +96,6 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
     return num.toString();
   };
 
-  const formattedDate = useMemo(() => {
-    if (!selectedDate) return '';
-    const [year, month, day] = selectedDate.split('-');
-    return `${day}/${month}/${year}`;
-  }, [selectedDate]);
-
   if (error) {
     return <Card className="mt-6"><Text color="red">{error}</Text></Card>;
   }
@@ -124,29 +105,49 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
   }
 
   const renderSocialNetworkChart = () => {
-    const validChartData = chartData.filter(data => data.social_networks);
-    const categories = selectedNetwork === 'all' ? socialNetworks : [selectedNetwork];
-    
-    const processedData = validChartData.map(data => ({
-      year: data.date_stat.toString().slice(0, 4), // Extraer solo el año
-      "Tasa de Penetración": data.percentage_penetration,
-      ...socialNetworks.reduce((acc, network) => ({
-        ...acc,
-        [network]: data.social_networks?.[network]?.penetration_rate
-      }), {})
-    }));
+    const processedData = chartData.map(data => {
+      const baseObject = {
+        year: data.date_stat,
+      };
+
+      if (selectedNetwork === 'all') {
+        socialNetworks.forEach(network => {
+          baseObject[network] = data.social_networks[network].percentage_penetration;
+        });
+      } else {
+        baseObject["Tasa de Penetración"] = data.social_networks[selectedNetwork].percentage_penetration;
+        baseObject["Seguidores Únicos"] = data.social_networks[selectedNetwork].unique_followers;
+      }
+
+      return baseObject;
+    });
+
+    const categories = selectedNetwork === 'all' 
+      ? socialNetworks 
+      : ["Tasa de Penetración", "Seguidores Únicos"];
 
     return (
       <Card className="mt-6">
-        <Title>Evolución de la Tasa de Penetración por Red Social</Title>
+        <Title>
+          {selectedNetwork === 'all' 
+            ? 'Comparación de Tasas de Penetración por Red Social' 
+            : `Datos de ${selectedNetwork}`}
+        </Title>
         {processedData.length > 0 ? (
           <AreaChart
             className="h-80 mt-4"
             data={processedData}
             index="year"
-            categories={selectedNetwork === 'all' ? ["Tasa de Penetración", ...categories] : categories}
-            colors={["blue", "cyan", "pink", "red", "green", "orange"]}
-            valueFormatter={(number) => `${number?.toFixed() || 'N/A'}%`}
+            categories={categories}
+            colors={selectedNetwork === 'all' 
+              ? ["blue", "cyan", "pink", "red", "green"] 
+              : ["blue", "green"]}
+            valueFormatter={(number, category) => {
+              if (category === "Seguidores Únicos") {
+                return formatLargeNumber(number);
+              }
+              return `${number?.toFixed() || 'N/A'}%`;
+            }}
             yAxisWidth={56}
             showYAxis={true}
             showLegend={true}
@@ -154,7 +155,6 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
             showAnimation={true}
             autoMinValue={true}
             minValue={0}
-            maxValue={100}
             curveType="monotone"
             customTooltip={({ payload, active }) => {
               if (!active || !payload) return null;
@@ -167,7 +167,11 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
                         <span className={`h-3 w-3 rounded-tremor-full`} style={{backgroundColor: entry.color}} />
                         <span className="text-tremor-content">{entry.name}:</span>
                       </div>
-                      <span className="font-medium text-tremor-content-emphasis">{entry.value?.toFixed()}%</span>
+                      <span className="font-medium text-tremor-content-emphasis">
+                        {entry.name === "Seguidores Únicos" 
+                          ? formatLargeNumber(entry.value)
+                          : `${entry.value?.toFixed()}%`}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -186,7 +190,7 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
       <Card className="p-6">
         <Flex justifyContent="between" alignItems="center">
           <Title>Población Colombia</Title>
-          <Text>{formattedDate}</Text>
+          <Text>{currentData.date_stat}</Text>
         </Flex>
         
         <Flex justifyContent="start" alignItems="baseline" className="space-x-2 mt-4">
@@ -200,8 +204,10 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
             <Metric>{formatLargeNumber(currentData.unique_followers)}</Metric>
           </Card>
           <Card decoration="top" decorationColor="green" className="w-[48%]">
+            <div className='py-3'>
             <Text>Tasa de penetración</Text>
             <Metric>{currentData.percentage_penetration?.toFixed() || 'N/A'}%</Metric>
+            </div>
           </Card>
         </Flex>
         
@@ -209,7 +215,7 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
         <AreaChart
           className="h-64"
           data={chartData.map(data => ({
-            year: data.date_stat.toString().slice(0, 4), // Extraer solo el año
+            year: data.date_stat,
             "Tasa de Penetración": data.percentage_penetration
           }))}
           index="year"
@@ -223,7 +229,7 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
           showAnimation={true}
           autoMinValue={true}
           minValue={0}
-          maxValue={25}
+          maxValue={100}
           curveType="monotone"
         />
       </Card>
