@@ -343,13 +343,10 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
               className="mb-6"
             />
 
-            {currentSection === 'salud' && (
+            {currentSection === 'salud' && !isLoading && (
               <PopulationCard 
                 selectedDate={selectedDate}
-                population={populationData.population}
-                uniqueFollowers={populationData.uniqueFollowers}
-                penetrationRate={populationData.penetrationRate}
-                className="mb-6 bg-white shadow-lg border-l-4 border-primary"
+                availableDates={availableDates}
               />
             )}
   
