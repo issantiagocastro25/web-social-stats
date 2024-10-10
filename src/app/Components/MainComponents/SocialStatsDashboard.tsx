@@ -161,10 +161,10 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
 
   useEffect(() => {
     const newSection = pathname ? pathname.split('/')[1] as SectionType : 'salud';
-    if (['salud', 'compensacion', 'hospitales', 'usa'].includes(newSection) && selectedDate && !initialDataLoaded.current) {
+    if (['salud', 'compensacion', 'hospitales'].includes(newSection) && selectedDate && !initialDataLoaded.current) {
       setCurrentSection(newSection);
       loadCategories(newSection, selectedDate);
-      loadData(newSection, 'Todos', selectedDate);
+      loadData(newSection, 'Todos', null, selectedDate);
       initialDataLoaded.current = true;
     }
   }, [pathname, loadCategories, loadData, selectedDate]);
@@ -343,11 +343,15 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
               className="mb-6"
             />
 
-            <PopulationCard
-              selectedDate={selectedDate}
-              category={currentSection}
-              availableDates={availableDates}
-            />
+            {currentSection === 'salud' && (
+              <PopulationCard 
+                selectedDate={selectedDate}
+                population={populationData.population}
+                uniqueFollowers={populationData.uniqueFollowers}
+                penetrationRate={populationData.penetrationRate}
+                className="mb-6 bg-white shadow-lg border-l-4 border-primary"
+              />
+            )}
   
   
             {currentSection === 'salud' && activeCategory === 'Todos' && summaryCardsData && (
