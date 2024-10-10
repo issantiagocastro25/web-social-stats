@@ -7,21 +7,26 @@ interface PopulationCardProps {
   availableDates: string[];
 }
 
+interface SocialNetworkData {
+  followers?: number;
+  penetration_rate?: number;
+}
+
 interface PopulationData {
   date_stat: number;
   poblation: number;
   unique_followers: number;
   percentage_penetration: number;
   social_networks?: {
-    [key: string]: {
-      users_colombia?: number;
-      followers_health?: number;
-      penetration_rate?: number;
-    }
+    Facebook?: SocialNetworkData;
+    Instagram?: SocialNetworkData;
+    X?: SocialNetworkData;
+    Youtube?: SocialNetworkData;
+    Tiktok?: SocialNetworkData;
   }
 }
 
-const socialNetworks = ['Facebook', 'X', 'Instagram', 'YouTube', 'TikTok'];
+const socialNetworks = ['Facebook', 'X', 'Instagram', 'Youtube', 'Tiktok'];
 
 const PopulationCard: React.FC<PopulationCardProps> = ({
   selectedDate,
@@ -133,12 +138,8 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
             <Card key={network} className="mt-2">
               <Title>{network}</Title>
               <Flex justifyContent="between" className="mt-2">
-                <Text>Usuarios Colombia:</Text>
-                <Metric>{formatLargeNumber(networkData.users_colombia)}</Metric>
-              </Flex>
-              <Flex justifyContent="between" className="mt-2">
-                <Text>Seguidores Salud:</Text>
-                <Metric>{formatLargeNumber(networkData.followers_health)}</Metric>
+                <Text>Seguidores:</Text>
+                <Metric>{formatLargeNumber(networkData.followers)}</Metric>
               </Flex>
               <Flex justifyContent="between" className="mt-2">
                 <Text>Tasa Penetración:</Text>
@@ -161,7 +162,13 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
         {validChartData.length > 0 ? (
           <AreaChart
             className="h-80 mt-4"
-            data={validChartData}
+            data={validChartData.map(data => ({
+              date_stat: data.date_stat,
+              ...socialNetworks.reduce((acc, network) => ({
+                ...acc,
+                [network]: data.social_networks?.[network]?.penetration_rate
+              }), {})
+            }))}
             index="date_stat"
             categories={categories}
             colors={["blue", "cyan", "pink", "red", "green"]}
