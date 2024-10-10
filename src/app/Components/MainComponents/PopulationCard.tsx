@@ -223,7 +223,7 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
           showAnimation={true}
           autoMinValue={true}
           minValue={0}
-          maxValue={100}
+          maxValue={25}
           curveType="monotone"
         />
       </Card>
