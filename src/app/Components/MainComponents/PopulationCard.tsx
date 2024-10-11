@@ -7,11 +7,14 @@ interface PopulationCardProps {
   availableDates: string[];
 }
 
-interface PopulationData {
+interface GeneralPopulationData {
   date_stat: number;
   poblation: number;
   unique_followers: number;
   percentage_penetration: number;
+}
+
+interface DetailedPopulationData extends GeneralPopulationData {
   social_networks: {
     [key: string]: {
       unique_followers: number;
@@ -26,7 +29,8 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
   selectedDate,
   availableDates
 }) => {
-  const [historicalData, setHistoricalData] = useState<PopulationData[]>([]);
+  const [generalData, setGeneralData] = useState<GeneralPopulationData[]>([]);
+  const [detailedData, setDetailedData] = useState<DetailedPopulationData[]>([]);
   const [selectedNetwork, setSelectedNetwork] = useState<string | 'all'>('all');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -36,19 +40,18 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
   const selectedYear = useMemo(() => parseInt(selectedDate.split('-')[0]), [selectedDate]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchGeneralData = async () => {
       setIsLoading(true);
       setError(null);
       try {
         const promises = availableDates.map(date => 
-          axios.get<PopulationData>(`${API_URL}/api/social-metrics/followers/social-networks`, {
+          axios.get<GeneralPopulationData>(`${API_URL}/api/social-metrics/followers`, {
             params: { category: 'salud', stats_date: date }
           })
         );
         const responses = await Promise.all(promises);
         const data = responses.map(response => response.data);
         
-        // Remove duplicates and sort by year
         const uniqueData = data.reduce((acc, current) => {
           const x = acc.find(item => item.date_stat === current.date_stat);
           if (!x) {
@@ -56,27 +59,65 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
           } else {
             return acc;
           }
-        }, [] as PopulationData[]).sort((a, b) => a.date_stat - b.date_stat);
+        }, [] as GeneralPopulationData[]).sort((a, b) => a.date_stat - b.date_stat);
 
-        setHistoricalData(uniqueData);
+        setGeneralData(uniqueData);
       } catch (error) {
-        console.error('Error fetching data:', error);
-        setError('Error al cargar los datos de población');
+        console.error('Error fetching general data:', error);
+        setError('Error al cargar los datos generales de población');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchData();
+    fetchGeneralData();
   }, [availableDates, API_URL]);
 
-  const filteredData = useMemo(() => {
-    return historicalData.filter(data => data.date_stat <= selectedYear);
-  }, [historicalData, selectedYear]);
+  useEffect(() => {
+    const fetchDetailedData = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const promises = availableDates.map(date => 
+          axios.get<DetailedPopulationData>(`${API_URL}/api/social-metrics/followers/social-networks`, {
+            params: { category: 'salud', stats_date: date }
+          })
+        );
+        const responses = await Promise.all(promises);
+        const data = responses.map(response => response.data);
+        
+        const uniqueData = data.reduce((acc, current) => {
+          const x = acc.find(item => item.date_stat === current.date_stat);
+          if (!x) {
+            return acc.concat([current]);
+          } else {
+            return acc;
+          }
+        }, [] as DetailedPopulationData[]).sort((a, b) => a.date_stat - b.date_stat);
+
+        setDetailedData(uniqueData);
+      } catch (error) {
+        console.error('Error fetching detailed data:', error);
+        setError('Error al cargar los datos detallados de población');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDetailedData();
+  }, [availableDates, API_URL]);
+
+  const filteredGeneralData = useMemo(() => {
+    return generalData.filter(data => data.date_stat <= selectedYear);
+  }, [generalData, selectedYear]);
+
+  const filteredDetailedData = useMemo(() => {
+    return detailedData.filter(data => data.date_stat <= selectedYear);
+  }, [detailedData, selectedYear]);
 
   const currentData = useMemo(() => {
-    return filteredData[filteredData.length - 1];
-  }, [filteredData]);
+    return filteredGeneralData[filteredGeneralData.length - 1];
+  }, [filteredGeneralData]);
 
   const formatLargeNumber = (num?: number) => {
     if (num === undefined) return 'N/A';
@@ -89,7 +130,7 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
   };
 
   const renderGeneralChart = () => {
-    const chartData = filteredData.map(item => ({
+    const chartData = filteredGeneralData.map(item => ({
       year: item.date_stat,
       "Tasa de Penetración": item.percentage_penetration
     }));
@@ -123,9 +164,9 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
   };
 
   const renderSocialNetworkChart = () => {
-    if (filteredData.length === 0) return null;
+    if (filteredDetailedData.length === 0) return null;
 
-    const processedData = filteredData.map(yearData => ({
+    const processedData = filteredDetailedData.map(yearData => ({
       year: yearData.date_stat,
       ...socialNetworks.reduce((acc, network) => ({
         ...acc,
@@ -197,7 +238,7 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
           </Card>
           <Card decoration="top" decorationColor="green" className="w-[48%]">
             <Text>Tasa de penetración</Text>
-            <Metric>{currentData.percentage_penetration?.toFixed() || 'N/A'}%</Metric>
+            <Metric>{currentData.percentage_penetration?.toFixed(0) || 'N/A'}%</Metric>
           </Card>
         </Flex>
         
