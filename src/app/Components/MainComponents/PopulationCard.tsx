@@ -219,12 +219,12 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 my-5">
       <Card className="p-6">
         
         <div className='flex justify-between items-center'>
           <div className='grid basis-10/12'>
-            <Title className=' text-[#4A00A5] text-2xl font-semibold my-2 '> Tasa penetracion total</Title>
+            <Title className=' text-[#4A00A5] text-2xl font-semibold mb-2 '> Tasa penetración total</Title>
             <p> Porcentaje de la poblacion Colombiana que sigue alguna pagina de salud institucional</p>
           </div>
           <Text>{currentData.date_stat}</Text>
@@ -260,9 +260,9 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
         {renderGeneralChart()}
       </Card>
 
-      <Card className="p-6">
-        <div className=' pb-4'>
-          <p className=' text-[#4A00A5] font-semibold text-xl '>
+      <Card className="">
+        <div className='pb-4'>
+          <p className='text-[#4A00A5] font-semibold text-xl '>
             Comparación de Tasas de Penetración por Red Sociales
           </p>
           <span className=' text-base'> Porcentaje de los usuarios de cada red social en Colombia que siguen alguna paginá de salud 
