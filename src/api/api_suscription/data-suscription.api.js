@@ -60,7 +60,7 @@ export const createToken = async (tokenData) => {
 
 export const updateToken = async (tokenId, tokenData) => {
   try {
-    const response = await api.put(`/payment/tokens/${tokenId}/`, tokenData);
+    const response = await api.put(`/payment/tokens/update/${tokenId}/`, tokenData);
     return response.data;
   } catch (error) {
     console.error('Error updating token:', error);

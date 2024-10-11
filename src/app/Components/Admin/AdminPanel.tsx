@@ -227,7 +227,7 @@ export default function AdminPanel() {
                                 <tr key={plan.id} className="bg-white border-b">
                                     <td className="px-6 py-4">{plan.name}</td>
                                     <td className="px-6 py-4">{plan.title}</td>
-                                    <td className="px-6 py-4">${plan.price}</td>
+                                    <td className="px-6 py-4">${plan.price} año</td>
                                     <td className="px-6 py-4">{plan.duration_days} días</td>
                                     <td className="px-6 py-4 w-52 flex">
                                         {/* <button 
