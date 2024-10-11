@@ -99,7 +99,7 @@ export default function AdminPanel() {
     };
 
     const openModal = (item, isToken) => {
-        const initialItem = item || (isToken ? { token: '', discount: '', start_date: '', end_date: '', plan_ids: [] } : { name: '', title: '', imageCover: '', description: '', price: '', duration_days: '' });
+        const initialItem = item || (isToken ? { title: '', token: '', discount: '', start_date: '', end_date: '', plan_ids: [] } : { name: '', title: '', imageCover: '', description: '', price: '', duration_days: '' });
     
         if (isToken && item) {
             // Mapea los nombres de los planes en el array subscription_plans a los IDs de los planes correspondientes
