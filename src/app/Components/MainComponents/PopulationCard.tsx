@@ -7,25 +7,16 @@ interface PopulationCardProps {
   availableDates: string[];
 }
 
-interface GeneralPopulationData {
+interface PopulationData {
   date_stat: number;
   poblation: number;
   unique_followers: number;
   percentage_penetration: number;
-}
-
-interface SocialNetworkData {
-  unique_followers: number;
-  percentage_penetration: number;
-}
-
-interface DetailedPopulationData extends GeneralPopulationData {
   social_networks: {
-    Facebook: SocialNetworkData;
-    X: SocialNetworkData;
-    Instagram: SocialNetworkData;
-    YouTube: SocialNetworkData;
-    TikTok: SocialNetworkData;
+    [key: string]: {
+      unique_followers: number;
+      percentage_penetration: number;
+    }
   }
 }
 
@@ -35,52 +26,41 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
   selectedDate,
   availableDates
 }) => {
-  const [generalData, setGeneralData] = useState<GeneralPopulationData | null>(null);
-  const [detailedData, setDetailedData] = useState<DetailedPopulationData | null>(null);
-  const [generalChartData, setGeneralChartData] = useState<GeneralPopulationData[]>([]);
-  const [detailedChartData, setDetailedChartData] = useState<DetailedPopulationData[]>([]);
+  const [historicalData, setHistoricalData] = useState<PopulationData[]>([]);
   const [selectedNetwork, setSelectedNetwork] = useState<string | 'all'>('all');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-  const fetchGeneralData = async (date: string) => {
-    try {
-      const response = await axios.get(`${API_URL}/api/social-metrics/followers`, {
-        params: { category: 'salud', stats_date: date }
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching general population data:', error);
-      throw error;
-    }
-  };
-
-  const fetchDetailedData = async (date: string) => {
-    try {
-      const response = await axios.get(`${API_URL}/api/social-metrics/followers/social-networks`, {
-        params: { category: 'salud', stats_date: date }
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching detailed population data:', error);
-      throw error;
-    }
-  };
+  const selectedYear = useMemo(() => parseInt(selectedDate.split('-')[0]), [selectedDate]);
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const [generalResult, detailedResult] = await Promise.all([
-          fetchGeneralData(selectedDate),
-          fetchDetailedData(selectedDate)
-        ]);
-        setGeneralData(generalResult);
-        setDetailedData(detailedResult);
+        const promises = availableDates.map(date => 
+          axios.get<PopulationData>(`${API_URL}/api/social-metrics/followers/social-networks`, {
+            params: { category: 'salud', stats_date: date }
+          })
+        );
+        const responses = await Promise.all(promises);
+        const data = responses.map(response => response.data);
+        
+        // Remove duplicates and sort by year
+        const uniqueData = data.reduce((acc, current) => {
+          const x = acc.find(item => item.date_stat === current.date_stat);
+          if (!x) {
+            return acc.concat([current]);
+          } else {
+            return acc;
+          }
+        }, [] as PopulationData[]).sort((a, b) => a.date_stat - b.date_stat);
+
+        setHistoricalData(uniqueData);
       } catch (error) {
+        console.error('Error fetching data:', error);
         setError('Error al cargar los datos de población');
       } finally {
         setIsLoading(false);
@@ -88,32 +68,15 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
     };
 
     fetchData();
-  }, [selectedDate, API_URL]);
-
-  useEffect(() => {
-    const fetchHistoricalData = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const generalPromises = availableDates.map(date => fetchGeneralData(date));
-        const detailedPromises = availableDates.map(date => fetchDetailedData(date));
-        
-        const [generalResults, detailedResults] = await Promise.all([
-          Promise.all(generalPromises),
-          Promise.all(detailedPromises)
-        ]);
-
-        setGeneralChartData(generalResults.sort((a, b) => a.date_stat - b.date_stat));
-        setDetailedChartData(detailedResults.sort((a, b) => a.date_stat - b.date_stat));
-      } catch (error) {
-        setError('Error al cargar los datos históricos');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchHistoricalData();
   }, [availableDates, API_URL]);
+
+  const filteredData = useMemo(() => {
+    return historicalData.filter(data => data.date_stat <= selectedYear);
+  }, [historicalData, selectedYear]);
+
+  const currentData = useMemo(() => {
+    return filteredData[filteredData.length - 1];
+  }, [filteredData]);
 
   const formatLargeNumber = (num?: number) => {
     if (num === undefined) return 'N/A';
@@ -125,79 +88,77 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
     return num.toString();
   };
 
-  const renderGeneralChart = () => (
-    <Card className="mt-6">
-      <Title>Evolución de la Tasa de Penetración General</Title>
-      <AreaChart
-        className="h-64"
-        data={generalChartData}
-        index="date_stat"
-        categories={["percentage_penetration"]}
-        colors={["blue"]}
-        valueFormatter={(number) => `${number?.toFixed() || 'N/A'}%`}
-        yAxisWidth={56}
-        showYAxis={true}
-        showLegend={false}
-        showGridLines={true}
-        showAnimation={true}
-        autoMinValue={true}
-        minValue={0}
-        maxValue={25}
-        curveType="monotone"
-      />
-    </Card>
-  );
+  const renderGeneralChart = () => {
+    const chartData = filteredData.map(item => ({
+      year: item.date_stat,
+      "Tasa de Penetración": item.percentage_penetration
+    }));
+
+    return (
+      <Card className="mt-6">
+        <Title>Evolución de la Tasa de Penetración General</Title>
+        {chartData.length > 0 ? (
+          <AreaChart
+            className="h-64 mt-4"
+            data={chartData}
+            index="year"
+            categories={["Tasa de Penetración"]}
+            colors={["blue"]}
+            valueFormatter={(number) => `${number?.toFixed() || 'N/A'}%`}
+            yAxisWidth={56}
+            showYAxis={true}
+            showLegend={false}
+            showGridLines={true}
+            showAnimation={true}
+            autoMinValue={true}
+            minValue={0}
+            maxValue={30}
+            curveType="monotone"
+          />
+        ) : (
+          <Text>No hay datos suficientes para mostrar la gráfica</Text>
+        )}
+      </Card>
+    );
+  };
 
   const renderSocialNetworkChart = () => {
-    const processedData = detailedChartData.map(data => {
-      const baseObject = {
-        year: data.date_stat,
-      };
+    if (filteredData.length === 0) return null;
 
-      if (selectedNetwork === 'all') {
-        socialNetworks.forEach(network => {
-          baseObject[network] = data.social_networks[network].percentage_penetration;
-        });
-      } else {
-        baseObject["Tasa de Penetración"] = data.social_networks[selectedNetwork].percentage_penetration;
-        baseObject["Seguidores Únicos"] = data.social_networks[selectedNetwork].unique_followers;
-      }
-
-      return baseObject;
-    });
+    const processedData = filteredData.map(yearData => ({
+      year: yearData.date_stat,
+      ...socialNetworks.reduce((acc, network) => ({
+        ...acc,
+        [network]: yearData.social_networks[network]?.percentage_penetration || 0
+      }), {})
+    }));
 
     const categories = selectedNetwork === 'all' 
       ? socialNetworks 
-      : ["Tasa de Penetración", "Seguidores Únicos"];
+      : [selectedNetwork];
 
     return (
       <Card className="mt-6">
         <Title>
           {selectedNetwork === 'all' 
             ? 'Comparación de Tasas de Penetración por Red Social' 
-            : `Datos de ${selectedNetwork}`}
+            : `Evolución de ${selectedNetwork}`}
         </Title>
         <AreaChart
           className="h-80 mt-4"
           data={processedData}
           index="year"
           categories={categories}
-          colors={selectedNetwork === 'all' 
-            ? ["blue", "cyan", "pink", "red", "green"] 
-            : ["blue", "green"]}
-          valueFormatter={(number, category) => {
-            if (category === "Seguidores Únicos") {
-              return formatLargeNumber(number);
-            }
-            return `${number?.toFixed(1) || 'N/A'}%`;
-          }}
-          yAxisWidth={56}
+          colors={["blue", "cyan", "pink", "red", "green"]}
+          valueFormatter={(number) => `${number?.toFixed(1) || 'N/A'}%`}
+          yAxisWidth={70}
           showYAxis={true}
           showLegend={true}
           showGridLines={true}
           showAnimation={true}
           autoMinValue={true}
           minValue={0}
+          maxValue={100}
           curveType="monotone"
         />
       </Card>
@@ -212,7 +173,7 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
     return <Card className="mt-6"><Text color="red">{error}</Text></Card>;
   }
 
-  if (!generalData || !detailedData) {
+  if (!currentData) {
     return <Card className="mt-6"><Text>No hay datos disponibles</Text></Card>;
   }
 
@@ -221,22 +182,22 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
       <Card className="p-6">
         <Flex justifyContent="between" alignItems="center">
           <Title>Población Colombia</Title>
-          <Text>{generalData.date_stat}</Text>
+          <Text>{currentData.date_stat}</Text>
         </Flex>
         
         <Flex justifyContent="start" alignItems="baseline" className="space-x-2 mt-4">
-          <Metric>{formatLargeNumber(generalData.poblation)}</Metric>
+          <Metric>{formatLargeNumber(currentData.poblation)}</Metric>
           <Text>habitantes</Text>
         </Flex>
 
         <Flex justifyContent="between" className="mt-4">
           <Card decoration="top" decorationColor="blue" className="w-[48%]">
             <Text>Seguidores únicos en el sector salud</Text>
-            <Metric>{formatLargeNumber(generalData.unique_followers)}</Metric>
+            <Metric>{formatLargeNumber(currentData.unique_followers)}</Metric>
           </Card>
           <Card decoration="top" decorationColor="green" className="w-[48%]">
             <Text>Tasa de penetración</Text>
-            <Metric>{generalData.percentage_penetration?.toFixed(1) || 'N/A'}%</Metric>
+            <Metric>{currentData.percentage_penetration?.toFixed() || 'N/A'}%</Metric>
           </Card>
         </Flex>
         
