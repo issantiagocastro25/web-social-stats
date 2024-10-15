@@ -63,8 +63,7 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
-
-  console.log('SocialStatsDashboard render - section:', section, 'isLoading:', isLoading);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(6);
 
   const addError = useCallback((error: string) => {
     setErrors(prevErrors => [...prevErrors, error]);
@@ -81,18 +80,16 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
       const apiCategory = section;
       const fetchedCategories = await fetchCategories(apiCategory, date);
       
-      // Crear la categoría "Todos"
       const allCategory = {
         id: 0,
         name: 'Todos',
         institution_count: fetchedCategories.reduce((sum, cat) => sum + (cat.institution_count || 0), 0),
-        url: 'https://example.com/path/to/default/image.png', // Asegúrate de usar una URL válida para el ícono de "Todos"
+        url: 'https://example.com/path/to/default/image.png',
         ordering: -1,
         category: apiCategory,
         date_collection: date
       };
   
-      // Añadir "Todos" al principio del array de categorías
       setCategories([allCategory, ...fetchedCategories]);
     } catch (err: any) {
       console.error('Error loading categories:', err);
@@ -106,7 +103,7 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
     setIsLoading(true);
     clearErrors();
     try {
-      console.log('Loading data for:', { section, category, date, page, search });
+      console.log('Loading data for:', { section, category, date, page, search, itemsPerPage });
       
       const summaryResponse = await fetchSummaryAndUniqueFollowers({
         category: section,
@@ -125,7 +122,7 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
         type: category === 'Todos' ? 'todos' : category.toLowerCase(),
         date: date,
         page: page,
-        pageSize: 100,
+        pageSize: itemsPerPage,
         search: search
       });
 
@@ -147,7 +144,7 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [addError, clearErrors]);
+  }, [addError, clearErrors, itemsPerPage]);
 
   useEffect(() => {
     console.log('SocialStatsDashboard effect - Loading initial data');
@@ -177,7 +174,7 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
     if (['salud', 'compensacion', 'hospitales'].includes(newSection) && selectedDate && !initialDataLoaded.current) {
       setCurrentSection(newSection);
       loadCategories(newSection, selectedDate);
-      loadData(newSection, 'Todos', null, selectedDate);
+      loadData(newSection, 'Todos', selectedDate);
       initialDataLoaded.current = true;
     }
   }, [pathname, loadCategories, loadData, selectedDate]);
@@ -188,6 +185,7 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
     loadCategories(currentSection, newDate);
     loadData(currentSection, activeCategory, newDate);
   };
+
   const handleCategorySelect = useCallback((categoryName: string) => {
     console.log('Category selected:', categoryName);
     const category = categories.find(cat => cat.name === categoryName) || { id: 0, name: 'Todos' };
@@ -197,8 +195,9 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
     setShowTemporalAnalysis(false);
     setTemporalData([]);
     setShowGroupTemporalAnalysis(false);
-    loadData(currentSection, category.name, selectedDate);
-  }, [currentSection, categories, loadData, selectedDate]);
+    setCurrentPage(1);
+    loadData(currentSection, category.name, selectedDate, 1, searchTerm);
+  }, [currentSection, categories, loadData, selectedDate, searchTerm]);
 
   const handleInstitutionSelect = useCallback((institutions: any[]) => {
     setSelectedInstitutions(institutions);
@@ -221,26 +220,57 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
     setShowTemporalAnalysis(true);
     setTemporalProgress(0);
     clearErrors();
+
+    const fetchDataForDate = async (date: string) => {
+      const result = await fetchPaginatedSocialStats({
+        category: currentSection,
+        type: 'todos',
+        date: date,
+        page: 1,
+        pageSize: 100,
+        search: selectedInstitutions.map(inst => inst.Institucion).join(',')
+      });
+      return result.data.metrics.map(item => ({ ...item, date }));
+    };
+
     try {
-      const institutionNames = selectedInstitutions.map(inst => inst.Institucion);
       const totalSteps = availableDates.length;
+      let temporalDataResult = [];
+      let retryCount = 0;
+      const maxRetries = 3;
 
-      const temporalDataResult = await Promise.all(
-        availableDates.map(async (date, index) => {
-          const result = await fetchPaginatedSocialStats({
-            category: currentSection,
-            type: 'todos',
-            date: date,
-            page: 1,
-            pageSize: 100,
-            search: institutionNames.join(',')
-          });
-          setTemporalProgress(((index + 1) / totalSteps) * 100);
-          return result.data.metrics.map(item => ({ ...item, date }));
-        })
-      );
+      while (retryCount < maxRetries) {
+        temporalDataResult = await Promise.all(
+          availableDates.map(async (date, index) => {
+            const data = await fetchDataForDate(date);
+            setTemporalProgress(((index + 1) / totalSteps) * 100);
+            return data;
+          })
+        );
 
+        const flattenedData = temporalDataResult.flat();
+        
+        const allZero = flattenedData.every(item => 
+          Object.values(item.social_networks).every(network => 
+            Object.values(network).every(value => value === 0)
+          )
+        );
+
+        if (!allZero) {
+          break;
+        }
+
+        console.log(`Attempt ${retryCount + 1}: All data is zero, retrying...`);
+        retryCount++;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
+      console.log('Final Temporal Data:', temporalDataResult.flat());
       setTemporalData(temporalDataResult.flat());
+
+      if (retryCount === maxRetries) {
+        console.warn('Max retries reached. Some data might still be zero.');
+      }
     } catch (err: any) {
       console.error('Error in temporal analysis:', err);
       addError(`Error en el análisis temporal: ${err.message}`);
@@ -283,12 +313,19 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
   const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value;
     setSearchTerm(term);
+    setCurrentPage(1);
     loadData(currentSection, activeCategory, selectedDate, 1, term);
   }, [currentSection, activeCategory, selectedDate, loadData]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     loadData(currentSection, activeCategory, selectedDate, page, searchTerm);
+  };
+
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
+    loadData(currentSection, activeCategory, selectedDate, 1, searchTerm);
   };
 
   const showCategories = useMemo(() => 
@@ -311,13 +348,10 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
            currentSection === 'hospitales' ? 'Hospitales de referencia internacionales' :
            'Hospitales de Estados Unidos'}
         </h1>
-
-        <div className=' flex gap-x-3 justify-end items-center mt-5 mb-6 pr-10'>
-          <p className=' '>
-            Ver estadísticas de: 
-          </p>
+        <div className='flex gap-x-3 justify-end items-center mt-5 mb-6 pr-10'>
+          <p>Ver estadísticas de:</p>
           <Select 
-            className="w-64  border-gray-300 focus:border-secondary focus:ring-secondary" 
+            className="w-64 border-gray-300 focus:border-secondary focus:ring-secondary" 
             value={selectedDate} 
             onChange={handleDateChange} 
           >
@@ -358,36 +392,29 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
               className="mb-6"
             />
 
-              {(currentSection === 'salud' || currentSection === 'compensacion') && !isLoading && (
-                  <PopulationCard 
-                    selectedDate={selectedDate}
-                    availableDates={availableDates}
-                    category={currentSection}
-                  />
-                )}
-  
+            {(currentSection === 'salud' || currentSection === 'compensacion') && 
+             !isLoading && 
+             activeCategory === 'Todos' && (
+              <PopulationCard 
+                selectedDate={selectedDate}
+                availableDates={availableDates}
+                category={currentSection}
+              />
+            )}
   
             {currentSection === 'salud' && activeCategory === 'Todos' && summaryCardsData && (
-            <Card className="mb-6 bg-white shadow-md">
-              <GroupSummaryTable 
-                summaryCardsData={summaryCardsData} 
-                onTemporalAnalysis={handleGroupTemporalAnalysis}
-                isLoading={isLoading}
-              />
-            </Card>
-          )}
+              <Card className="mb-6 bg-white shadow-md">
+                <GroupSummaryTable 
+                  summaryCardsData={summaryCardsData} 
+                  onTemporalAnalysis={handleGroupTemporalAnalysis}
+                  isLoading={isLoading}
+                />
+              </Card>
+            )}
             <Card className="mb-6 bg-white shadow-lg">
               <h2 className="text-2xl font-bold mb-4 text-gray-900">
                 {`Datos para la categoría: ${activeCategory}`}
               </h2>
-              {/* <TextInput
-                icon={FaSearch}
-                type="text"
-                placeholder="Buscar por institución, ciudad o tipo..."
-                value={searchTerm}
-                onChange={handleSearch}
-                className="border-gray-300 focus:border-secondary focus:ring-secondary"
-              /> */}
               <InteractiveDataTable 
                 selectedType={activeCategory}
                 selectedDate={selectedDate}
@@ -396,6 +423,14 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
                 onClearSelection={handleClearSelection}
                 searchTerm={searchTerm}
                 category={currentSection}
+                itemsPerPage={itemsPerPage}
+                setItemsPerPage={handleItemsPerPageChange}
+                onSearch={handleSearch}
+                onPageChange={handlePageChange}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                data={filteredData}
               />
               <div className="mb-6 flex space-x-4 items-center justify-end pt-3">  
                 <Button 
@@ -415,13 +450,19 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
               )}
             </Card>
 
-            {showTemporalAnalysis && temporalData.length > 0 && (
-              <TemporalAnalysisTable 
-                selectedInstitutions={selectedInstitutions}
-                temporalData={temporalData}
-                availableDates={availableDates}
-                isLoading={isLoadingTemporal}
-              />
+            {isLoadingTemporal ? (
+              <Card>
+                <p>Cargando análisis temporal... {temporalProgress.toFixed(0)}%</p>
+              </Card>
+            ) : (
+              showTemporalAnalysis && temporalData.length > 0 && (
+                <TemporalAnalysisTable 
+                  selectedInstitutions={selectedInstitutions}
+                  temporalData={temporalData}
+                  availableDates={availableDates}
+                  isLoading={isLoadingTemporal}
+                />
+              )
             )}
   
             {showGroupTemporalAnalysis && (
@@ -454,8 +495,6 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
                 />
               </Grid>
             )}
-  
-            
           </>
         )}
   
