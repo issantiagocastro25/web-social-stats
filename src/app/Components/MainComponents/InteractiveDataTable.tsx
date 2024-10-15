@@ -32,7 +32,10 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
-  const [sortConfig, setSortConfig] = useState<{ key: string | null, direction: 'ascending' | 'descending' }>({ key: null, direction: 'ascending' });
+  const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'ascending' | 'descending' }>({ 
+    key: 'social_networks.Facebook.followers', 
+    direction: 'descending' 
+  });
   const [visibleNetworks, setVisibleNetworks] = useState({
     basic: true,
     Facebook: true,
@@ -44,6 +47,7 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
   const [internalSearchTerm, setInternalSearchTerm] = useState(externalSearchTerm);
 
   const itemsPerPage = 10;
+
 
   const columns = [
     { key: 'Institucion', label: 'Institución', network: 'basic' },
@@ -78,15 +82,20 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
         type: selectedType.toLowerCase(),
         date: selectedDate,
         page: 1,
-        pageSize: 1000, // Load more data at once
+        pageSize: 1000,
         search: ''
       });
       
       if (response && response.data && Array.isArray(response.data.metrics)) {
-        setData(response.data.metrics);
-        setFilteredData(response.data.metrics);
-        setTotalItems(response.data.metrics.length);
-        setTotalPages(Math.ceil(response.data.metrics.length / itemsPerPage));
+        const sortedData = response.data.metrics.sort((a, b) => {
+          const aFollowers = a.social_networks?.Facebook?.followers || 0;
+          const bFollowers = b.social_networks?.Facebook?.followers || 0;
+          return bFollowers - aFollowers; // Descending order
+        });
+        setData(sortedData);
+        setFilteredData(sortedData);
+        setTotalItems(sortedData.length);
+        setTotalPages(Math.ceil(sortedData.length / itemsPerPage));
       } else {
         throw new Error('Respuesta de API inesperada');
       }
@@ -101,6 +110,7 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
   useEffect(() => {
     loadData();
   }, [loadData]);
+
 
   const handleSearch = useCallback((searchTerm: string) => {
     const trimmedSearchTerm = searchTerm.trim().toLowerCase();
@@ -182,20 +192,17 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
   }, []);
 
   const sortedData = useMemo(() => {
-    if (sortConfig.key !== null) {
-      return [...filteredData].sort((a, b) => {
-        const aValue = sortConfig.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : null), a);
-        const bValue = sortConfig.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : null), b);
-        if (aValue === bValue) return 0;
-        if (aValue === null) return 1;
-        if (bValue === null) return -1;
-        if (typeof aValue === 'string') {
-          return sortConfig.direction === 'ascending' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-        }
-        return sortConfig.direction === 'ascending' ? aValue - bValue : bValue - aValue;
-      });
-    }
-    return filteredData;
+    return [...filteredData].sort((a, b) => {
+      const aValue = sortConfig.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : null), a);
+      const bValue = sortConfig.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : null), b);
+      if (aValue === bValue) return 0;
+      if (aValue === null) return 1;
+      if (bValue === null) return -1;
+      if (typeof aValue === 'string') {
+        return sortConfig.direction === 'ascending' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+      }
+      return sortConfig.direction === 'ascending' ? aValue - bValue : bValue - aValue;
+    });
   }, [filteredData, sortConfig]);
 
   const paginatedData = useMemo(() => {
@@ -290,7 +297,7 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
         </div>
       )}
 
-      <div className="relative overflow-hidden shadow-md sm:rounded-lg" style={{ height: '600px' }}>
+        <div className="relative overflow-hidden shadow-md sm:rounded-lg" style={{ height: '600px' }}>
         <div className="overflow-auto" style={{ height: '100%', width: '100%' }}>
           <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0 z-20">
