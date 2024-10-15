@@ -6,6 +6,7 @@ interface Subscription {
   plan: string;
   start_date: string;
   end_date: string;
+  status: string;
 }
 
 interface AuthStatus {
@@ -39,6 +40,7 @@ export function useSubscriptionCheck() {
             if (allowedRoutes.length > 0) {
               router.push(allowedRoutes[0]);
             } else {
+              console.log('se redirige');
               router.push('/categories');
               window.location.href = '/categories';
             }
@@ -55,17 +57,24 @@ export function useSubscriptionCheck() {
     checkSubscriptions();
   }, [pathname, router]);
 
-  const hasSubscription = (planName: string) => {
-    return subscriptions.some(sub => sub.plan === planName);
+  const isSubscriptionValid = (subscription: Subscription): boolean => {
+    const now = new Date();
+    const startDate = new Date(subscription.start_date);
+    const endDate = new Date(subscription.end_date);
+    return subscription.status === 'approved' && now >= startDate && now <= endDate;
   };
 
-  const canAccessRoute = (route: string) => {
+  const hasSubscription = (planName: string): boolean => {
+    return subscriptions.some(sub => sub.plan === planName && isSubscriptionValid(sub));
+  };
+
+  const canAccessRoute = (route: string): boolean => {
     const planForRoute = Object.entries(PLAN_ROUTES).find(([_, path]) => path === route)?.[0];
     return planForRoute ? hasSubscription(planForRoute) : false;
   };
 
-  const getAccessibleRoutes = (subs: Subscription[] = subscriptions) => {
-    return Array.from(new Set(subs.map(sub => PLAN_ROUTES[sub.plan]).filter(Boolean)));
+  const getAccessibleRoutes = (subs: Subscription[] = subscriptions): string[] => {
+    return Array.from(new Set(subs.filter(isSubscriptionValid).map(sub => PLAN_ROUTES[sub.plan]).filter(Boolean)));
   };
 
   return { subscriptions, isLoading, hasSubscription, canAccessRoute, getAccessibleRoutes };
