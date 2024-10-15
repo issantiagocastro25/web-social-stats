@@ -45,31 +45,23 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
     onCategorySelect(categoryName);
   };
 
-  const orderCategories = (categories: Category[]): Category[] => {
-    return categories.sort((a, b) => {
-      if (a.name === "Todos") return -1;
-      if (b.name === "Todos") return 1;
-      return a.ordering - b.ordering;
-    });
-  };
-
-  const orderedCategories = useMemo(() => {
-    const todosCategory: Category = {
+  const filteredCategories = useMemo(() => {
+    // Ensure "Todos" is always included and has the lowest ordering
+    const todosCategory = categories.find(cat => cat.name === 'Todos') || {
       id: 0,
       name: 'Todos',
-      institution_count: categories.reduce((sum, cat) => sum + cat.institution_count, 0),
-      url: 'https://mediaweb.sfo3.cdn.digitaloceanspaces.com/social-media-stats-assets/todos.png',
+      institution_count: categories.reduce((sum, cat) => sum + (cat.institution_count || 0), 0),
+      url: '', // We'll handle the URL separately in the rendering
       ordering: -1,
       category: currentSection,
       date_collection: categories[0]?.date_collection || ''
     };
 
-    return orderCategories([todosCategory, ...categories]);
+    const otherCategories = categories.filter(cat => cat.name !== 'Todos');
+    
+    // Combine "Todos" with other categories and sort by ordering
+    return [todosCategory, ...otherCategories].sort((a, b) => a.ordering - b.ordering);
   }, [categories, currentSection]);
-
-  const filteredCategories = useMemo(() => {
-    return ['salud', 'hospitales', 'usa'].includes(currentSection) ? orderedCategories : [];
-  }, [orderedCategories, currentSection]);
 
   const slidesToShow = useMemo(() => {
     const maxSlides = 5;
@@ -109,7 +101,7 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
     ]
   }), [filteredCategories, slidesToShow]);
 
-  if (!['salud', 'hospitales', 'usa'].includes(currentSection) || filteredCategories.length === 0) {
+  if (filteredCategories.length === 0) {
     return null;
   }
 
@@ -127,7 +119,9 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
               onClick={() => handleCategorySelect(category.name)}
             >
               <img
-                src={category.url}
+                src={category.name === 'Todos' 
+                  ? 'https://mediaweb.sfo3.cdn.digitaloceanspaces.com/social-media-stats-assets/todos.png' 
+                  : category.url}
                 alt={category.name}
                 className="w-40 h-40 object-cover rounded-xl mb-4"
               />
