@@ -358,12 +358,13 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
               className="mb-6"
             />
 
-            {currentSection === 'salud' && !isLoading && (
-              <PopulationCard 
-                selectedDate={selectedDate}
-                availableDates={availableDates}
-              />
-            )}
+              {(currentSection === 'salud' || currentSection === 'compensacion') && !isLoading && (
+                  <PopulationCard 
+                    selectedDate={selectedDate}
+                    availableDates={availableDates}
+                    category={currentSection}
+                  />
+                )}
   
   
             {currentSection === 'salud' && activeCategory === 'Todos' && summaryCardsData && (
