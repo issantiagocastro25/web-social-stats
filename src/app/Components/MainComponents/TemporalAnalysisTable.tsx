@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Card, Title, Text, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Badge, Button, AreaChart } from '@tremor/react';
+import { Card, Title, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Badge, Button, AreaChart } from '@tremor/react';
 import { Select } from 'flowbite-react';
 
 interface TemporalAnalysisTableProps {
@@ -23,26 +23,25 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
   const sortedDates = useMemo(() => [...availableDates].sort((a, b) => new Date(a).getTime() - new Date(b).getTime()), [availableDates]);
 
   const processedData = useMemo(() => {
+    console.log('Processing temporal data:', temporalData);
+    if (!Array.isArray(temporalData) || temporalData.length === 0) {
+      console.log('Temporal data is empty or not an array');
+      return [];
+    }
+
     return selectedInstitutions.map(institution => {
-      let lastValidValues = networks.reduce((acc, network) => ({ ...acc, [network]: 0 }), {});
       const institutionData = sortedDates.map(date => {
         const dataForDate = temporalData.find(
           item => item.Institucion === institution.Institucion && item.date === date
         );
-        const result = {
+        console.log(`Data for ${institution.Institucion} on ${date}:`, dataForDate);
+        return {
           date,
-          ...networks.reduce((acc, network) => {
-            const currentValue = dataForDate?.social_networks?.[network]?.followers || 0;
-            if (currentValue !== 0) {
-              lastValidValues[network] = currentValue;
-            }
-            return {
-              ...acc,
-              [network]: currentValue !== 0 ? currentValue : lastValidValues[network]
-            };
-          }, {})
+          ...networks.reduce((acc, network) => ({
+            ...acc,
+            [network]: dataForDate?.social_networks?.[network]?.followers || 0
+          }), {})
         };
-        return result;
       });
 
       return {
@@ -52,6 +51,24 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
     });
   }, [selectedInstitutions, temporalData, sortedDates, networks]);
 
+  const processedChartData = useMemo(() => {
+    return processedData.map(institution => {
+      let lastNonZeroValues = {};
+      const chartData = institution.data.map(row => {
+        const processedRow = { ...row };
+        networks.forEach(network => {
+          if (processedRow[network] === 0 && lastNonZeroValues[network]) {
+            processedRow[network] = lastNonZeroValues[network];
+          } else if (processedRow[network] !== 0) {
+            lastNonZeroValues[network] = processedRow[network];
+          }
+        });
+        return processedRow;
+      });
+      return { ...institution, chartData };
+    });
+  }, [processedData, networks]);
+
   useEffect(() => {
     if (selectedInstitutionIndex >= selectedInstitutions.length) {
       setSelectedInstitutionIndex(0);
@@ -59,24 +76,23 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
   }, [selectedInstitutions, selectedInstitutionIndex]);
 
   const calculateGrowth = (current: number, previous: number) => {
-    if (previous === 0 && current > 0) return 100;
-    if (previous === 0) return 0;
+    if (current === 0 && previous === 0) return 0;
+    if (current === 0) return 0;
+    if (previous === 0) return 100;
     return ((current - previous) / previous) * 100;
-  };
-
-  const formatNumber = (value: number) => {
-    if (value >= 1000000) {
-      return (value / 1000000).toFixed(1) + 'M';
-    } else if (value >= 1000) {
-      return (value / 1000).toFixed(1) + 'K';
-    } else {
-      return value.toString();
-    }
   };
 
   const renderTable = () => {
     if (!processedData[selectedInstitutionIndex]) {
-      return <Text>No hay datos disponibles para la institución seleccionada.</Text>;
+      return <p>No hay datos disponibles para la institución seleccionada.</p>;
+    }
+
+    const allZero = processedData[selectedInstitutionIndex].data.every(row =>
+      networks.every(network => row[network] === 0)
+    );
+
+    if (allZero) {
+      return <p>Todos los datos para esta institución son cero. Puede que los datos aún no estén disponibles.</p>;
     }
 
     return (
@@ -102,7 +118,7 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
                 return (
                   <TableCell key={network}>
                     <div className="flex items-center space-x-2">
-                      <Text>{formatNumber(currentValue)}</Text>
+                      <span>{currentValue.toLocaleString()}</span>
                       <Badge color={color}>
                         {growth > 0 ? '▲' : growth < 0 ? '▼' : '−'} {Math.abs(growth).toFixed(2)}%
                       </Badge>
@@ -117,75 +133,45 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
     );
   };
 
-  const networkColors = {
-    'Facebook': 'blue',
-    'X': 'slate',
-    'Instagram': 'fuchsia',
-    'YouTube': 'red',
-    'TikTok': 'cyan'
+  const renderCharts = () => {
+    const allZero = processedChartData[selectedInstitutionIndex]?.chartData.every(row =>
+      networks.every(network => row[network] === 0)
+    );
+
+    if (allZero) {
+      return <p>Todos los datos para esta institución son cero. No se pueden generar gráficas.</p>;
+    }
+
+    return (
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+        {networks.map(network => (
+          <Card key={network}>
+            <Title>{`Seguidores en ${network} a lo largo del tiempo`}</Title>
+            <AreaChart
+              className="h-72 mt-4"
+              data={processedChartData[selectedInstitutionIndex]?.chartData || []}
+              index="date"
+              categories={[network]}
+              colors={["blue"]}
+              valueFormatter={(number: number) => number.toLocaleString()}
+              yAxisWidth={60}
+            />
+          </Card>
+        ))}
+      </div>
+    );
   };
 
-  const renderCharts = () => (
-    <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-      {networks.map(network => (
-        <Card key={network}>
-          <Title>Seguidores en {network} a lo largo del tiempo</Title>
-          <AreaChart
-            className="h-72 mt-4"
-            data={processedData[selectedInstitutionIndex]?.data || []}
-            index="date"
-            categories={[network]}
-            colors={[networkColors[network]]}
-            valueFormatter={formatNumber}
-            yAxisWidth={80}
-            showLegend={false}
-            showXAxis={true}
-            showYAxis={true}
-            showGridLines={false}
-            startEndOnly={true}
-            showAnimation={true}
-            showTooltip={true}
-            autoMinValue={true}
-            minValue={0}
-          />
-        </Card>
-      ))}
-    </div>
-  );
-
-  const renderGrowthChart = () => (
-    <Card className="mt-6">
-      <Title>Crecimiento Acumulado en Redes Sociales</Title>
-      <AreaChart
-        className="mt-4 h-80"
-        data={processedData[selectedInstitutionIndex]?.data || []}
-        index="date"
-        categories={networks}
-        colors={Object.values(networkColors)}
-        valueFormatter={formatNumber}
-        yAxisWidth={80}
-        showLegend={true}
-        showXAxis={true}
-        showYAxis={true}
-        showGridLines={false}
-        startEndOnly={true}
-        showAnimation={true}
-        showTooltip={true}
-        autoMinValue={true}
-        minValue={0}
-      />
-    </Card>
-  );
-
-  const renderSkeleton = () => (
-    <div className="animate-pulse space-y-4">
-      <div className="h-8 bg-gray-200 rounded w-64"></div>
-      <div className="h-64 bg-gray-200 rounded"></div>
-    </div>
-  );
-
   if (isLoading) {
-    return renderSkeleton();
+    return <Card><p>Cargando datos temporales...</p></Card>;
+  }
+
+  if (!Array.isArray(temporalData) || temporalData.length === 0) {
+    return <Card><p>No hay datos temporales disponibles. Por favor, intente realizar el análisis nuevamente.</p></Card>;
+  }
+
+  if (processedData.length === 0) {
+    return <Card><p>No se pudo procesar los datos temporales. Por favor, intente realizar el análisis nuevamente.</p></Card>;
   }
 
   return (
@@ -214,12 +200,7 @@ const TemporalAnalysisTable: React.FC<TemporalAnalysisTableProps> = ({
         </div>
       </div>
 
-      {showCharts ? (
-        <>
-          {renderCharts()}
-          {renderGrowthChart()}
-        </>
-      ) : renderTable()}
+      {showCharts ? renderCharts() : renderTable()}
     </Card>
   );
 };
