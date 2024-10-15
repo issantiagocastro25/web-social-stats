@@ -295,16 +295,6 @@ function PaymentGateway() {
                             })}
                         </div>
                     </div>
-                    <div className='bg-white rounded-lg shadow-md p-6'>
-                        <div className="mt-6 w-64">
-                            <button 
-                                onClick={() => setIsModalOpen(true)}  // Abrir el modal
-                                className="w-full py-2 px-4 rounded-md bg-red-500 text-white hover:bg-red-600 transition"
-                            >
-                                Tengo un token
-                            </button>
-                        </div>
-                    </div>
                 </div>
                 <div className="bg-white rounded-lg shadow-md p-6 w-full md:w-80">
                     <h2 className="text-xl font-semibold mb-4">Resumen de Pago</h2>
@@ -347,6 +337,12 @@ function PaymentGateway() {
                             }`}
                         >
                             Proceder al Pago Semestral
+                        </button>
+                        <button 
+                            onClick={() => setIsModalOpen(true)}  // Abrir el modal
+                            className="w-full py-2 px-4 rounded-md bg-red-500 text-white hover:bg-red-600 transition"
+                        >
+                            Tengo un token
                         </button>
                     </div>
                 </div>
