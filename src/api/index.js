@@ -20,16 +20,15 @@ function getCookie(name) {
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   withCredentials: true,
-  xsrfHeaderName: 'X-CSRFToken',
-  xsrfCookieName: 'csrftoken',
 });
 
+// Interceptor para agregar el token CSRF
 api.interceptors.request.use((config) => {
-  config.headers['X-CSRFToken'] = getCookie('csrftoken');
+  const csrfToken = getCookie('csrftoken');
+  if (csrfToken) {
+    config.headers['X-CSRFToken'] = csrfToken;
+  }
   return config;
 });
-
-// api.defaults.xsrfCookieName = 'csrftoken';
-// api.defaults.xsrfHeaderName = 'X-CSRFToken';
 
 export default api;
