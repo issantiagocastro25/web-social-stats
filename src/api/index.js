@@ -27,12 +27,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-<<<<<<< HEAD
-// api.defaults.xsrfCookieName = 'csrftoken';
-// api.defaults.xsrfHeaderName = 'X-CSRFToken';
-=======
 api.defaults.xsrfCookieName = 'csrftoken';
 api.defaults.xsrfHeaderName = 'X-CSRFToken';
->>>>>>> bc3027893199b17a6c061f8c1f985632e684c7cd
 
 export default api;
