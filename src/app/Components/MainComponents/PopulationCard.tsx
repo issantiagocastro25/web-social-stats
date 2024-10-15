@@ -5,6 +5,7 @@ import axios from 'axios';
 interface PopulationCardProps {
   selectedDate: string;
   availableDates: string[];
+  category: 'salud' | 'compensacion';
 }
 
 interface GeneralPopulationData {
@@ -27,7 +28,8 @@ const socialNetworks = ['Facebook', 'X', 'Instagram', 'YouTube', 'TikTok'];
 
 const PopulationCard: React.FC<PopulationCardProps> = ({
   selectedDate,
-  availableDates
+  availableDates,
+  category
 }) => {
   const [generalData, setGeneralData] = useState<GeneralPopulationData[]>([]);
   const [detailedData, setDetailedData] = useState<DetailedPopulationData[]>([]);
@@ -44,9 +46,13 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
       setIsLoading(true);
       setError(null);
       try {
+        const endpoint = category === 'compensacion' 
+          ? `${API_URL}/api/social-metrics/followers/social-networks/compensacion`
+          : `${API_URL}/api/social-metrics/followers`;
+        
         const promises = availableDates.map(date => 
-          axios.get<GeneralPopulationData>(`${API_URL}/api/social-metrics/followers`, {
-            params: { category: 'salud', stats_date: date }
+          axios.get<GeneralPopulationData>(endpoint, {
+            params: { category, stats_date: date }
           })
         );
         const responses = await Promise.all(promises);
@@ -71,16 +77,20 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
     };
 
     fetchGeneralData();
-  }, [availableDates, API_URL]);
+  }, [availableDates, API_URL, category]);
 
   useEffect(() => {
     const fetchDetailedData = async () => {
       setIsLoading(true);
       setError(null);
       try {
+        const endpoint = category === 'compensacion'
+          ? `${API_URL}/api/social-metrics/followers/social-networks/compensacion`
+          : `${API_URL}/api/social-metrics/followers/social-networks`;
+
         const promises = availableDates.map(date => 
-          axios.get<DetailedPopulationData>(`${API_URL}/api/social-metrics/followers/social-networks`, {
-            params: { category: 'salud', stats_date: date }
+          axios.get<DetailedPopulationData>(endpoint, {
+            params: { category, stats_date: date }
           })
         );
         const responses = await Promise.all(promises);
@@ -105,7 +115,7 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
     };
 
     fetchDetailedData();
-  }, [availableDates, API_URL]);
+  }, [availableDates, API_URL, category]);
 
   const filteredGeneralData = useMemo(() => {
     return generalData.filter(data => data.date_stat <= selectedYear);
@@ -233,8 +243,14 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
       <Card className="mx-2">
         <div className='flex justify-between items-center'>
           <div className='grid basis-10/12'>
-            <Title className='text-secondary-dark text-2xl font-semibold mb-3'>Tasa penetración total</Title>
-            <p>Porcentaje de la población Colombiana que sigue alguna página de salud institucional</p>
+            <Title className='text-secondary-dark text-2xl font-semibold mb-3'>
+              {category === 'compensacion' ? 'Tasa penetración Cajas de Compensación' : 'Tasa penetración total'}
+            </Title>
+            <p>
+              {category === 'compensacion' 
+                ? 'Porcentaje de la población Colombiana que sigue alguna página de cajas de compensación'
+                : 'Porcentaje de la población Colombiana que sigue alguna página de salud institucional'}
+            </p>
           </div>
           <Text>{currentData.date_stat}</Text>
         </div>
@@ -245,7 +261,7 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
             <Metric className='text-secondary-dark'>{formatLargeNumber(currentData.poblation)}</Metric>
           </div>
           <div className='flex gap-x-3'>
-            <Text>Seguidores únicos en el sector salud</Text>
+            <Text>Seguidores únicos en el sector {category === 'compensacion' ? 'de cajas de compensación' : 'salud'}</Text>
             <Metric className='text-secondary-dark'>{formatLargeNumber(currentData.unique_followers)}</Metric>
           </div>
           <div className='flex gap-x-3'>
@@ -262,8 +278,10 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
           <p className='text-secondary-dark font-semibold text-xl pb-3'>
             Comparación de Tasas de Penetración por Red Sociales
           </p>
-          <span className='text-base'>Porcentaje de los usuarios de cada red social en Colombia que siguen alguna página de salud 
-            institucional</span>
+          <span className='text-base'>
+            Porcentaje de los usuarios de cada red social en Colombia que siguen alguna página 
+            {category === 'compensacion' ? ' de cajas de compensación' : ' de salud institucional'}
+          </span>
         </div>
         <Select value={selectedNetwork} onValueChange={setSelectedNetwork as any}>
           <SelectItem value="all">Todas las redes</SelectItem>
