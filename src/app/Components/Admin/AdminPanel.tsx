@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAlert } from '@/app/contexts/AlertContext';
 import { getAllTokens, createToken, updateToken, deleteToken } from '@/api/api_suscription/data-suscription.api';
-import { getAllSubscriptionPlans, createSubscriptionPlan, updateSubscriptionPlan, deleteSubscriptionPlan } from '@/api/api_suscription/tokens';
+import { getAllSubscriptionPlans, createSubscriptionPlan, updateSubscriptionPlan, deleteSubscriptionPlan, getAllAccessTokens, updateAccessToken, createAccessToken, deleteAccessToken } from '@/api/api_suscription/tokens';
 import DeleteConfirmation from '../Alert/DialogConfirmDelete';
 import EditButton from '../Buttons/EditButton';
 import TokenCopyComponent from '../Buttons/CopyTokenButton';
@@ -10,16 +10,28 @@ import TokenCopyComponent from '../Buttons/CopyTokenButton';
 export default function AdminPanel() {
     const [tokens, setTokens] = useState([]);
     const [plans, setPlans] = useState([]);
+    const [accessTokens, setAccessTokens] = useState([]); // New state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentItem, setCurrentItem] = useState(null);
     const [isTokenModal, setIsTokenModal] = useState(true);
+    const [isAccessTokenModal, setIsAccessTokenModal] = useState(false); // New state
     const [searchQuery, setSearchQuery] = useState('');
     const { showAlert } = useAlert();
 
     useEffect(() => {
         fetchTokens();
         fetchPlans();
+        fetchAccessTokens();
     }, []);
+
+    const fetchAccessTokens = async () => {
+        try {
+            const fetchedAccessTokens = await getAllAccessTokens();
+            setAccessTokens(fetchedAccessTokens);
+        } catch (error) {
+            console.error('Error fetching access tokens:', error);
+        }
+    };
 
     const fetchTokens = async () => {
         try {
@@ -49,6 +61,13 @@ export default function AdminPanel() {
                     await createToken(currentItem);
                 }
                 await fetchTokens();
+            }else if (isAccessTokenModal) {
+                if (currentItem?.id) {
+                    await updateAccessToken(currentItem.id, currentItem);
+                } else {
+                    await createAccessToken(currentItem);
+                }
+                await fetchAccessTokens();
             } else {
                 if (currentItem?.id) {
                     await updateSubscriptionPlan(currentItem.id, currentItem);
@@ -63,7 +82,7 @@ export default function AdminPanel() {
         }
     };
 
-    const handleDelete = async (id, isToken) => {
+    const handleDelete = async (id, isToken, isAccessToken) => {
         try {
             if (isToken) {
                 try {
@@ -72,6 +91,14 @@ export default function AdminPanel() {
                     await fetchTokens();
                 } catch (error) {
                     showAlert('Ups, Error al eliminar el token', 'error');
+                }
+            } else if (isAccessToken) {
+                try {
+                    await deleteAccessToken(id);
+                    showAlert('Se ha eliminado el token de acceso', 'success');
+                    await fetchAccessTokens();
+                } catch (error) {
+                    showAlert('Ups, Error al eliminar el token de acceso', 'error');
                 }
             } else {
                 try {
@@ -98,7 +125,7 @@ export default function AdminPanel() {
         });
     };
 
-    const openModal = (item, isToken) => {
+    const openModal = (item, isToken, isAccessToken) => {
         const initialItem = item || (isToken ? { title: '', token: '', discount: '', start_date: '', end_date: '', plan_ids: [] } : { name: '', title: '', imageCover: '', description: '', price: '', duration_days: '' });
     
         if (isToken && item) {
@@ -117,11 +144,29 @@ export default function AdminPanel() {
                 start_date: formattedStartDate, // Formato correcto para el input de fecha
                 end_date: formattedEndDate,    // Formato correcto para el input de fecha
             });
-        } else {
+        } else if (isAccessToken) {
+            let initialItem;
+            initialItem = item || { title: '', token: '', start_date: '', end_date: '', is_active: true, subscription_plans: [] };
+            if (item) {
+                const selectedPlans = plans
+                    .filter(plan => item.subscription_plans.includes(plan.name))
+                    .map(plan => plan.id);
+                const formattedStartDate = item.start_date.split('T')[0];
+                const formattedEndDate = item.end_date.split('T')[0];
+                initialItem = {
+                    ...item,
+                    subscription_plans: selectedPlans,
+                    start_date: formattedStartDate,
+                    end_date: formattedEndDate,
+                };
+            }
+        }else {
             setCurrentItem(initialItem);
         }
         
+        setCurrentItem(initialItem);
         setIsTokenModal(isToken);
+        setIsAccessTokenModal(isAccessToken);
         setIsModalOpen(true);
     };
 
@@ -201,6 +246,50 @@ export default function AdminPanel() {
                 </div>
             </section>
 
+            <section className="mb-12">
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-2xl font-light">Tokens de Acceso</h3>
+                    <button 
+                        onClick={() => openModal(null, false, true)}
+                        className='mt-4 px-5 py-2 rounded-md bg-red-600/90 text-white hover:bg-red-700/90 focus:ring-4 focus:ring-red-300 transition-shadow shadow-md'
+                    >
+                        Crear Nuevo Token de Acceso
+                    </button>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left text-gray-500">
+                        <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th className="px-6 py-3">Título</th>
+                                <th className="px-6 py-3">Token</th>
+                                <th className="px-6 py-3">Fecha de Inicio</th>
+                                <th className="px-6 py-3">Fecha de Fin</th>
+                                <th className="px-6 py-3">Activo</th>
+                                <th className="px-6 py-3">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {accessTokens.map((token) => (
+                                <tr key={token.id} className="bg-white border-b">
+                                    <td className="px-6 py-4">{token.title}</td>
+                                    <td className="px-6 py-4"><TokenCopyComponent token={token.token} /></td>
+                                    <td className="px-6 py-4">{formatDate(token.start_date)}</td>
+                                    <td className="px-6 py-4">{formatDate(token.end_date)}</td>
+                                    <td className="px-6 py-4">{token.is_active ? 'Sí' : 'No'}</td>
+                                    <td className="px-6 py-4 w-52 flex">
+                                        <EditButton onClick={() => openModal(token, false, true)} />
+                                        <DeleteConfirmation 
+                                            onDelete={() => handleDelete(token.id, false, true)} 
+                                            itemName={'token de acceso'}
+                                        />
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
             <section>
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-2xl font-light">Planes de Suscripción</h3>
@@ -259,7 +348,7 @@ export default function AdminPanel() {
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-md shadow-md w-full max-w-lg">
-                        <h2 className="text-xl mb-4">{currentItem?.id ? 'Editar' : 'Crear'} {isTokenModal ? 'Token' : 'Plan'}</h2>
+                        <h2 className="text-xl mb-4">{currentItem?.id ? 'Editar' : 'Crear'} {isTokenModal ? 'Token de Descuento' : isAccessTokenModal ? 'Token de Acceso' : 'Plan'}</h2>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             {isTokenModal ? (
                                 <>
@@ -313,6 +402,62 @@ export default function AdminPanel() {
                                                     type="checkbox" 
                                                     id={`plan-${plan.id}`} 
                                                     checked={currentItem?.plan_ids?.includes(plan.id)} 
+                                                    onChange={() => handlePlanSelection(plan.id)} 
+                                                />
+                                                <label htmlFor={`plan-${plan.id}`} className="ml-2">{plan.name}</label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            ) : isAccessTokenModal ? (
+                                <>
+                                    <div>
+                                        <label className="block mb-1">Título</label>
+                                        <input 
+                                            type="text" 
+                                            className="w-full p-2 border border-gray-300 rounded" 
+                                            placeholder="Título del Token de Acceso" 
+                                            value={currentItem?.title || ''}
+                                            onChange={(e) => setCurrentItem({...currentItem, title: e.target.value})}
+                                            required 
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block mb-1">Fecha de Inicio</label>
+                                        <input 
+                                            type="date" 
+                                            className="w-full p-2 border border-gray-300 rounded" 
+                                            value={currentItem?.start_date || ''}
+                                            onChange={(e) => setCurrentItem({...currentItem, start_date: e.target.value})}
+                                            required 
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block mb-1">Fecha de Fin</label>
+                                        <input 
+                                            type="date" 
+                                            className="w-full p-2 border border-gray-300 rounded" 
+                                            value={currentItem?.end_date || ''}
+                                            onChange={(e) => setCurrentItem({...currentItem, end_date: e.target.value})}
+                                            required 
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block mb-1">Activo</label>
+                                        <input 
+                                            type="checkbox" 
+                                            checked={currentItem?.is_active || false}
+                                            onChange={(e) => setCurrentItem({...currentItem, is_active: e.target.checked})}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block mb-1">Selecciona los Planes</label>
+                                        {plans.map(plan => (
+                                            <div key={plan.id} className="flex items-center mb-2">
+                                                <input 
+                                                    type="checkbox" 
+                                                    id={`plan-${plan.id}`} 
+                                                    checked={currentItem?.subscription_plans?.includes(plan.id)} 
                                                     onChange={() => handlePlanSelection(plan.id)} 
                                                 />
                                                 <label htmlFor={`plan-${plan.id}`} className="ml-2">{plan.name}</label>

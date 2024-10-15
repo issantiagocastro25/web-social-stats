@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { getPaymentUrl, getTokenDetail } from '../../api/api_suscription/data-suscription.api';
+import { getPaymentUrl, getTokenDetail, registerSubscription } from '../../api/api_suscription/data-suscription.api';
 import { useAuthCheck } from '../hooks/useAuthCheck';
 import { getUserDetail } from '@/api/user';
 import BackButton from '../Components/Buttons/BackButton';
@@ -25,6 +25,10 @@ function PaymentGateway() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [discountToken, setDiscountToken] = useState(null);
+    const [accessToken, setAccessToken] = useState(null);
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [inputToken, setInputToken] = useState("");
 
     useEffect(() => {
         const plan = searchParams.get('plan');
@@ -35,7 +39,7 @@ function PaymentGateway() {
         }
 
         if (token) {
-            applyDiscountToken(token);
+            applyToken(token);
         }
 
         // if (plan && plansData[plan]) {
@@ -43,20 +47,54 @@ function PaymentGateway() {
         // }
     }, [searchParams, isAuthenticated, loading]);
 
-    const applyDiscountToken = async (token) => {
+    const applyToken = async (token) => {
         try {
             const tokenData = await getTokenDetail(token);
-            setDiscountToken(tokenData);
-            
-            // Agregar planes del token si no están ya seleccionados y el usuario no los tiene
-            tokenData.subscription_plans.forEach(planName => {
-                const planData = Object.values(plansData).find(p => p.suscripName === planName);
-                if (planData && !userHasPlan(planData.suscripName)) {
-                    addPlanToSelection(planData);
+
+            if (tokenData.is_access_token) {
+                setAccessToken(tokenData);
+                if (tokenData.redirect) {
+                    // router.push(`${tokenData.redirect}?token=${token}`);
+                    router.push('/categories');
                 }
-            });
+            } else {
+                setDiscountToken(tokenData);
+                tokenData.subscription_plans.forEach(planName => {
+                    const planData = Object.values(plansData).find(p => p.suscripName === planName);
+                    if (planData && !userHasPlan(planData.suscripName)) {
+                        addPlanToSelection(planData);
+                    }
+                });
+            }
         } catch (error) {
             console.error('Error al aplicar el descuento:', error);
+        }
+    };
+
+    const handleAccessToken = async (tokenData) => {
+        try {
+            for (const planName of tokenData.subscription_plans) {
+                const result = await registerSubscription(userDetail.id, planName, tokenData.token);
+                if (result.success) {
+                    //alert(`Suscripción registrada exitosamente para el plan: ${planName}`);
+                    // Refresh user details to reflect new subscription
+                    await fetchUserDetail();
+                } else {
+                    alert(`Error al registrar la suscripción para el plan: ${planName}`);
+                }
+            }
+        } catch (error) {
+            console.error('Error al registrar la suscripción:', error);
+            alert('Error al registrar la suscripción. Por favor, inténtelo de nuevo.');
+        }
+    };
+
+    const handleTokenSubmit = () => {
+        if (inputToken) {
+            applyToken(inputToken);
+            setIsModalOpen(false);
+        } else {
+            alert('Por favor, ingrese un token válido');
         }
     };
 
@@ -70,6 +108,29 @@ function PaymentGateway() {
             setLoading(false);
         }
     };
+
+    const registerAccessSubscriptions = async () => {
+        if (!accessToken || !userDetail) return;
+
+        try {
+            const result = await registerSubscription(userDetail.id, accessToken.token);
+            if (result.success) {
+                // alert(result.message);
+                await fetchUserDetail();
+            } else {
+                alert(`Error al registrar las suscripciones: ${result.message}`);
+            }
+        } catch (error) {
+            console.error('Error al registrar las suscripciones:', error);
+            alert('Error al registrar las suscripciones. Por favor, inténtelo de nuevo.');
+        }
+    };
+
+    useEffect(() => {
+        if (accessToken && userDetail) {
+            registerAccessSubscriptions();
+        }
+    }, [accessToken, userDetail]);
 
     const userHasPlan = (planName) => {
         return userDetail?.subscriptions_info.some(sub => sub.plan === planName && sub.status === 'approved');
@@ -143,6 +204,34 @@ function PaymentGateway() {
             <h1 className="text-3xl font-semibold mb-6 text-gray-800 text-center">Pasarela de Pago</h1>
             
             <div className="flex flex-col md:flex-row gap-6">
+                {isModalOpen && (
+                    <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center">
+                        <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+                            <h2 className="text-xl font-semibold mb-4">Ingresa tu token de acceso</h2>
+                            <input
+                                type="text"
+                                value={inputToken}
+                                onChange={(e) => setInputToken(e.target.value)}
+                                placeholder="Token de acceso"
+                                className="w-full border border-gray-300 p-2 rounded-md mb-4"
+                            />
+                            <div className="flex justify-between">
+                                <button 
+                                    onClick={() => setIsModalOpen(false)}  // Cerrar el modal
+                                    className="py-2 px-4 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition"
+                                >
+                                    Cancelar
+                                </button>
+                                <button 
+                                    onClick={handleTokenSubmit}  // Aplicar el token
+                                    className="py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                                >
+                                    Aplicar Token
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 <div className="flex-grow">
                     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
                         <h2 className="text-xl font-semibold mb-4">Planes Seleccionados</h2>
@@ -175,7 +264,7 @@ function PaymentGateway() {
                         )}
                     </div>
 
-                    <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
                         <h2 className="text-xl font-semibold mb-4">Planes Disponibles</h2>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {Object.keys(plansData).map((planId) => {
@@ -206,8 +295,17 @@ function PaymentGateway() {
                             })}
                         </div>
                     </div>
+                    <div className='bg-white rounded-lg shadow-md p-6'>
+                        <div className="mt-6 w-64">
+                            <button 
+                                onClick={() => setIsModalOpen(true)}  // Abrir el modal
+                                className="w-full py-2 px-4 rounded-md bg-red-500 text-white hover:bg-red-600 transition"
+                            >
+                                Tengo un token
+                            </button>
+                        </div>
+                    </div>
                 </div>
-
                 <div className="bg-white rounded-lg shadow-md p-6 w-full md:w-80">
                     <h2 className="text-xl font-semibold mb-4">Resumen de Pago</h2>
                     <div>

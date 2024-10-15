@@ -47,3 +47,43 @@ export const getAllSubscriptionPlans = async () => {
       throw error;
     }
   };
+
+  export const getAllAccessTokens = async () => {
+    try {
+      const response = await api.get('/payment/list-token/tokens/access/');
+      return response.data.tokens;  // Ajustado para manejar la estructura de respuesta actual
+    } catch (error) {
+      console.error('Error fetching tokens:', error);
+      throw error;
+    }
+  };
+
+  export const createAccessToken = async (tokenData) => {
+    try {
+      const response = await api.post('/payment/create-token/access/', tokenData);
+      return response.data;
+    } catch (error) {
+      console.error('Error creating token:', error);
+      throw error;
+    }
+  };
+
+  export const updateAccessToken = async (tokenId, tokenData) => {
+    try {
+      const response = await api.put(`/payment/tokens/access/update/${tokenId}/`, tokenData);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating token:', error);
+      throw error;
+    }
+  };
+  
+  export const deleteAccessToken = async (tokenId) => {
+    try {
+      const response = await api.delete(`/payment/tokens/access/delete/${tokenId}/`);
+      return response;
+    } catch (error) {
+      console.error('Error deleting token:', error);
+      throw error;
+    }
+  };

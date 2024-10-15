@@ -101,3 +101,16 @@ export const updateSubscription = async (subscriptionId, subscriptionData) => {
     throw error;
   }
 };
+
+export const registerSubscription = async (userId, token) => {
+  try {
+    const response = await api.post('/payment/register-subscription/', {
+      user_id: userId,
+      token: token
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error registering subscription:', error);
+    throw error;
+  }
+};
