@@ -46,21 +46,27 @@ const ImageNavbar: React.FC<ImageNavbarProps> = ({ onCategorySelect, activeCateg
   };
 
   const filteredCategories = useMemo(() => {
-    // Ensure "Todos" is always included and has the lowest ordering
-    const todosCategory = categories.find(cat => cat.name === 'Todos') || {
-      id: 0,
-      name: 'Todos',
-      institution_count: categories.reduce((sum, cat) => sum + (cat.institution_count || 0), 0),
-      url: '', // We'll handle the URL separately in the rendering
-      ordering: -1,
-      category: currentSection,
-      date_collection: categories[0]?.date_collection || ''
-    };
+    let categoriesArray = [...categories];
 
-    const otherCategories = categories.filter(cat => cat.name !== 'Todos');
+    if (currentSection !== 'compensacion') {
+      // Add "Todos" category for sections other than 'compensacion'
+      const todosCategory = categories.find(cat => cat.name === 'Todos') || {
+        id: 0,
+        name: 'Todos',
+        institution_count: categories.reduce((sum, cat) => sum + (cat.institution_count || 0), 0),
+        url: '', // We'll handle the URL separately in the rendering
+        ordering: -1,
+        category: currentSection,
+        date_collection: categories[0]?.date_collection || ''
+      };
+      categoriesArray = [todosCategory, ...categoriesArray.filter(cat => cat.name !== 'Todos')];
+    } else {
+      // For 'compensacion', remove "Todos" if it exists
+      categoriesArray = categoriesArray.filter(cat => cat.name !== 'Todos');
+    }
     
-    // Combine "Todos" with other categories and sort by ordering
-    return [todosCategory, ...otherCategories].sort((a, b) => a.ordering - b.ordering);
+    // Sort by ordering
+    return categoriesArray.sort((a, b) => a.ordering - b.ordering);
   }, [categories, currentSection]);
 
   const slidesToShow = useMemo(() => {
