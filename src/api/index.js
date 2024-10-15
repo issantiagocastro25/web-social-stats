@@ -1,6 +1,10 @@
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
 function getCookie(name) {
+  const csrfToken = Cookies.get('csrftoken');
+
+  console.log(csrfToken);
   let cookieValue = null;
   if (typeof document !== 'undefined') {
     if (document.cookie && document.cookie !== '') {
@@ -28,6 +32,7 @@ api.interceptors.request.use((config) => {
   if (csrfToken) {
     config.headers['X-CSRFToken'] = csrfToken;
   }
+  console.log(csrfToken);
   return config;
 });
 
