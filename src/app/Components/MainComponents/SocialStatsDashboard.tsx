@@ -80,7 +80,20 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
     try {
       const apiCategory = section;
       const fetchedCategories = await fetchCategories(apiCategory, date);
-      setCategories(fetchedCategories);
+      
+      // Crear la categoría "Todos"
+      const allCategory = {
+        id: 0,
+        name: 'Todos',
+        institution_count: fetchedCategories.reduce((sum, cat) => sum + (cat.institution_count || 0), 0),
+        url: 'https://example.com/path/to/default/image.png', // Asegúrate de usar una URL válida para el ícono de "Todos"
+        ordering: -1,
+        category: apiCategory,
+        date_collection: date
+      };
+  
+      // Añadir "Todos" al principio del array de categorías
+      setCategories([allCategory, ...fetchedCategories]);
     } catch (err: any) {
       console.error('Error loading categories:', err);
       addError(`Error al cargar las categorías: ${err.message}`);
@@ -175,19 +188,16 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
     loadCategories(currentSection, newDate);
     loadData(currentSection, activeCategory, newDate);
   };
-
   const handleCategorySelect = useCallback((categoryName: string) => {
     console.log('Category selected:', categoryName);
-    const category = categories.find(cat => cat.name === categoryName);
-    if (category) {
-      setActiveCategory(category.name);
-      setActiveCategoryId(category.id);
-      setSelectedInstitutions([]);
-      setShowTemporalAnalysis(false);
-      setTemporalData([]);
-      setShowGroupTemporalAnalysis(false);
-      loadData(currentSection, category.name, selectedDate);
-    }
+    const category = categories.find(cat => cat.name === categoryName) || { id: 0, name: 'Todos' };
+    setActiveCategory(category.name);
+    setActiveCategoryId(category.id);
+    setSelectedInstitutions([]);
+    setShowTemporalAnalysis(false);
+    setTemporalData([]);
+    setShowGroupTemporalAnalysis(false);
+    loadData(currentSection, category.name, selectedDate);
   }, [currentSection, categories, loadData, selectedDate]);
 
   const handleInstitutionSelect = useCallback((institutions: any[]) => {

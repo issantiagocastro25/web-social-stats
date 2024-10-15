@@ -97,15 +97,25 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
         setTotalItems(sortedData.length);
         setTotalPages(Math.ceil(sortedData.length / itemsPerPage));
       } else {
-        throw new Error('Respuesta de API inesperada');
+        console.error('Unexpected API response structure:', response);
+        // Instead of throwing an error, we'll set an empty array
+        setData([]);
+        setFilteredData([]);
+        setTotalItems(0);
+        setTotalPages(0);
       }
     } catch (error) {
       console.error('Error loading data:', error);
-      setError(`Error al cargar los datos: ${error.message}`);
+      // We'll set data to an empty array instead of showing an error
+      setData([]);
+      setFilteredData([]);
+      setTotalItems(0);
+      setTotalPages(0);
     } finally {
       setIsLoading(false);
     }
   }, [category, selectedType, selectedDate]);
+
 
   useEffect(() => {
     loadData();

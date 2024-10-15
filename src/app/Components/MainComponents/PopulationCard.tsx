@@ -220,11 +220,11 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 my-5">
-      <Card className="p-6">
+      <Card className="mx-2">
         
         <div className='flex justify-between items-center'>
           <div className='grid basis-10/12'>
-            <Title className=' text-[#4A00A5] text-2xl font-semibold mb-2 '> Tasa penetración total</Title>
+            <Title className=' text-secondary text-2xl font-semibold mb-3  '> Tasa penetración total</Title>
             <p> Porcentaje de la poblacion Colombiana que sigue alguna pagina de salud institucional</p>
           </div>
           <Text>{currentData.date_stat}</Text>
@@ -234,15 +234,15 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
         <div className=' grid justify-start align-baseline space-x-2 mt-4'>
           <div className='flex gap-x-3'>
             <Text className=' pl-2'>Población Colombia: </Text>
-            <Metric className=' text-[#4A00A5]'>{formatLargeNumber(currentData.poblation)}</Metric>
+            <Metric className=' text-secondary'>{formatLargeNumber(currentData.poblation)}</Metric>
           </div>
           <div className=' flex gap-x-3'>
             <Text>Seguidores únicos en el sector salud</Text>
-            <Metric className=' text-[#4A00A5]'>{formatLargeNumber(currentData.unique_followers)}</Metric>
+            <Metric className=' text-secondary'>{formatLargeNumber(currentData.unique_followers)}</Metric>
           </div>
           <div className=' flex gap-x-3'>
             <Text>Tasa de penetración</Text>
-            <Metric className=' text-[#4A00A5]' >{currentData.percentage_penetration?.toFixed(0) || 'N/A'}%</Metric>
+            <Metric className=' text-secondary' >{currentData.percentage_penetration?.toFixed(0) || 'N/A'}%</Metric>
           </div>
         </div>
 
@@ -260,9 +260,9 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
         {renderGeneralChart()}
       </Card>
 
-      <Card className="">
+      <Card className=" px-4">
         <div className='pb-4'>
-          <p className='text-[#4A00A5] font-semibold text-xl '>
+          <p className='text-secondary font-semibold text-xl pb-3'>
             Comparación de Tasas de Penetración por Red Sociales
           </p>
           <span className=' text-base'> Porcentaje de los usuarios de cada red social en Colombia que siguen alguna paginá de salud 
