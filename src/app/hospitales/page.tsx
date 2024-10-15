@@ -14,8 +14,8 @@ const MainPage = () => {
   const isLoading = authLoading || subLoading || isDashboardLoading;
 
   useEffect(() => {
-    console.log('MainPage effect - Auth loading:', authLoading, 'Sub loading:', subLoading);
     if (!authLoading && !subLoading) {
+      // Simula un tiempo de carga mínimo para el dashboard
       const timer = setTimeout(() => {
         setIsDashboardLoading(false);
       }, 1000);
@@ -24,17 +24,16 @@ const MainPage = () => {
     }
   }, [authLoading, subLoading]);
 
-  console.log('MainPage render - isAuthenticated:', isAuthenticated, 'hasSubscription:', hasSubscription('hospitales_internacionales'));
+  // console.log('MainPage render - isAuthenticated:', isAuthenticated, 'hasSubscription:', hasSubscription('hospitales_internacionales'));
 
-  if (!isAuthenticated && !authLoading) {
-    console.log('User not authenticated');
-    return null;
+  if (!isAuthenticated || !hasSubscription('hospitales_internacionales')) {
+    return null; // El hook se encargará de la redirección si es necesario
   }
 
-  if (!hasSubscription('hospitales_internacionales') && !subLoading) {
-    console.log('User does not have subscription');
-    return null;
-  }
+  // if (!hasSubscription('hospitales_internacionales') && !subLoading) {
+  //   console.log('User does not have subscription');
+  //   return null;
+  // }
 
   return (
     <>

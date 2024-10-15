@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { getAllUsers, updateUser } from '@/api/users/users.api';
 import { getPricing } from '@/api/api_suscription/data-suscription.api';
+import { format } from 'date-fns';
 
 export default function TableUsers() {
     const [users, setUsers] = useState([]);
@@ -43,10 +44,7 @@ export default function TableUsers() {
     }, []);
 
     const handleEditClick = (user) => {
-        setSelectedUser({
-            ...user,
-            subscriptions: user.subscriptions.map(sub => sub.plan)
-        });
+        setSelectedUser(user);
         setTimeout(() => {
             modalRef.current.scrollIntoView({ behavior: 'smooth' });
         }, 100);
@@ -62,30 +60,36 @@ export default function TableUsers() {
                 ...prev,
                 user_roles: [{ role: { identifier: value }}]
             }));
-        } else if (name.startsWith('subscription_')) {
-            const planId = parseInt(name.split('_')[1], 10);
-            setSelectedUser(prev => ({
-                ...prev,
-                subscriptions: checked
-                    ? [...prev.subscriptions, planId]
-                    : prev.subscriptions.filter(id => id !== planId)
-            }));
         } else {
             setSelectedUser(prev => ({ ...prev, [name]: value }));
         }
     };
 
+    const addSubscription = (planId) => {
+        const newSubscription = {
+            id: Date.now(), // Temporary ID
+            plan: planId,
+            active: true,
+            start_date: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"),
+            end_date: format(new Date(new Date().setFullYear(new Date().getFullYear() + 1)), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx")
+        };
+        setSelectedUser(prev => ({
+            ...prev,
+            subscriptions: [...prev.subscriptions, newSubscription]
+        }));
+    };
+
+    const removeSubscription = (planId) => {
+        setSelectedUser(prev => ({
+            ...prev,
+            subscriptions: prev.subscriptions.filter(sub => sub.plan !== planId)
+        }));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const updatedUser = {
-                ...selectedUser,
-                subscriptions: selectedUser.subscriptions.map(planId => {
-                    const existingSub = selectedUser.subscriptions.find(sub => sub.plan === planId);
-                    return existingSub || { plan: planId };
-                })
-            };
-            await updateUser(selectedUser.id, updatedUser);
+            await updateUser(selectedUser.id, selectedUser);
             alert('Usuario actualizado correctamente');
             loadUsers();
             setSelectedUser(null);
@@ -93,6 +97,15 @@ export default function TableUsers() {
             console.error('Error actualizando usuario:', err);
             alert('Error al actualizar el usuario');
         }
+    };
+
+    const handleSubscriptionChange = (planId, field, value) => {
+        setSelectedUser(prevUser => ({
+            ...prevUser,
+            subscriptions: prevUser.subscriptions.map(sub => 
+                sub.plan === planId ? { ...sub, [field]: value } : sub
+            )
+        }));
     };
 
     const loadUsers = useCallback(async () => {
@@ -246,25 +259,70 @@ export default function TableUsers() {
                                                     {/* Agrega más roles según sea necesario */}
                                                 </select>
                                             </div>
-                                            <div className="col-span-6 sm:col-span-3">
-                                                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Planes de Suscripción</label>
-                                                <div className="space-y-2">
-                                                    {subscriptionPlans.map(plan => (
-                                                        <div key={plan.id} className="flex items-center">
-                                                            <input
-                                                                type="checkbox"
-                                                                id={`subscription_${plan.id}`}
-                                                                name={`subscription_${plan.id}`}
-                                                                checked={selectedUser.subscriptions.includes(plan.id)}
-                                                                onChange={handleChange}
-                                                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                                                            />
-                                                            <label htmlFor={`subscription_${plan.id}`} className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
-                                                                {plan.title}
-                                                            </label>
+                                            <div className="col-span-6">
+                                                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Suscripciones</label>
+                                                {subscriptionPlans.map(plan => {
+                                                    const userSubscription = selectedUser.subscriptions.find(sub => sub.plan === plan.id);
+                                                    return (
+                                                        <div key={plan.id} className="mb-4 p-4 border rounded">
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <span className="text-sm font-medium">{plan.title}</span>
+                                                                {userSubscription ? (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => removeSubscription(plan.id)}
+                                                                        className="text-red-600 hover:text-red-800"
+                                                                    >
+                                                                        Eliminar
+                                                                    </button>
+                                                                ) : (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => addSubscription(plan.id)}
+                                                                        className="text-green-600 hover:text-green-800"
+                                                                    >
+                                                                        Agregar
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                            {userSubscription && (
+                                                                <>
+                                                                    <div className="grid grid-cols-2 gap-4 mt-2">
+                                                                        <div>
+                                                                            <label className="block text-xs mb-1">Fecha de inicio</label>
+                                                                            <input
+                                                                                type="date"
+                                                                                value={userSubscription.start_date.split('T')[0]}
+                                                                                onChange={(e) => handleSubscriptionChange(plan.id, 'start_date', e.target.value)}
+                                                                                className="w-full p-2 text-sm border rounded"
+                                                                            />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-xs mb-1">Fecha de vencimiento</label>
+                                                                            <input
+                                                                                type="date"
+                                                                                value={userSubscription.end_date.split('T')[0]}
+                                                                                onChange={(e) => handleSubscriptionChange(plan.id, 'end_date', e.target.value)}
+                                                                                className="w-full p-2 text-sm border rounded"
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="mt-2">
+                                                                        <label className="flex items-center">
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                checked={userSubscription.active}
+                                                                                onChange={(e) => handleSubscriptionChange(plan.id, 'active', e.target.checked)}
+                                                                                className="mr-2"
+                                                                            />
+                                                                            <span className="text-sm">Aprobado</span>
+                                                                        </label>
+                                                                    </div>
+                                                                </>
+                                                            )}
                                                         </div>
-                                                    ))}
-                                                </div>
+                                                    );
+                                                })}
                                             </div>
                                         </div>
                                     </div>
