@@ -294,23 +294,28 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
 
   return (
     <div className="min-h-screen bg-[#fffefb] flex flex-col">
-      <div className="container mx-auto px-4 py-8 flex-grow">
-        <h1 className="text-5xl font-bold text-center mb-8 text-secondary-dark">
+      <div className="container mx-auto px-4 pt-6 pb-4 flex-grow">
+        <h1 className="text-4xl font-bold text-center text-secondary-dark">
           {currentSection === 'salud' ? 'El sector salud de Colombia' : 
            currentSection === 'compensacion' ? 'Cajas de compensación de Colombia' : 
            currentSection === 'hospitales' ? 'Hospitales de referencia internacionales' :
            'Hospitales de Estados Unidos'}
         </h1>
-  
-        <Select 
-          className="w-64 mb-6 border-gray-300 focus:border-secondary focus:ring-secondary" 
-          value={selectedDate} 
-          onChange={handleDateChange} 
-        >
-          {availableDates.map(date => (
-            <option key={date} value={date}>{formatDate(date)}</option>
-          ))}
-        </Select>
+
+        <div className=' flex gap-x-3 justify-end items-center mt-5 mb-6 pr-10'>
+          <p className=' '>
+            Ver estadísticas de: 
+          </p>
+          <Select 
+            className="w-64  border-gray-300 focus:border-secondary focus:ring-secondary" 
+            value={selectedDate} 
+            onChange={handleDateChange} 
+          >
+            {availableDates.map(date => (
+              <option key={date} value={date}>{formatDate(date)}</option>
+            ))}
+          </Select>
+        </div>
   
         {isLoading ? (
           <div className="animate-pulse space-y-4">

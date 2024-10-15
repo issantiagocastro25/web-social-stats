@@ -219,19 +219,34 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 my-5">
       <Card className="p-6">
-        <Flex justifyContent="between" alignItems="center">
-          <Title>Población Colombia</Title>
-          <Text>{currentData.date_stat}</Text>
-        </Flex>
         
-        <Flex justifyContent="start" alignItems="baseline" className="space-x-2 mt-4">
-          <Metric>{formatLargeNumber(currentData.poblation)}</Metric>
-          <Text>habitantes</Text>
-        </Flex>
+        <div className='flex justify-between items-center'>
+          <div className='grid basis-10/12'>
+            <Title className=' text-[#4A00A5] text-2xl font-semibold mb-2 '> Tasa penetración total</Title>
+            <p> Porcentaje de la poblacion Colombiana que sigue alguna pagina de salud institucional</p>
+          </div>
+          <Text>{currentData.date_stat}</Text>
+        </div>
+          
+        
+        <div className=' grid justify-start align-baseline space-x-2 mt-4'>
+          <div className='flex gap-x-3'>
+            <Text className=' pl-2'>Población Colombia: </Text>
+            <Metric className=' text-[#4A00A5]'>{formatLargeNumber(currentData.poblation)}</Metric>
+          </div>
+          <div className=' flex gap-x-3'>
+            <Text>Seguidores únicos en el sector salud</Text>
+            <Metric className=' text-[#4A00A5]'>{formatLargeNumber(currentData.unique_followers)}</Metric>
+          </div>
+          <div className=' flex gap-x-3'>
+            <Text>Tasa de penetración</Text>
+            <Metric className=' text-[#4A00A5]' >{currentData.percentage_penetration?.toFixed(0) || 'N/A'}%</Metric>
+          </div>
+        </div>
 
-        <Flex justifyContent="between" className="mt-4">
+        {/* <Flex justifyContent="between" className="mt-4">
           <Card decoration="top" decorationColor="blue" className="w-[48%]">
             <Text>Seguidores únicos en el sector salud</Text>
             <Metric>{formatLargeNumber(currentData.unique_followers)}</Metric>
@@ -240,12 +255,19 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
             <Text>Tasa de penetración</Text>
             <Metric>{currentData.percentage_penetration?.toFixed(0) || 'N/A'}%</Metric>
           </Card>
-        </Flex>
+        </Flex> */}
         
         {renderGeneralChart()}
       </Card>
 
-      <Card className="p-6">
+      <Card className="">
+        <div className='pb-4'>
+          <p className='text-[#4A00A5] font-semibold text-xl '>
+            Comparación de Tasas de Penetración por Red Sociales
+          </p>
+          <span className=' text-base'> Porcentaje de los usuarios de cada red social en Colombia que siguen alguna paginá de salud 
+            institucional</span>
+        </div>
         <Select value={selectedNetwork} onValueChange={setSelectedNetwork as any}>
           <SelectItem value="all">Todas las redes</SelectItem>
           {socialNetworks.map(network => (
