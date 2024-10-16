@@ -174,25 +174,28 @@ function PaymentGateway() {
 
     const handleProceedToPayment = async () => {
         if (selectedPlans.length === 0) {
-            alert("No hay ningún producto seleccionado.");
-            return;
+          alert("No hay ningún producto seleccionado.");
+          return;
         }
         if (!isAuthenticated || !userDetail?.id) {
-            alert("Debes iniciar sesión para continuar.");
-            return;
+          alert("Debes iniciar sesión para continuar.");
+          return;
         }
         try {
-            const planNames = selectedPlans.map(plan => plan.suscripName);
-            const paymentData = await getPaymentUrl(userDetail.id, planNames);
-            
-            if (paymentData && paymentData.init_point) {
-                window.location.href = paymentData.init_point;
-            } else {
-                throw new Error('No se recibió una URL de pago válida');
-            }
+          const paymentData = await getPaymentUrl(
+            userDetail.id, 
+            selectedPlans.map(plan => plan.suscripName), // Enviamos solo los nombres de los planes
+            discountToken ? discountToken.token : null // Pasamos el token si existe
+          );
+          
+          if (paymentData && paymentData.init_point) {
+            window.location.href = paymentData.init_point;
+          } else {
+            throw new Error('No se recibió una URL de pago válida');
+          }
         } catch (error) {
-            console.error('Error al procesar el pago:', error);
-            alert('Hubo un error al procesar el pago. Por favor, inténtelo de nuevo.');
+          console.error('Error al procesar el pago:', error);
+          alert('Hubo un error al procesar el pago. Por favor, inténtelo de nuevo.');
         }
     };
 
