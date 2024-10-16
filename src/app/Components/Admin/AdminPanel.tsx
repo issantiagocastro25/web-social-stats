@@ -10,11 +10,11 @@ import TokenCopyComponent from '../Buttons/CopyTokenButton';
 export default function AdminPanel() {
     const [tokens, setTokens] = useState([]);
     const [plans, setPlans] = useState([]);
-    const [accessTokens, setAccessTokens] = useState([]); // New state
+    const [accessTokens, setAccessTokens] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentItem, setCurrentItem] = useState(null);
     const [isTokenModal, setIsTokenModal] = useState(true);
-    const [isAccessTokenModal, setIsAccessTokenModal] = useState(false); // New state
+    const [isAccessTokenModal, setIsAccessTokenModal] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const { showAlert } = useAlert();
 
@@ -55,17 +55,25 @@ export default function AdminPanel() {
         e.preventDefault();
         try {
             if (isTokenModal) {
+                const tokenData = {
+                    ...currentItem,
+                    plan_ids: currentItem.plan_ids || []
+                };
                 if (currentItem?.id) {
-                    await updateToken(currentItem.id, currentItem);
+                    await updateToken(currentItem.id, tokenData);
                 } else {
-                    await createToken(currentItem);
+                    await createToken(tokenData);
                 }
                 await fetchTokens();
-            }else if (isAccessTokenModal) {
+            } else if (isAccessTokenModal) {
+                const accessTokenData = {
+                    ...currentItem,
+                    subscription_plans: currentItem.subscription_plans || []
+                };
                 if (currentItem?.id) {
-                    await updateAccessToken(currentItem.id, currentItem);
+                    await updateAccessToken(currentItem.id, accessTokenData);
                 } else {
-                    await createAccessToken(currentItem);
+                    await createAccessToken(accessTokenData);
                 }
                 await fetchAccessTokens();
             } else {
@@ -85,67 +93,61 @@ export default function AdminPanel() {
     const handleDelete = async (id, isToken, isAccessToken) => {
         try {
             if (isToken) {
-                try {
-                    const response = await deleteToken(id);
-                    showAlert('Se ha eliminado el token', 'success');
-                    await fetchTokens();
-                } catch (error) {
-                    showAlert('Ups, Error al eliminar el token', 'error');
-                }
+                await deleteToken(id);
+                showAlert('Se ha eliminado el token', 'success');
+                await fetchTokens();
             } else if (isAccessToken) {
-                try {
-                    await deleteAccessToken(id);
-                    showAlert('Se ha eliminado el token de acceso', 'success');
-                    await fetchAccessTokens();
-                } catch (error) {
-                    showAlert('Ups, Error al eliminar el token de acceso', 'error');
-                }
+                await deleteAccessToken(id);
+                showAlert('Se ha eliminado el token de acceso', 'success');
+                await fetchAccessTokens();
             } else {
-                try {
-                    await deleteSubscriptionPlan(id);
-                    showAlert('Se ha eliminado el plan', 'success');
-                    await fetchPlans();
-                } catch (error) {
-                    showAlert('Ups, Error al eliminar el plan', 'error');
-                }
+                await deleteSubscriptionPlan(id);
+                showAlert('Se ha eliminado el plan', 'success');
+                await fetchPlans();
             }
         } catch (error) {
             console.error('Error deleting item:', error);
+            showAlert('Ups, Error al eliminar el item', 'error');
         }
     };
 
     const handlePlanSelection = (planId) => {
         setCurrentItem((prevState) => {
-            const selectedPlans = prevState.plan_ids || [];
+            const selectedPlans = isTokenModal
+                ? prevState.plan_ids || []
+                : prevState.subscription_plans || [];
             if (selectedPlans.includes(planId)) {
-                return { ...prevState, plan_ids: selectedPlans.filter(id => id !== planId) };
+                return {
+                    ...prevState,
+                    [isTokenModal ? 'plan_ids' : 'subscription_plans']: selectedPlans.filter(id => id !== planId)
+                };
             } else {
-                return { ...prevState, plan_ids: [...selectedPlans, planId] };
+                return {
+                    ...prevState,
+                    [isTokenModal ? 'plan_ids' : 'subscription_plans']: [...selectedPlans, planId]
+                };
             }
         });
     };
 
     const openModal = (item, isToken, isAccessToken) => {
-        const initialItem = item || (isToken ? { title: '', token: '', discount: '', start_date: '', end_date: '', plan_ids: [] } : { name: '', title: '', imageCover: '', description: '', price: '', duration_days: '' });
-    
-        if (isToken && item) {
-            // Mapea los nombres de los planes en el array subscription_plans a los IDs de los planes correspondientes
-            const selectedPlans = plans
-                .filter(plan => item.subscription_plans.includes(plan.name))
-                .map(plan => plan.id);
-    
-            // Asegúrate de formatear las fechas a 'YYYY-MM-DD'
-            const formattedStartDate = item.start_date.split('T')[0]; // Esto extrae solo la parte de la fecha
-            const formattedEndDate = item.end_date.split('T')[0];
-    
-            setCurrentItem({
-                ...initialItem,
-                plan_ids: selectedPlans, // Almacena los IDs de los planes seleccionados
-                start_date: formattedStartDate, // Formato correcto para el input de fecha
-                end_date: formattedEndDate,    // Formato correcto para el input de fecha
-            });
+        let initialItem;
+        if (isToken) {
+            initialItem = item || { title: '', token: '', discount: '', start_date: '', end_date: '', plan_ids: [] };
+            if (item) {
+                const selectedPlans = plans
+                    .filter(plan => item.subscription_plans.includes(plan.name))
+                    .map(plan => plan.id);
+                const formattedStartDate = item.start_date.split('T')[0];
+                const formattedEndDate = item.end_date.split('T')[0];
+                initialItem = {
+                    ...item,
+                    plan_ids: selectedPlans,
+                    start_date: formattedStartDate,
+                    end_date: formattedEndDate,
+                };
+            }
         } else if (isAccessToken) {
-            let initialItem;
             initialItem = item || { title: '', token: '', start_date: '', end_date: '', is_active: true, subscription_plans: [] };
             if (item) {
                 const selectedPlans = plans
@@ -160,8 +162,8 @@ export default function AdminPanel() {
                     end_date: formattedEndDate,
                 };
             }
-        }else {
-            setCurrentItem(initialItem);
+        } else {
+            initialItem = item || { name: '', title: '', imageCover: '', description: '', price: '', duration_days: '' };
         }
         
         setCurrentItem(initialItem);
