@@ -1,4 +1,3 @@
-// components/layout.tsx
 import "./globals.css";
 import { AlertProvider } from './contexts/AlertContext';
 import ClientLayout from './ClientLayout';
@@ -17,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={poppins.className}>
+    <html lang="es" className={`${poppins.variable} font-sans`}>
       <body>
         <AuthProvider>
           <AlertProvider>
