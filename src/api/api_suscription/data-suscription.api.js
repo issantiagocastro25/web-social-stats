@@ -104,7 +104,7 @@ export const updateSubscription = async (subscriptionId, subscriptionData) => {
 
 export const registerSubscription = async (userId, token) => {
   try {
-    const response = await api.post('/payment/register-subscription/', {
+    const response = await api.post('/payment/register-subscription-user/', {
       user_id: userId,
       token: token
     });
