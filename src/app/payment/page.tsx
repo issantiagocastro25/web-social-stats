@@ -207,12 +207,12 @@ function PaymentGateway() {
                 {isModalOpen && (
                     <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center">
                         <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-                            <h2 className="text-xl font-semibold mb-4">Ingresa tu token de acceso</h2>
+                            <h2 className="text-xl font-semibold mb-4">Ingresa tu token</h2>
                             <input
                                 type="text"
                                 value={inputToken}
                                 onChange={(e) => setInputToken(e.target.value)}
-                                placeholder="Token de acceso"
+                                placeholder="Token"
                                 className="w-full border border-gray-300 p-2 rounded-md mb-4"
                             />
                             <div className="flex justify-between">
