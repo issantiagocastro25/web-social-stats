@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Table, Checkbox, Button, Pagination, Alert, Select, TextInput } from 'flowbite-react';
 import { FaFacebook, FaInstagram, FaYoutube, FaSort, FaSortUp, FaSortDown, FaTimes, FaTrash, FaSearch } from 'react-icons/fa';
 import { SiTiktok } from 'react-icons/si';
@@ -39,7 +39,10 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
   totalItems,
   data
 }) => {
-  const [sortConfig, setSortConfig] = useState<{ key: string | null, direction: 'ascending' | 'descending' }>({ key: null, direction: 'ascending' });
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'ascending' | 'descending' }>({ 
+    key: 'social_networks.Facebook.followers', 
+    direction: 'descending' 
+  });
   const [visibleNetworks, setVisibleNetworks] = useState({
     basic: true,
     Facebook: true,
@@ -50,7 +53,7 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
   });
 
   const columns = [
-    { key: 'Institucion', label: 'Institución', network: 'basic' },
+    { key: 'Institucion', label: 'Institución', network: 'basic', fixed: true },
     { key: 'Tipo', label: 'Tipo', network: 'basic' },
     { key: 'Ciudad', label: 'Ciudad', network: 'basic' },
     { key: 'social_networks.Facebook.followers', label: 'Facebook Seguidores', network: 'Facebook' },
@@ -77,8 +80,8 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
     let sortableItems = [...data];
     if (sortConfig.key !== null) {
       sortableItems.sort((a, b) => {
-        const aValue = sortConfig.key.split('.').reduce((o, key) => o?.[key], a);
-        const bValue = sortConfig.key.split('.').reduce((o, key) => o?.[key], b);
+        const aValue = sortConfig.key.split('.').reduce((o, key) => o?.[key], a) || 0;
+        const bValue = sortConfig.key.split('.').reduce((o, key) => o?.[key], b) || 0;
         if (aValue < bValue) {
           return sortConfig.direction === 'ascending' ? -1 : 1;
         }
@@ -91,30 +94,34 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
     return sortableItems;
   }, [data, sortConfig]);
 
-  const handleSort = (key: string) => {
+  useEffect(() => {
+    setSortConfig({ key: 'social_networks.Facebook.followers', direction: 'descending' });
+  }, []);
+
+  const handleSort = useCallback((key: string) => {
     setSortConfig(prevConfig => {
       if (prevConfig.key === key) {
         return { key, direction: prevConfig.direction === 'ascending' ? 'descending' : 'ascending' };
       }
       return { key, direction: 'ascending' };
     });
-  };
+  }, []);
 
-  const handleRowSelect = (institution: any) => {
+  const handleRowSelect = useCallback((institution: any) => {
     onInstitutionSelect(
       selectedInstitutions.some(i => i.Institucion === institution.Institucion)
         ? selectedInstitutions.filter(i => i.Institucion !== institution.Institucion)
         : [...selectedInstitutions, institution]
     );
-  };
+  }, [selectedInstitutions, onInstitutionSelect]);
 
-  const isRowSelected = (institution: any) => {
+  const isRowSelected = useCallback((institution: any) => {
     return selectedInstitutions.some(i => i.Institucion === institution.Institucion);
-  };
+  }, [selectedInstitutions]);
 
-  const toggleNetwork = (network: keyof typeof visibleNetworks) => {
+  const toggleNetwork = useCallback((network: keyof typeof visibleNetworks) => {
     setVisibleNetworks(prev => ({ ...prev, [network]: !prev[network] }));
-  };
+  }, []);
 
   const SortIcon: React.FC<{ column: string }> = ({ column }) => {
     if (sortConfig.key !== column) {
@@ -123,7 +130,7 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
     return sortConfig.direction === 'ascending' ? <FaSortUp className="ml-1 text-blue-500" /> : <FaSortDown className="ml-1 text-blue-500" />;
   };
 
-  const formatValue = (currentValue: any, previousValue: any) => {
+  const formatValue = useCallback((currentValue: any, previousValue: any) => {
     if (typeof currentValue === 'number' && typeof previousValue === 'number' && previousValue !== 0) {
       const percentageChange = ((currentValue - previousValue) / previousValue) * 100;
       const formattedValue = currentValue.toLocaleString('es-ES', { maximumFractionDigits: 2 });
@@ -139,6 +146,21 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
       );
     }
     return currentValue?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }, []);
+
+  const cellStyle = {
+    whiteSpace: 'normal',
+    wordWrap: 'break-word',
+    maxWidth: '200px',
+    minWidth: '100px',
+  };
+
+  const fixedColumnStyle = {
+    ...cellStyle,
+    position: 'sticky',
+    left: 0,
+    backgroundColor: 'white',
+    zIndex: 10,
   };
 
   return (
@@ -202,10 +224,10 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
         </div>
       )}
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto relative">
         <Table>
           <Table.Head>
-            <Table.HeadCell className="w-4 p-4">
+            <Table.HeadCell className="w-4 p-4 sticky left-0 z-20 bg-white">
               <Checkbox 
                 checked={selectedInstitutions.length === sortedData.length}
                 onChange={() => onInstitutionSelect(selectedInstitutions.length === sortedData.length ? [] : sortedData)}
@@ -214,8 +236,9 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
             {visibleColumns.map((column) => (
               <Table.HeadCell 
                 key={column.key} 
-                className="cursor-pointer"
+                className={`cursor-pointer ${column.fixed ? 'sticky left-12 z-20 bg-white' : ''}`}
                 onClick={() => handleSort(column.key)}
+                style={column.fixed ? fixedColumnStyle : {}}
               >
                 <div className="flex items-center">
                   {column.label}
@@ -233,21 +256,22 @@ const InteractiveDataTable: React.FC<InteractiveDataTableProps> = ({
                 } hover:bg-gray-50 dark:hover:bg-gray-700`}
                 onClick={() => handleRowSelect(item)}
               >
-                <Table.Cell className="w-4 p-4">
+                <Table.Cell className="w-4 p-4 sticky left-0 z-10 bg-inherit">
                   <Checkbox
                     checked={isRowSelected(item)}
                     onChange={() => handleRowSelect(item)}
                     onClick={(e) => e.stopPropagation()}
                   />
                 </Table.Cell>
-                {visibleColumns.map((column) => (
+                {visibleColumns.map((column, index) => (
                   <Table.Cell 
                     key={column.key}
-                    className={`px-6 py-4 ${column.key === 'Institucion' ? 'whitespace-normal' : 'whitespace-nowrap'}`}
+                    style={index === 0 ? fixedColumnStyle : cellStyle}
+                    className={`px-6 py-4 ${index === 0 ? 'sticky left-12 z-10 bg-inherit' : ''}`}
                   >
                     {formatValue(
                       column.key.split('.').reduce((o, key) => (o && o[key] !== undefined ? o[key] : 'N/A'), item),
-                      null // We don't have previous data in this context
+                      null
                     )}
                   </Table.Cell>
                 ))}

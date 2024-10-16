@@ -37,6 +37,7 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
   const pathname = usePathname();
   const [currentSection, setCurrentSection] = useState<SectionType>(section);
   const [data, setData] = useState<any[]>([]);
+  const [allData, setAllData] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('Todos');
   const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
@@ -64,6 +65,10 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
   const [itemsPerPage, setItemsPerPage] = useState<number>(6);
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'ascending' | 'descending' }>({
+    key: 'social_networks.Facebook.followers',
+    direction: 'descending'
+  });
 
   const addError = useCallback((error: string) => {
     setErrors(prevErrors => [...prevErrors, error]);
@@ -99,11 +104,11 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
     }
   }, [addError, clearErrors]);
 
-  const loadData = useCallback(async (section: SectionType, category: string, date: string, page: number = 1, search: string = '') => {
+  const loadData = useCallback(async (section: SectionType, category: string, date: string, search: string = '') => {
     setIsLoading(true);
     clearErrors();
     try {
-      console.log('Loading data for:', { section, category, date, page, search, itemsPerPage });
+      console.log('Loading data for:', { section, category, date, search });
       
       const summaryResponse = await fetchSummaryAndUniqueFollowers({
         category: section,
@@ -121,20 +126,22 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
         category: section,
         type: category === 'Todos' ? 'todos' : category.toLowerCase(),
         date: date,
-        page: page,
-        pageSize: itemsPerPage,
+        page: 1,
+        pageSize: 1000, // Un número grande para obtener todos los datos
         search: search
       });
 
-      console.log('API Response:', socialStatsResponse);
-
       if (socialStatsResponse && socialStatsResponse.data) {
-        const { metrics, total_pages, current_page, total_items } = socialStatsResponse.data;
-        setData(metrics || []);
-        setFilteredData(metrics || []);
-        setTotalPages(Math.max(total_pages, 1));
-        setCurrentPage(current_page);
+        const { metrics, total_items } = socialStatsResponse.data;
+        setAllData(metrics || []);
         setTotalItems(total_items);
+        
+        // Aplica ordenamiento inicial
+        const sortedData = sortData(metrics, sortConfig.key, sortConfig.direction);
+        setFilteredData(sortedData);
+        
+        // Actualiza la paginación
+        updatePaginatedData(sortedData, 1);
       } else {
         throw new Error('Respuesta de API inesperada para los datos paginados');
       }
@@ -144,7 +151,44 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [addError, clearErrors, itemsPerPage]);
+  }, [addError, clearErrors, sortConfig]);
+
+  const sortData = useCallback((data: any[], key: string, direction: 'ascending' | 'descending') => {
+    return [...data].sort((a, b) => {
+      const aValue = key.split('.').reduce((o, k) => o?.[k], a) || 0;
+      const bValue = key.split('.').reduce((o, k) => o?.[k], b) || 0;
+      if (aValue < bValue) return direction === 'ascending' ? -1 : 1;
+      if (aValue > bValue) return direction === 'ascending' ? 1 : -1;
+      return 0;
+    });
+  }, []);
+
+  const updatePaginatedData = useCallback((data: any[], page: number) => {
+    const startIndex = (page - 1) * itemsPerPage;
+    const paginatedData = data.slice(startIndex, startIndex + itemsPerPage);
+    setData(paginatedData);
+    setCurrentPage(page);
+    setTotalPages(Math.ceil(data.length / itemsPerPage));
+  }, [itemsPerPage]);
+
+  const handleSort = useCallback((key: string, direction: 'ascending' | 'descending') => {
+    setSortConfig({ key, direction });
+    const sortedData = sortData(filteredData, key, direction);
+    setFilteredData(sortedData);
+    updatePaginatedData(sortedData, 1);
+  }, [filteredData, sortData, updatePaginatedData]);
+
+  const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const term = e.target.value.toLowerCase();
+    setSearchTerm(term);
+    const filtered = allData.filter(item => 
+      item.Institucion.toLowerCase().includes(term) ||
+      item.Ciudad.toLowerCase().includes(term) ||
+      item.Tipo.toLowerCase().includes(term)
+    );
+    setFilteredData(filtered);
+    updatePaginatedData(filtered, 1);
+  }, [allData, updatePaginatedData]);
 
   useEffect(() => {
     console.log('SocialStatsDashboard effect - Loading initial data');
@@ -196,7 +240,7 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
     setTemporalData([]);
     setShowGroupTemporalAnalysis(false);
     setCurrentPage(1);
-    loadData(currentSection, category.name, selectedDate, 1, searchTerm);
+    loadData(currentSection, category.name, selectedDate, searchTerm);
   }, [currentSection, categories, loadData, selectedDate, searchTerm]);
 
   const handleInstitutionSelect = useCallback((institutions: any[]) => {
@@ -310,22 +354,13 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
     }
   };
 
-  const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const term = e.target.value;
-    setSearchTerm(term);
-    setCurrentPage(1);
-    loadData(currentSection, activeCategory, selectedDate, 1, term);
-  }, [currentSection, activeCategory, selectedDate, loadData]);
-
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    loadData(currentSection, activeCategory, selectedDate, page, searchTerm);
+    updatePaginatedData(filteredData, page);
   };
 
   const handleItemsPerPageChange = (newItemsPerPage: number) => {
     setItemsPerPage(newItemsPerPage);
-    setCurrentPage(1);
-    loadData(currentSection, activeCategory, selectedDate, 1, searchTerm);
+    updatePaginatedData(filteredData, 1);
   };
 
   const showCategories = useMemo(() => 
@@ -348,6 +383,7 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
            currentSection === 'hospitales' ? 'Hospitales de referencia internacionales' :
            'Hospitales de Estados Unidos'}
         </h1>
+
         <div className='flex gap-x-3 justify-end items-center mt-5 mb-6 pr-10'>
           <p>Ver estadísticas de:</p>
           <Select 
@@ -430,7 +466,9 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
                 currentPage={currentPage}
                 totalPages={totalPages}
                 totalItems={totalItems}
-                data={filteredData}
+                data={data}
+                onSort={handleSort}
+                sortConfig={sortConfig}
               />
               <div className="mb-6 flex space-x-4 items-center justify-end pt-3">  
                 <Button 
