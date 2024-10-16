@@ -33,7 +33,7 @@ const api = axios.create({
 // Function to get CSRF token
 const getCSRFToken = async () => {
   try {
-    const response = await axios.get('/getCsrf-token/');
+    const response = await axios.get('https://api-stats.colombiaredessociales.com/api/getCsrf-token/');
     return response.data.csrfToken;
   } catch (error) {
     console.error('Error fetching CSRF token:', error);
