@@ -158,9 +158,23 @@ function PaymentGateway() {
 
     const calculateDiscountedPrice = (plan) => {
         if (discountToken && discountToken.subscription_plans.includes(plan.suscripName)) {
-            return plan.price - (plan.price * (discountToken.discount / 100));
+            return plan.price * (1 - discountToken.discount / 100);
         }
         return plan.price;
+    };
+
+    const calculateTotals = () => {
+        const monthlySubtotal = selectedPlans.reduce((total, plan) => total + plan.price, 0);
+        const monthlyDiscountedTotal = selectedPlans.reduce((total, plan) => total + calculateDiscountedPrice(plan), 0);
+        const monthlyDiscount = monthlySubtotal - monthlyDiscountedTotal;
+        const semesterTotal = monthlyDiscountedTotal * 6;
+
+        return {
+            monthlySubtotal,
+            monthlyDiscountedTotal,
+            monthlyDiscount,
+            semesterTotal
+        };
     };
 
     const calculateSemesterPrice = (price) => price * 6;
@@ -168,9 +182,10 @@ function PaymentGateway() {
 
     const totalPrice = selectedPlans.reduce((total, plan) => total + plan.price, 0);
     const totalWithDiscounts = selectedPlans.reduce((total, plan) => total + calculateDiscountedPrice(plan), 0);
+    const { monthlySubtotal, monthlyDiscountedTotal, monthlyDiscount, semesterTotal } = calculateTotals();
 
     const monthlyTotal = selectedPlans.reduce((total, plan) => total + calculateDiscountedPrice(plan), 0);
-    const semesterTotal = calculateSemesterPrice(monthlyTotal);
+    // const semesterTotal = calculateSemesterPrice(monthlyTotal);
 
     const handleProceedToPayment = async () => {
         if (selectedPlans.length === 0) {
@@ -314,18 +329,18 @@ function PaymentGateway() {
                             <div>
                                 <div className="flex justify-between font-semibold text-lg mb-2">
                                     <span>Subtotal mensual:</span>
-                                    <span>{formatPrice(monthlyTotal)}</span>
+                                    <span>{formatPrice(monthlySubtotal)}</span>
                                 </div>
                                 {discountToken && (
                                     <div className="flex justify-between font-semibold text-lg text-green-600">
                                         <span>Descuento aplicado ({discountToken.discount}%)</span>
-                                        <span>-{formatPrice((totalPrice - monthlyTotal) / 6)}/mes</span>
+                                        <span>-{formatPrice(monthlyDiscount)}/mes</span>
                                     </div>
                                 )}
                                 <div className="border-t pt-4 mt-4">
                                     <div className="flex justify-between font-semibold text-lg">
                                         <span>Total mensual:</span>
-                                        <span>{formatPrice(monthlyTotal)}</span>
+                                        <span>{formatPrice(monthlyDiscountedTotal)}</span>
                                     </div>
                                     <div className="flex justify-between font-semibold text-xl mt-2 text-blue-600">
                                         <span>Total a pagar (semestral):</span>
