@@ -46,15 +46,18 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
       setIsLoading(true);
       setError(null);
       try {
+        const endpoint = category === 'compensacion' 
+          ? `${API_URL}/api/social-metrics/followers/compensacion`
+          : `${API_URL}/api/social-metrics/followers`;
+
         const promises = availableDates.map(date => 
-          axios.get<GeneralPopulationData>(`${API_URL}/api/social-metrics/followers`, {
+          axios.get<GeneralPopulationData>(endpoint, {
             params: { category, stats_date: date }
           })
         );
         const responses = await Promise.all(promises);
         const data = responses.map(response => response.data);
         
-        // Sort data by year and remove duplicates
         const uniqueSortedData = data
           .sort((a, b) => a.date_stat - b.date_stat)
           .filter((item, index, self) =>
@@ -72,6 +75,7 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
 
     fetchGeneralData();
   }, [availableDates, API_URL, category]);
+
 
   useEffect(() => {
     const fetchDetailedData = async () => {
@@ -218,6 +222,7 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
     return <Card className="mt-6"><Text>No hay datos disponibles</Text></Card>;
   }
 
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 my-5">
       <Card className="mx-2">
@@ -237,7 +242,7 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
         
         <div className='grid justify-start align-baseline space-x-2 mt-4'>
           <div className='flex gap-x-3'>
-            <Text className='pl-2'>Total afiliados y beneficiados: </Text>
+            <Text className='pl-2'>{category === 'compensacion' ? 'Total afiliados y beneficiados:' : 'Población Colombia:'} </Text>
             <Metric className='text-secondary-dark'>{formatLargeNumber(currentData.poblation)}</Metric>
           </div>
           <div className='flex gap-x-3'>
@@ -259,8 +264,9 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
             Comparación de Tasas de Penetración por Red Sociales
           </p>
           <span className='text-base'>
-            
-            {category === 'compensacion' ? ' Porcentaje de afiliados y beneficiados que siguen páginas oficiales de las Cajas de compensación por tipo de red social' : ' Porcentaje de los usuarios de cada red social en Colombia que siguen alguna página '}
+            {category === 'compensacion' 
+              ? 'Porcentaje de afiliados y beneficiados que siguen páginas oficiales de las Cajas de compensación por tipo de red social'
+              : 'Porcentaje de los usuarios de cada red social en Colombia que siguen alguna página de salud institucional'}
           </span>
         </div>
         <Select value={selectedNetwork} onValueChange={setSelectedNetwork as any}>
