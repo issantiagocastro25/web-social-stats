@@ -158,9 +158,23 @@ function PaymentGateway() {
 
     const calculateDiscountedPrice = (plan) => {
         if (discountToken && discountToken.subscription_plans.includes(plan.suscripName)) {
-            return plan.price - (plan.price * (discountToken.discount / 100));
+            return plan.price * (1 - discountToken.discount / 100);
         }
         return plan.price;
+    };
+
+    const calculateTotals = () => {
+        const monthlySubtotal = selectedPlans.reduce((total, plan) => total + plan.price, 0);
+        const monthlyDiscountedTotal = selectedPlans.reduce((total, plan) => total + calculateDiscountedPrice(plan), 0);
+        const monthlyDiscount = monthlySubtotal - monthlyDiscountedTotal;
+        const semesterTotal = monthlyDiscountedTotal * 6;
+
+        return {
+            monthlySubtotal,
+            monthlyDiscountedTotal,
+            monthlyDiscount,
+            semesterTotal
+        };
     };
 
     const calculateSemesterPrice = (price) => price * 6;
@@ -168,31 +182,35 @@ function PaymentGateway() {
 
     const totalPrice = selectedPlans.reduce((total, plan) => total + plan.price, 0);
     const totalWithDiscounts = selectedPlans.reduce((total, plan) => total + calculateDiscountedPrice(plan), 0);
+    const { monthlySubtotal, monthlyDiscountedTotal, monthlyDiscount, semesterTotal } = calculateTotals();
 
     const monthlyTotal = selectedPlans.reduce((total, plan) => total + calculateDiscountedPrice(plan), 0);
-    const semesterTotal = calculateSemesterPrice(monthlyTotal);
+    // const semesterTotal = calculateSemesterPrice(monthlyTotal);
 
     const handleProceedToPayment = async () => {
         if (selectedPlans.length === 0) {
-            alert("No hay ningún producto seleccionado.");
-            return;
+          alert("No hay ningún producto seleccionado.");
+          return;
         }
         if (!isAuthenticated || !userDetail?.id) {
-            alert("Debes iniciar sesión para continuar.");
-            return;
+          alert("Debes iniciar sesión para continuar.");
+          return;
         }
         try {
-            const planNames = selectedPlans.map(plan => plan.suscripName);
-            const paymentData = await getPaymentUrl(userDetail.id, planNames);
-            
-            if (paymentData && paymentData.init_point) {
-                window.location.href = paymentData.init_point;
-            } else {
-                throw new Error('No se recibió una URL de pago válida');
-            }
+          const paymentData = await getPaymentUrl(
+            userDetail.id, 
+            selectedPlans.map(plan => plan.suscripName), // Enviamos solo los nombres de los planes
+            discountToken ? discountToken.token : null // Pasamos el token si existe
+          );
+          
+          if (paymentData && paymentData.init_point) {
+            window.location.href = paymentData.init_point;
+          } else {
+            throw new Error('No se recibió una URL de pago válida');
+          }
         } catch (error) {
-            console.error('Error al procesar el pago:', error);
-            alert('Hubo un error al procesar el pago. Por favor, inténtelo de nuevo.');
+          console.error('Error al procesar el pago:', error);
+          alert('Hubo un error al procesar el pago. Por favor, inténtelo de nuevo.');
         }
     };
 
@@ -207,12 +225,12 @@ function PaymentGateway() {
                 {isModalOpen && (
                     <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center">
                         <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-                            <h2 className="text-xl font-semibold mb-4">Ingresa tu token de acceso</h2>
+                            <h2 className="text-xl font-semibold mb-4">Ingresa tu token</h2>
                             <input
                                 type="text"
                                 value={inputToken}
                                 onChange={(e) => setInputToken(e.target.value)}
-                                placeholder="Token de acceso"
+                                placeholder="Token"
                                 className="w-full border border-gray-300 p-2 rounded-md mb-4"
                             />
                             <div className="flex justify-between">
@@ -296,56 +314,63 @@ function PaymentGateway() {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white rounded-lg shadow-md p-6 w-full md:w-80">
-                    <h2 className="text-xl font-semibold mb-4">Resumen de Pago</h2>
-                    <div>
-                        <div className="flex justify-between font-semibold text-lg mb-2">
-                            <span>Subtotal mensual:</span>
-                            <span>{formatPrice(monthlyTotal)}</span>
+                <div className='flex grow'>
+                    <div className=''>
+                        <div className='bg-white rounded-lg shadow-md p-6 mb-6'>
+                            <button
+                                onClick={() => setIsModalOpen(true)}  // Abrir el modal
+                                className="w-full py-2 px-4 rounded-md bg-red-500 text-white hover:bg-red-600 transition"
+                            >
+                                Tengo un token
+                            </button>
                         </div>
-                        {discountToken && (
-                            <div className="flex justify-between font-semibold text-lg text-green-600">
-                                <span>Descuento aplicado ({discountToken.discount}%)</span>
-                                <span>-{formatPrice((totalPrice - monthlyTotal) / 6)}/mes</span>
+                        <div className="bg-white rounded-lg shadow-md p-6 w-full md:w-80">
+                            <h2 className="text-xl font-semibold mb-4">Resumen de Pago</h2>
+                            <div>
+                                <div className="flex justify-between font-semibold text-lg mb-2">
+                                    <span>Subtotal mensual:</span>
+                                    <span>{formatPrice(monthlySubtotal)}</span>
+                                </div>
+                                {discountToken && (
+                                    <div className="flex justify-between font-semibold text-lg text-green-600">
+                                        <span>Descuento aplicado ({discountToken.discount}%)</span>
+                                        <span>-{formatPrice(monthlyDiscount)}/mes</span>
+                                    </div>
+                                )}
+                                <div className="border-t pt-4 mt-4">
+                                    <div className="flex justify-between font-semibold text-lg">
+                                        <span>Total mensual:</span>
+                                        <span>{formatPrice(monthlyDiscountedTotal)}</span>
+                                    </div>
+                                    <div className="flex justify-between font-semibold text-xl mt-2 text-blue-600">
+                                        <span>Total a pagar (semestral):</span>
+                                        <span>{formatPrice(semesterTotal)}</span>
+                                    </div>
+                                </div>
                             </div>
-                        )}
-                        <div className="border-t pt-4 mt-4">
-                            <div className="flex justify-between font-semibold text-lg">
-                                <span>Total mensual:</span>
-                                <span>{formatPrice(monthlyTotal)}</span>
-                            </div>
-                            <div className="flex justify-between font-semibold text-xl mt-2 text-blue-600">
-                                <span>Total a pagar (semestral):</span>
-                                <span>{formatPrice(semesterTotal)}</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div className="mt-6 space-y-4">
-                        <p className="text-sm text-gray-600">
-                            Los precios mostrados son mensuales. El pago se realizará por un período semestral (6 meses) 
-                            a través de la plataforma segura de MercadoPago. Al hacer clic en "Proceder al Pago", 
-                            serás redirigido a MercadoPago para completar tu transacción por el monto semestral.
-                        </p>
-                        <button 
-                            onClick={handleProceedToPayment}
-                            disabled={selectedPlans.length === 0}
-                            className={`w-full py-2 px-4 rounded-md transition ${
-                                selectedPlans.length === 0
-                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                            }`}
-                        >
-                            Proceder al Pago Semestral
-                        </button>
-                        <button 
-                            onClick={() => setIsModalOpen(true)}  // Abrir el modal
-                            className="w-full py-2 px-4 rounded-md bg-red-500 text-white hover:bg-red-600 transition"
-                        >
-                            Tengo un token
-                        </button>
+                            <div className="mt-6 space-y-4">
+                                <p className="text-sm text-gray-600">
+                                    Los precios mostrados son mensuales. El pago se realizará por un período semestral (6 meses) 
+                                    a través de la plataforma segura de MercadoPago. Al hacer clic en "Proceder al Pago", 
+                                    serás redirigido a MercadoPago para completar tu transacción por el monto semestral.
+                                </p>
+                                <button 
+                                    onClick={handleProceedToPayment}
+                                    disabled={selectedPlans.length === 0}
+                                    className={`w-full py-2 px-4 rounded-md transition ${
+                                        selectedPlans.length === 0
+                                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                                    }`}
+                                >
+                                    Proceder al Pago Semestral
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
+                
             </div>
         </div>
     );

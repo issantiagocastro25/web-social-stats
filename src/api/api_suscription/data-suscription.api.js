@@ -7,11 +7,12 @@ export const getPricing = async () => {
     return response.data;
 };
 
-export const getPaymentUrl = async (user_id, plans) => {
+export const getPaymentUrl = async (user_id, plans, discountToken = null) => {
   try {
     const response = await api.post('/payment/create-subscription/', {
       plans: plans,
       user_id: user_id,
+      discount_token: discountToken,
     }, {
       headers: {
         'Content-Type': 'application/json'
