@@ -429,8 +429,8 @@ const SocialStatsDashboard: React.FC<SocialStatsDashboardProps> = ({
             />
 
             {(currentSection === 'salud' || currentSection === 'compensacion') && 
-             !isLoading && 
-             activeCategory === 'Todos' && (
+            !isLoading && 
+            activeCategory === 'Todos' && (
               <PopulationCard 
                 selectedDate={selectedDate}
                 availableDates={availableDates}

@@ -46,28 +46,22 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
       setIsLoading(true);
       setError(null);
       try {
-        const endpoint = category === 'compensacion' 
-          ? `${API_URL}/api/social-metrics/followers/social-networks/compensacion`
-          : `${API_URL}/api/social-metrics/followers`;
-        
         const promises = availableDates.map(date => 
-          axios.get<GeneralPopulationData>(endpoint, {
+          axios.get<GeneralPopulationData>(`${API_URL}/api/social-metrics/followers`, {
             params: { category, stats_date: date }
           })
         );
         const responses = await Promise.all(promises);
         const data = responses.map(response => response.data);
         
-        const uniqueData = data.reduce((acc, current) => {
-          const x = acc.find(item => item.date_stat === current.date_stat);
-          if (!x) {
-            return acc.concat([current]);
-          } else {
-            return acc;
-          }
-        }, [] as GeneralPopulationData[]).sort((a, b) => a.date_stat - b.date_stat);
+        // Sort data by year and remove duplicates
+        const uniqueSortedData = data
+          .sort((a, b) => a.date_stat - b.date_stat)
+          .filter((item, index, self) =>
+            index === self.findIndex((t) => t.date_stat === item.date_stat)
+          );
 
-        setGeneralData(uniqueData);
+        setGeneralData(uniqueSortedData);
       } catch (error) {
         console.error('Error fetching general data:', error);
         setError('Error al cargar los datos generales de población');
@@ -84,28 +78,22 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
       setIsLoading(true);
       setError(null);
       try {
-        const endpoint = category === 'compensacion'
-          ? `${API_URL}/api/social-metrics/followers/social-networks/compensacion`
-          : `${API_URL}/api/social-metrics/followers/social-networks`;
-
         const promises = availableDates.map(date => 
-          axios.get<DetailedPopulationData>(endpoint, {
+          axios.get<DetailedPopulationData>(`${API_URL}/api/social-metrics/followers/social-networks`, {
             params: { category, stats_date: date }
           })
         );
         const responses = await Promise.all(promises);
         const data = responses.map(response => response.data);
-        
-        const uniqueData = data.reduce((acc, current) => {
-          const x = acc.find(item => item.date_stat === current.date_stat);
-          if (!x) {
-            return acc.concat([current]);
-          } else {
-            return acc;
-          }
-        }, [] as DetailedPopulationData[]).sort((a, b) => a.date_stat - b.date_stat);
 
-        setDetailedData(uniqueData);
+        // Sort data by year and remove duplicates
+        const uniqueSortedData = data
+          .sort((a, b) => a.date_stat - b.date_stat)
+          .filter((item, index, self) =>
+            index === self.findIndex((t) => t.date_stat === item.date_stat)
+          );
+
+        setDetailedData(uniqueSortedData);
       } catch (error) {
         console.error('Error fetching detailed data:', error);
         setError('Error al cargar los datos detallados de población');
@@ -117,17 +105,9 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
     fetchDetailedData();
   }, [availableDates, API_URL, category]);
 
-  const filteredGeneralData = useMemo(() => {
-    return generalData.filter(data => data.date_stat <= selectedYear);
-  }, [generalData, selectedYear]);
-
-  const filteredDetailedData = useMemo(() => {
-    return detailedData.filter(data => data.date_stat <= selectedYear);
-  }, [detailedData, selectedYear]);
-
   const currentData = useMemo(() => {
-    return filteredGeneralData[filteredGeneralData.length - 1];
-  }, [filteredGeneralData]);
+    return generalData.find(data => data.date_stat === selectedYear) || generalData[generalData.length - 1];
+  }, [generalData, selectedYear]);
 
   const formatLargeNumber = (num?: number) => {
     if (num === undefined) return 'N/A';
@@ -140,7 +120,7 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
   };
 
   const renderGeneralChart = () => {
-    const chartData = filteredGeneralData.map(item => ({
+    const chartData = generalData.map(item => ({
       year: item.date_stat,
       "Tasa de Penetración": item.percentage_penetration
     }));
@@ -158,7 +138,7 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
             index="year"
             categories={["Tasa de Penetración"]}
             colors={["blue"]}
-            valueFormatter={(number) => `${number?.toFixed() || 'N/A'}%`}
+            valueFormatter={(number) => `${number?.toFixed(2) || 'N/A'}%`}
             yAxisWidth={56}
             showYAxis={true}
             showLegend={false}
@@ -177,13 +157,13 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
   };
 
   const renderSocialNetworkChart = () => {
-    if (filteredDetailedData.length === 0) return null;
+    if (detailedData.length === 0) return null;
 
-    const processedData = filteredDetailedData.map(yearData => ({
+    const processedData = detailedData.map(yearData => ({
       year: yearData.date_stat,
       ...socialNetworks.reduce((acc, network) => ({
         ...acc,
-        [network]: yearData.social_networks[network]?.percentage_penetration || 0
+        [network]: yearData.social_networks?.[network]?.percentage_penetration || 0
       }), {})
     }));
 
@@ -211,7 +191,7 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
           index="year"
           categories={categories}
           colors={["blue", "cyan", "pink", "red", "green"]}
-          valueFormatter={(number) => `${number?.toFixed(1) || 'N/A'}%`}
+          valueFormatter={(number) => `${number?.toFixed(2) || 'N/A'}%`}
           yAxisWidth={70}
           showYAxis={true}
           showLegend={true}
@@ -266,7 +246,7 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
           </div>
           <div className='flex gap-x-3'>
             <Text>Tasa de penetración</Text>
-            <Metric className='text-secondary-dark'>{currentData.percentage_penetration?.toFixed(0) || 'N/A'}%</Metric>
+            <Metric className='text-secondary-dark'>{currentData.percentage_penetration?.toFixed(2) || 'N/A'}%</Metric>
           </div>
         </div>
         
