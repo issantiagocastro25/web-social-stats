@@ -142,7 +142,7 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
             index="year"
             categories={["Tasa de Penetración"]}
             colors={["blue"]}
-            valueFormatter={(number) => `${number?.toFixed(2) || 'N/A'}%`}
+            valueFormatter={(number) => `${number?.toFixed(0) || 'N/A'}%`}
             yAxisWidth={56}
             showYAxis={true}
             showLegend={false}
@@ -195,7 +195,7 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
           index="year"
           categories={categories}
           colors={["blue", "cyan", "pink", "red", "green"]}
-          valueFormatter={(number) => `${number?.toFixed(2) || 'N/A'}%`}
+          valueFormatter={(number) => `${number?.toFixed(1) || 'N/A'}%`}
           yAxisWidth={70}
           showYAxis={true}
           showLegend={true}
