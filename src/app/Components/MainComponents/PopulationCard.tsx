@@ -228,7 +228,7 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
             </Title>
             <p>
               {category === 'compensacion' 
-                ? 'Porcentaje de la población Colombiana que sigue alguna página de cajas de compensación'
+                ? 'Porcentaje de afiliados y beneficiarios que siguen alguna página oficial de las cajas de compensación en las redes sociales'
                 : 'Porcentaje de la población Colombiana que sigue alguna página de salud institucional'}
             </p>
           </div>
@@ -237,7 +237,7 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
         
         <div className='grid justify-start align-baseline space-x-2 mt-4'>
           <div className='flex gap-x-3'>
-            <Text className='pl-2'>Población Colombia: </Text>
+            <Text className='pl-2'>Total afiliados y beneficiados: </Text>
             <Metric className='text-secondary-dark'>{formatLargeNumber(currentData.poblation)}</Metric>
           </div>
           <div className='flex gap-x-3'>
@@ -259,8 +259,8 @@ const PopulationCard: React.FC<PopulationCardProps> = ({
             Comparación de Tasas de Penetración por Red Sociales
           </p>
           <span className='text-base'>
-            Porcentaje de los usuarios de cada red social en Colombia que siguen alguna página 
-            {category === 'compensacion' ? ' de cajas de compensación' : ' de salud institucional'}
+            
+            {category === 'compensacion' ? ' Porcentaje de afiliados y beneficiados que siguen páginas oficiales de las Cajas de compensación por tipo de red social' : ' Porcentaje de los usuarios de cada red social en Colombia que siguen alguna página '}
           </span>
         </div>
         <Select value={selectedNetwork} onValueChange={setSelectedNetwork as any}>
